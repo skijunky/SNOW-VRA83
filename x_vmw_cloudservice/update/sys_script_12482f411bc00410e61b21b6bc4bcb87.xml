@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>true</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_shared_resources</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>VRADeleteSharedResources</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+
+	this.appUtil = new CASAppUtil();
+
+
+	this.appUtil  = new CASAppUtil();
+
+	var  removeDuplicate=function(sysIdArr) {
+		
+		var newARR=[];
+		for(var i in sysIdArr) {
+			if(newARR.indexOf(sysIdArr[i]) == -1)
+				newARR.push(sysIdArr[i]);
+		}
+
+		return newARR;
+	};
+
+	var fetchRemoval=function(pre, cur) {
+		var mainArray  = pre.concat(cur);
+		var removalArray = [];
+		mainArray = removeDuplicate(mainArray);
+		for (var i = 0; i < mainArray.length; i++) {
+
+			if (cur.indexOf(mainArray[i]) != -1) {
+				removalArray.push(mainArray[i]);
+			}
+
+		}
+		
+		return removalArray;
+	};
+
+	//machines logic
+	if (current.machines) {
+		try{
+            CASLogger.debug('Inside  VRADeleteSharedResources.Business Rule : Deletion of Resource');
+			var machineGR = new GlideRecord(this.appUtil.configuration.table.machines);
+			machineGR.addEncodedQuery('sys_idIN'+ current.machines);
+			machineGR.query();
+			while(machineGR.next()) {
+				var mainSet = [];
+				var entitledUser = machineGR.entitled_users+'';
+				entitledUser = entitledUser.split(',');
+				for (var index = 0; index < entitledUser.length; index++) {
+					mainSet.push(entitledUser[index]);
+				}
+
+				var currentUser = current.users+'';
+				currentUser = currentUser.split(',');
+				for (var index1 = 0; index1 < currentUser.length; index1++) {
+					mainSet.push(currentUser[index1]);
+				}
+
+				mainSet = removeDuplicate(mainSet);
+				var removalArray = fetchRemoval(entitledUser, currentUser);
+				for (var index2 = 0; index2 < removalArray.length; index2++) {
+					
+					
+					var gr=new GlideRecord('x_vmw_cloudservice_shared_resources');
+					gr.addEncodedQuery('usersLIKE'+removalArray[index2]+'^sys_id!='+current.sys_id+'^machinesLIKE'+machineGR.getUniqueValue());
+					
+					gr.query();
+					var flag=0;
+					if(gr.next()){
+						flag=1;
+					}
+
+					if(flag==0){
+						
+					var mainSetIndex = mainSet.indexOf(removalArray[index2]);
+					mainSet.splice(mainSetIndex, 1);
+				}
+				}
+				
+				var returnString = mainSet.join(',');
+				machineGR.entitled_users = returnString;
+
+
+				var mainSetGroup = [];
+				var entitledGroup = machineGR.entitled_groups+'';
+				entitledGroup = entitledGroup.split(',');
+				for (var indexG = 0; indexG < entitledGroup.length; indexG++) {
+					mainSetGroup.push(entitledGroup[indexG]);
+				}
+
+				var currentGroup = current.groups+'';
+				currentGroup = currentGroup.split(',');
+				for (var indexP = 0; indexP < currentGroup.length; indexP++) {
+					mainSet.push(currentGroup[indexP]);
+				}
+
+				mainSetGroup = removeDuplicate(mainSetGroup);
+				var removalArrayGroup = fetchRemoval(entitledGroup, currentGroup);
+				for (var indexR = 0; indexR < removalArrayGroup.length; indexR++) {
+					
+					
+					var gr=new GlideRecord('x_vmw_cloudservice_shared_resources');
+					gr.addEncodedQuery('groupsLIKE'+removalArrayGroup[indexR]+'^sys_id!='+current.sys_id+'^machinesLIKE'+machineGR.getUniqueValue());
+					
+					gr.query();
+					var flag=0;
+					if(gr.next()){
+						flag=1;
+					}
+
+					if(flag==0){
+					
+					var mainSetIndexGroup = mainSetGroup.indexOf(removalArrayGroup[indexR]);
+					mainSetGroup.splice(mainSetIndexGroup, 1);
+				}
+				}
+				var returnStringGroup = mainSetGroup.join(',');
+				machineGR.entitled_groups = returnStringGroup;
+
+				machineGR.update();
+
+			}
+		}
+		catch(e) {
+			CASLogger.error('Exception caught inside BR VRADeleteSharedResources : if(current.machines)' +e);
+		}
+
+	}
+
+//deployments
+	if (current.deployments) {
+		try{
+			 CASLogger.debug('Inside  VRADeleteSharedResources.Business Rule : Deletion of Deployments');
+			//var test='';
+			var deploymentGR = new GlideRecord(this.appUtil.configuration.table.deployments);
+			deploymentGR.addEncodedQuery('sys_idIN'+ current.deployments);
+			deploymentGR.query();
+			while(deploymentGR.next()) {
+				
+				var mainSet1 = [];
+				var entitledUser1 = deploymentGR.entitled_users+'';
+				entitledUser1 = entitledUser1.split(',');
+				for (var index6 = 0; index6 < entitledUser1.length; index6++) {
+					mainSet1.push(entitledUser1[index6]);
+				}
+				
+				var currentUsers = current.users+'';
+				currentUsers = currentUsers.split(',');
+				
+				for (var index11 = 0; index11 < currentUsers.length; index11++) {
+					mainSet1.push(currentUsers[index11]);
+				}
+
+				mainSet1 = removeDuplicate(mainSet1);
+				
+				
+				
+				var removalArray2 = fetchRemoval(entitledUser1, currentUsers);
+				for (var index4 = 0; index4 < removalArray2.length; index4++) {
+				
+				
+					var gr1=new GlideRecord('x_vmw_cloudservice_shared_resources');
+					gr1.addEncodedQuery('usersLIKE'+removalArray2[index4]+'^sys_id!='+current.sys_id+'^deploymentsLIKE'+deploymentGR.getUniqueValue());
+					
+					gr1.query();
+				
+					var flag1=0;
+					if(gr1.next()){
+						
+						flag1=1;
+					}
+
+					if(flag1==0){
+						
+					var mainSetIndex1 = mainSet1.indexOf(removalArray2[index4]);
+						mainSet1.splice(mainSetIndex1,1);	
+
+					}
+				}
+
+				var returnString2 = mainSet1.join(',');
+				deploymentGR.entitled_users = returnString2;
+//				deploymedjbjdbjbjntGR.update();
+
+				var mainSetGroup1 = [];
+				var entitledGroup1 = deploymentGR.shared_groups+'';
+				entitledGroup1 = entitledGroup1.split(',');
+				for (var indexG = 0; indexG < entitledGroup1.length; indexG++) {
+					
+					mainSetGroup1.push(entitledGroup1[indexG]);
+				}
+
+				
+				var currentGroup1 = current.groups+'';
+				currentGroup1 = currentGroup1.split(',');
+				for (var indexP = 0; indexP < currentGroup1.length; indexP++) {
+					mainSetGroup1.push(currentGroup1[indexP]);
+				}
+
+				
+				mainSetGroup1 = removeDuplicate(mainSetGroup1);
+				//gs.info('Deployments entitledUser'+entitledUser1);
+				
+				var removalArrayGroup1 = fetchRemoval(entitledGroup1, currentGroup1);
+				
+				for (var indexR = 0; indexR < removalArrayGroup1.length; indexR++) {
+					
+					
+					
+					var gr3=new GlideRecord('x_vmw_cloudservice_shared_resources');
+					gr3.addEncodedQuery('groupsLIKE'+removalArrayGroup1[indexR]+'^sys_id!='+current.sys_id+'^deploymentsLIKE'+deploymentGR.getUniqueValue());
+					
+					gr3.query();
+					var flag2=0;
+					if(gr3.next()){
+						flag2=1;
+					}
+
+					if(flag2==0){
+					
+					var mainSetIndexGroup2 = mainSetGroup1.indexOf(removalArrayGroup1[indexR]);
+					mainSetGroup1.splice(mainSetIndexGroup2, 1);
+				}
+				}
+				
+				
+				var returnStringGroup3 = mainSetGroup1.join(',');
+				
+				deploymentGR.shared_groups = returnStringGroup3;
+				deploymentGR.update();
+				
+			}
+
+		}
+
+		catch(e) {
+			CASLogger.error('Exception caught inside BR VRADeleteSharedResources : if(current.deployment)' +e);
+		}
+
+	}
+
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-09-21 06:31:28</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>12482f411bc00410e61b21b6bc4bcb87</sys_id>
+        <sys_mod_count>29</sys_mod_count>
+        <sys_name>VRADeleteSharedResources</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_12482f411bc00410e61b21b6bc4bcb87</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-02-11 09:27:18</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=12482f411bc00410e61b21b6bc4bcb87"/>
+</record_update>

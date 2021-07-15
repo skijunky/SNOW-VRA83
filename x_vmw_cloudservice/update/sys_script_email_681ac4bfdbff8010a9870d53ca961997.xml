@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>Display_Request_State</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript( /* GlideRecord. */ current, /* TemplatePrinter */ template,
+    /* Optional EmailOutbound */
+    email, /* Optional GlideRecord */ email_action,
+    /* Optional GlideRecord */
+    event) {
+
+    var appUtil = new CASAppUtil();
+    try {
+        CASLogger.debug('Inside Display_Deployments_RITM :Notification email script');
+        var gr = new GlideRecordSecure(appUtil.configuration.table.deployments);
+
+		var dep = '';
+		var state = '';
+		
+        gr.addQuery('deployment_id', current.x_vmw_cloudservice_deployment_id);
+        gr.query();
+        if (gr.next()) {
+            dep = gr.name;
+        } else {
+            dep= '&nbsp &nbsp &nbsp &nbsp &nbsp-';
+        }
+
+		if (current.state == '4' || current.state == 4) {
+			state = "Your Deployment provisioning request has been Failed.";
+		} else if (current.state == '3' || current.state == 3) {
+			state = "Your Deployment provisioning request has been Successful";
+		}
+		
+		template.print(
+		"<div style='height: inherit; width: 100%; padding: 4px; text-align: center; background-color: #ffffbf; margin: 10px 0px 20px 0px; font-family: arial; font-weight: 400; font-size: 19px;'><strong>Deployment Request ${number} Details</strong></div><div style='margin: 10px 0px 10px 0px;font-family: arial; font-size: 14.5px;'><p>Hi ${opened_by},</p><p>Your Deployment Request ${number} has been completed with the following details.</p></div><p>&nbsp;</p><table style='font-family: arial; border-collapse: collapse; width: 100%; margin-top: -30px;'><tbody><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;'>Requested Item Number</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;'><strong>${number}</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;'>Catalog Item Name</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;'><strong>${cat_item}</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;'>Requested Item State</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;'><strong>"+ state +"</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;'>Deployment Details</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;'><strong>"+ dep +"</strong></td></tr></tbody></table><p></p>"
+		);
+		
+    } catch (e) {
+        CASLogger.error('Exception caught inside Display_Deployments_RITM :Notification email script' + e);
+    }
+   
+
+})(current, template, email, email_action, event);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>prateek</sys_created_by>
+        <sys_created_on>2020-04-02 13:18:30</sys_created_on>
+        <sys_id>681ac4bfdbff8010a9870d53ca961997</sys_id>
+        <sys_mod_count>7</sys_mod_count>
+        <sys_name>Display_Request_State</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_email_681ac4bfdbff8010a9870d53ca961997</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-05-01 15:03:19</sys_updated_on>
+    </sys_script_email>
+</record_update>

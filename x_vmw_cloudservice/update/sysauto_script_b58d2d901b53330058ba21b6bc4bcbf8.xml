@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sysauto_script">
+    <sysauto_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <business_calendar/>
+        <condition/>
+        <conditional>true</conditional>
+        <entered_time/>
+        <name>vRA  Import Catalog</name>
+        <run_as/>
+        <run_as_tz/>
+        <run_dayofmonth>1</run_dayofmonth>
+        <run_dayofweek>1</run_dayofweek>
+        <run_period>1970-01-02 00:00:00</run_period>
+        <run_start>2019-08-12 06:48:23</run_start>
+        <run_time>1970-01-01 08:00:00</run_time>
+        <run_type>periodically</run_type>
+        <script><![CDATA[(function(){
+	
+	var appUtil = new CASAppUtil();
+	var Catalog = new CASDaoUtil();
+	try
+	{
+		var configurationChecks = gs.getProperty(appUtil.configuration.properties.configurationCheck);
+		if(configurationChecks == 'true')
+		{
+			CASLogger.debug('Inside Import Catalog');
+			Catalog.ScheduledJobCatalogImport();
+		}
+	}
+	catch(e)
+	{
+		CASLogger.error("Exception caught inside vRA  Import Catalog"+e);
+	}
+
+})();]]></script>
+        <sys_class_name>sysauto_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-08-12 06:50:13</sys_created_on>
+        <sys_id>b58d2d901b53330058ba21b6bc4bcbf8</sys_id>
+        <sys_mod_count>14</sys_mod_count>
+        <sys_name>vRA  Import Catalog</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sysauto_script_b58d2d901b53330058ba21b6bc4bcbf8</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-01-18 12:50:10</sys_updated_on>
+        <time_zone/>
+        <upgrade_safe>false</upgrade_safe>
+    </sysauto_script>
+</record_update>

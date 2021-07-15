@@ -1,0 +1,709 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope,$window) {
+	/* widget controller */
+	var c = this;
+	$scope.res_name = $scope.resourceName = (c.data.response && c.data.response.name) ? c.data.response.name : null;
+	$scope.res_desc =  (c.data.response && c.data.response.description) ? c.data.response.description : null;
+	$scope.deployment_list = (c.data.response && c.data.response.deployments) ? c.data.response.deployments : null;
+	$scope.updateAnswer=function(list,field_name){
+		if(typeof list=='object'){
+			c.data.answer[field_name]=list.value;
+		}
+		else{
+			c.data.answer[field_name]=list;
+		}
+	}
+
+	
+	$scope.submit=function(form){
+	//	 console.log(form)
+		if(form.$valid){
+			c.data.action='submit';
+			c.server.update();
+			$window.history.back();
+		}else{
+			var error='';
+			if(c.data.answer['users']==''&&c.data.answer['groups']==''){
+				error='. Atleast select one user or a group.';
+			}
+			alert('Mandatory fields left blank '+error);
+			return;
+		}
+	}
+
+	$scope.updateMachinesFilter=function(){
+		c.data.action='updateFilter';
+		c.server.update().then(function(){
+			c.data.action='';
+			$scope.updateMachinesArray();
+		
+		})
+	}
+	
+	$scope.cancel=function(){
+		$window.history.back();
+	}
+	
+	$scope.updateMachinesArray=function(){
+		//if(c.data.answer.machines.length!=0){
+			c.data.action='updateMachinesArray';
+			c.server.update().then(function(){
+				c.data.action='';
+				$scope.machine_list.value=c.data.answer.machines.toString();
+				
+				$scope.machine_list.displayValue=c.data.answer.machines_name.toString();
+			})
+		//}else{
+		//	return;
+		//}
+	}
+	
+	//	alert(c.data.ansdeployments)
+	
+	$scope.deployment_list= {
+		value:(c.data.answer.deployments)? c.data.answer.deployments.toString():'',
+		displayValue:(c.data.answer.deployments_name)?c.data.answer.deployments_name.toString():'',
+		name: 'deployments'
+
+	};
+
+	$scope.machine_list= {
+		value: (c.data.answer.machines)?c.data.answer.machines.toString():'',
+		displayValue: (c.data.answer.machines_name)?c.data.answer.machines_name.toString():'',
+		name: 'machines'
+	};
+	$scope.users_list= {
+		value: (c.data.answer.users)?c.data.answer.users.toString():'',
+		displayValue: (c.data.answer.users_name)?c.data.answer.users_name.toString():'',
+		name: 'users'
+	};
+	$scope.groups_list= {
+		value: (c.data.answer.groups)?c.data.answer.groups.toString():'',
+		displayValue: (c.data.answer.groups_name)?c.data.answer.groups_name.toString():'',
+		name: 'users'
+	};
+
+	$scope.$on("field.change", function(evt, parms) {
+
+		if (parms.field.name == 'deployments') {
+			c.data.action='updateMachines';
+
+		}
+
+
+	});
+
+	$scope.deleteSharedResource=function(){
+		if(confirm('Are you sure to unshare the shared resource ? ')){
+			c.data.action='delete';
+			c.server.update().then(function(){
+				c.data.action='';
+				$window.history.back();
+			})
+		}
+	}
+
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>
+.cas-clr-col-6 &gt; h2 {
+  margin-top: 0;
+  line-height: 1.475rem;
+}
+.fullwidth{
+  width:100%;
+}
+
+.header-tool-container {
+  display: flex;
+}
+.wdg-btn-link {
+  padding: 0;
+  margin: 0;
+  max-width: 30px;
+  min-width: 30px;
+  fill: #0078b8;
+  &amp;:hover  {
+    fill: #004d8a;
+  }
+}
+.cas-disabled {
+  fill: #565656;
+  cursor: not-allowed;
+  opacity: .4;
+  background-color: transparent;
+  border-color: transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  &amp;:hover {
+    fill: #565656;
+  }
+}
+.wdg-badge-count {
+  vertical-align: middle;
+}
+
+.cas-search {
+  width: calc(100% - 260px);
+}
+.infinite-container {
+  height: calc(100vh - 10rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.col-lg-3, .col-md-4, col-12 {
+  padding: 0px 12px;
+}
+span[shape="search"] {
+  margin: 3px;
+}
+span[shape="user"],
+span[shape="users"],
+span[shape="vm"],
+span[shape="vmw-app"] {
+  margin-right: 5px;
+  vertical-align: top;
+}
+/*span[shape="vmw-app"] {
+margin-right: 5px;
+vertical-align: top;
+}
+span[shape="user"] {
+margin-right: 5px;
+vertical-align: top;
+}*/
+span[shape="success-standard"], span[shape="close-circle"], span[shape="info-standard"] {
+  vertical-align: text-bottom;
+}
+
+.wdg-desc {
+  display: inline-block;
+  width: calc(100% - 45px);
+  a {
+    font-size: 16px;
+  }
+  div {
+    font-size: 12px;
+  }
+}
+
+.wdg-desc.wdg-empty {
+  color: #9a9a9a !important;
+}
+
+
+.wdg-value {
+  font-weight: 500;
+}
+input, textarea, select, .dropdown {
+  width: 100%;
+}
+
+.cas-dropdown .cas-dropdown-toggle.cas-btn {
+  padding-right: 0.5rem;
+}
+
+.cas-dropdown-item {
+  padding: .125rem 1rem;
+}
+.cas-dropdown-menu{
+  visibility: visible;
+}
+
+.wdg-action {
+  position: absolute;
+  right: 0;
+  top: 6px;
+}
+
+.margin-top-05 {
+  margin-top: .5rem;
+}
+
+/* CSS classes for rsGrid*/
+
+.cas-clr-checkbox-wrapper input[type=checkbox], .cas-clr-radio-wrapper input[type=radio] {
+  position: absolute;
+  opacity: 0;
+  top: 5px;
+  left: 0;
+  height: .66667rem;
+  width: .66667rem;
+}
+
+.cas-clr-checkbox-wrapper
+.cas-clr-control-label {
+  font-weight: 400;
+  display: block;
+}
+
+.cas-clr-checkbox-wrapper label, 
+.cas-clr-radio-wrapper label {
+  position: relative;
+  margin-bottom: 0;
+  display: inline-block;
+  color: #000;
+  min-height: 1rem;
+  padding-left: .916667rem;
+  margin-top: 0;
+  cursor: pointer;
+  line-height: 1rem;
+}
+
+.cas-clr-control-label {
+  display: block;
+  color: #444;
+  font-size: .541667rem;
+  font-weight: 600;
+  line-height: .75rem;
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::before {
+  position: absolute;
+  top: .1666665rem;
+  left: 0;
+  content: "";
+  display: inline-block;
+  height: .666667rem;
+  width: .666667rem;
+  border: 1px solid #9a9a9a;
+  border-radius: .125rem;
+}
+
+.cas-table thead th:first-child {
+  border-radius: calc(.125rem - 1px) 0 0 0;
+}
+
+th.left {
+  text-align: left;
+}
+.cas-table tbody tr:first-child td {
+  border-top: 0 none;
+}
+
+.cas-table td.left, .table th.left {
+  text-align: left;
+}
+.cas-table td {
+  font-size: .541667rem;
+  border-top: 1px solid #eee;
+  vertical-align: top;
+}
+.cas-table td, .table th {
+  line-height: .5833334rem;
+  padding: .4583333333rem .5rem;
+  text-align: center;
+}
+.cas-checkbox-container {
+  padding: 6px 0 6px 14px !important;
+}
+
+.cas-open{
+  display: none;
+}
+
+.cas-card-text {
+  font-size: .583333rem;
+}
+.cas-card-text .value {
+  font-weight: 500;
+}
+.cas-card-text .value-desc {
+  line-height: .75rem;
+  font-size: .5rem;
+}
+.cas-card-block &gt; button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+.cas-card .cas-card-block .cas-card-text {
+  margin-bottom: 0;
+}
+.desc a {
+  font-size: 16px;
+}
+.desc div {
+  font-size: 12px;
+}
+a.link-visited:link, a:visited {
+  color: #5659b9;
+  text-decoration: none;
+}
+
+a.link-normal:link, a:link {
+  color: #0079b8;
+  text-decoration: none;
+}
+
+.cas-clr-col-md-5, .cas-clr-col-md-6 {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 41.6666666667%;
+  flex: 0 0 41.6666666667%;
+  //max-width: 41.6666666667%;
+}
+.cas-clr-col-md-2 {
+  -ms-flex: 0 0 16.6666666667%;
+  flex: 0 0 16.6666666667%;
+  max-width: 16.6666666667%;
+}
+
+.cas-btn-primary .cas-btn, .cas-btn.cas-btn-primary {
+  border-color: #007cbb;
+  background-color: #007cbb;
+  color: #fff;
+}
+.select2-container-multi .select2-choices .select2-search-choice{
+  max-width: 95%;
+  border: 1px solid #89cbdf;
+  font-size: .458333rem;
+  font-weight: 400;
+  letter-spacing: .03em;
+  line-height: .458333rem;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  padding: 0 .8rem 0 .5rem;
+  border-radius: .5rem;
+  height: .875rem;
+  white-space: nowrap;
+  color: #565656;
+}
+.select2-search-choice &gt; div{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.select2-container-multi .select2-search-choice-close {
+  left: unset;
+  top: 3px;
+}
+.select2-container-multi.select2-container-active .select2-choices {
+  border: none;
+  box-shadow: none;
+  border-bottom: 1px solid #89cbdf;
+  background-color: transparent;
+  outline: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+}
+
+.select2-container-multi .select2-choices {
+  height: auto !important;
+  height: 1%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  border:none;
+  border-bottom: 1px solid #bdc0c4;
+  border-radius: unset;
+  cursor: text;
+  overflow: hidden;
+  background-color: transparent;
+}
+.select2-container {
+  display: block;
+  background-color: transparent;
+  border-radius: unset;
+}
+
+.select2-search-field&gt;input[type=text]:not([readonly]):focus{
+  border:none;
+}
+
+.form-container {
+  height: calc(100vh - 218px);
+  overflow-y:auto;
+}
+
+.mandatory{
+  color: #d9534f;
+  font-size: 14px;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_sharedresourceform</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_sharedResourceForm</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object */
+	/* e.g., data.table = $sp.getValue('table'); */
+
+	var resource_id=($sp.getParameter('sysId'))?$sp.getParameter('sysId'):'null';
+
+	var appUtil=new CASAppUtil();
+	var daoUtil=new CASDaoUtil();
+
+	data.urlresourceId = resource_id//$sp.getParameter('sysId');
+	data.deployments_table=appUtil.configuration.table.deployments;
+	data.machines_table=appUtil.configuration.table.machines;
+	data.users_table=appUtil.configuration.table.users_table;
+	data.groups_table=appUtil.configuration.table.groups_table;
+	data.cancelBtnLink = ''+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+appUtil.configuration.page.sharedResources + '&table=' + appUtil.configuration.table.shared_resources + '&order=12';
+	var deployment_id=$sp.getParameter('deploymentSysId');
+	//var machine_id=$sp.getParameter('macSysId');
+	var dep_name=$sp.getParameter('dep_name');
+	//var machine_name="$sp.getParameter('mac_name')";
+	var dep_sysId = $sp.getParameter('deploymentSysId');
+	var machine_id = "";
+	var machine_name = "";
+	
+
+		
+	data.answer={
+		"name":"",
+		"description":"",
+		"deployments":(deployment_id!='')?deployment_id:"",
+		"machines":(machine_id!='')?machine_id:"",
+		"groups":"",
+		"users":"",
+		"res_id":resource_id,
+		"deployments_name":(dep_name!='')?dep_name:"",
+		
+		"machines_name":(machine_name!='')?machine_name:"",
+		"user_id":gs.getUser().getID()
+	}
+
+	//----------Fetching the Single Deployment's Resources for Sharing--------------
+	
+	if(dep_sysId != null) ResourceFetcher(dep_sysId.split(" "));	 
+
+	//------------------------------------------------------------------------------
+
+	data.machines_list={};
+
+	data.deployment_default_query=/*(gs.hasRole('admin'))?'operational_status!=6':*/'operational_status!=6^servicenow_ownerDYNAMIC90d1921e5f510100a9ad2572f2b477fe^ORvra_ownerDYNAMIC90d1921e5f510100a9ad2572f2b477fe';
+	
+	if (data.urlresourceId!='null') {
+		var responseArray = daoUtil.fetchSharedResources({sysId: data.urlresourceId});
+		data.response = responseArray[0];
+		data.answer.name=(responseArray[0].name)?responseArray[0].name:'';
+		data.answer.description = (responseArray[0].description)?responseArray[0].description:'';
+
+		data.answer.deployments = (responseArray[0].deployment_arr)?responseArray[0].deployment_arr:[];
+		data.answer.machines = (responseArray[0].machine_arr)?responseArray[0].machine_arr:[];
+		data.answer.groups = (responseArray[0].groups_arr)?responseArray[0].groups_arr:[];
+		data.answer.users = (responseArray[0].users_arr)?responseArray[0].users_arr:[];
+
+		data.answer.deployments_name = (responseArray[0].deployment_name_arr)?responseArray[0].deployment_name_arr:[];
+		data.answer.machines_name = (responseArray[0].machine_name_arr)?responseArray[0].machine_name_arr:[];
+		data.answer.groups_name = (responseArray[0].groups_name_arr)?responseArray[0].groups_name_arr:[];
+		data.answer.users_name = (responseArray[0].users_name_arr)?responseArray[0].users_name_arr:[];
+
+	} 
+
+	//--------------------Resource Fetcher Function----------
+	function ResourceFetcher(totalDeployment){
+		
+		var result = [];
+		var machinesIdArr = [];
+		var machinesNameArr = [];
+				
+		for(var i=0 ; i<totalDeployment.length ; i++){
+			result.push(daoUtil.fetchPortalRelatedMachines({sysId : totalDeployment[i]}));
+		}
+		
+		result = result.filter(function(i){
+    	return i.length != 0;
+    }) 
+				
+		for(var j=0 ; j < result.length ; j++){
+			for(var k=0 ; k<result[j].length ; k++){
+				machinesIdArr.push(result[j][k].sysId);
+				machinesNameArr.push(result[j][k].name);
+			}
+		} 
+				
+		data.answer.machines = machinesIdArr;
+		data.answer.machines_name = machinesNameArr; 
+		
+	}
+	//--------end------------
+
+	if(input){
+		
+		data.action=input.action;
+		data.answer=input.answer;
+		
+		
+		
+		if(data.action=='submit'){
+			daoUtil.saveSharedResource(data.answer);
+		}
+		if(data.action=='delete'){
+			daoUtil.deleteSharedResource(resource_id);	
+		}
+		if(data.action=='updateFilter'){
+			data.deployment_query=input.deployment_query;
+			data.deployment_query = daoUtil.updateSharedFilter(data.answer.deployments);
+		}
+		if(data.action=='updateMachinesArray'){
+			
+			//--------start--------
+			var totalDeployment = input.answer.deployments.split(",");
+
+			if(totalDeployment[0] != ""){
+				ResourceFetcher(totalDeployment);
+			}
+			//---------end-------
+			
+			//-------start-------
+			if(totalDeployment[0] == ""){
+				CASLogger.error("hello1_dep "+(totalDeployment[0] == ""));
+				data.answer.machines = [];
+				data.answer.machines_name = [];
+			}else{
+				data.deployment_query=input.deployment_query;
+				var machines_arr=daoUtil.updateMachinesArray(data.deployment_query,data.answer.machines);
+				var machines_name_arr=daoUtil.updateMachinesNameArray(data.deployment_query,data.answer.machines);
+				data.answer.machines = (machines_arr) ? (machines_arr):[];
+				data.answer.machines_name=(machines_name_arr) ? (machines_name_arr):[];
+			}
+			//-------end---------
+		
+		}
+	}
+	
+	data.deployment_query=daoUtil.updateSharedFilter(data.answer.deployments);
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-09 10:42:51</sys_created_on>
+        <sys_id>2dbfead9db737700ff7c2946489619c6</sys_id>
+        <sys_mod_count>407</sys_mod_count>
+        <sys_name>CAS_sharedResourceForm</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_2dbfead9db737700ff7c2946489619c6</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-01-16 11:57:37</sys_updated_on>
+        <template><![CDATA[<div class="cas-content-area">
+  <div class="cas-clr-row">
+    <div class="cas-clr-col-6">
+      <h2>
+        <span id="activityHeader">{{(resourceName) ? resourceName : 'New Share'}}</span>
+        <a ng-click="deleteSharedResource()" ng-if="c.data.urlresourceId!='null'" class="cas-btn cas-btn-link cas-btn-sm" >Unshare</a>
+      </h2>
+    </div>
+  </div>
+  <div class="cas-clr-row">
+    <div class="cas-clr-col-12">
+      <form class="cas-clr-form cas-clr-form-horizontal form-container" name="resourcesForm" novalidate>
+        <!--Name-->
+        <div class="cas-clr-form-control">
+          <label for="example1" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Name <span  class="mandatory">*</span> </label>
+          <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5">
+            <div class="cas-clr-input-wrapper">
+              <input ng-change="updateAnswer(res_name,'name')" type="text" 
+                     name="res_name" 
+                     ng-required='true' 
+                     ng-model="res_name" 
+                     placeholder="Name" 
+                     class="cas-clr-input"
+                     >
+            </div>
+          </div>
+        </div>
+
+        <!--Description -->
+        <div class="cas-clr-form-control">
+          <label for="example2" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Description</label>
+          <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5">
+            <div class="cas-clr-textarea-wrapper">
+              <textarea class="cas-clr-textarea" ng-change="updateAnswer(res_desc,'description')" placeholder="Description" ng-model="res_desc"></textarea>
+            </div>
+          </div>
+        </div>
+        <!--Deployments-->
+        <div class="cas-clr-form-control">
+          <label class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Deployments <span class="mandatory">*</span> </label>
+          <sn-record-picker class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5"
+                            on-change="updateAnswer(deployment_list,'deployments');updateMachinesFilter();" 
+                            field="deployment_list"  
+                            table="c.data.deployments_table" 
+                            default_query="c.data.deployment_default_query"
+                            ng-required='true' 
+                            display-field="'name'" 
+                            value-field="'sys_id'" 
+                            multiple="true" 
+                            search-fields="'name'"></sn-record-picker>
+        </div>
+
+        <!--Machines----->
+        <div class="cas-clr-form-control">
+          <label class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Resources</label>
+          <sn-record-picker style="min-width:20px;"
+                            class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5"
+                            on-change="updateAnswer(machine_list,'machines')"  
+                            field="machine_list"  
+                            table="c.data.machines_table"
+                            default_query="c.data.deployment_query"
+                            display-field="'name'" 
+                            value-field="'sys_id'"  
+                            multiple="true" 
+                            sn-disabled="true"
+                            search-fields="'name'"></sn-record-picker>
+        </div>
+
+        <!--users-->
+        <div class="cas-clr-form-control">
+          <label class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Share with users <span ng-if="c.data.answer['groups']==''"  class="mandatory">*</span></label>
+          <sn-record-picker class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5"
+                            on-change="updateAnswer(users_list,'users')"  
+                            field="users_list"  
+                            table="c.data.users_table" 
+                            display-field="'name'" 
+                            ng-required="c.data.answer['groups']==''"
+                            default-query="'active=true'"
+                            value-field="'sys_id'" 
+                            multiple="true" 
+                            search-fields="'name'"></sn-record-picker>
+        </div>
+
+        <!--Groups-->
+        <div class="cas-clr-form-control">
+          <label class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Share with
+            groups <span ng-if="c.data.answer['users']==''"  class="mandatory">*</span></label>
+          <sn-record-picker class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5"
+                            on-change="updateAnswer(groups_list,'groups')" 
+                            field="groups_list"  
+                            table="c.data.groups_table" 
+                            ng-required="c.data.answer['users']==''"
+                            display-field="'name'" 
+                            default-query="'active=true'"
+                            value-field="'sys_id'" 
+                            multiple="true" 
+                            search-fields="'name'"></sn-record-picker>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="cas-clr-row bottom">
+    <div class="cas-clr-col">
+      <a  class="cas-btn cas-btn-primary" ng-click="submit(resourcesForm)" >{{(c.data.urlresourceId!='null')? 'Update' : 'Create'}}</a>
+      <a ng-click="cancel()" class="cas-btn cas-btn-outline">Cancel</a>
+    </div>
+  </div>
+</div>
+]]></template>
+    </sp_widget>
+</record_update>

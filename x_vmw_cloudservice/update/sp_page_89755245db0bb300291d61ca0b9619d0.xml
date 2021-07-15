@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_page">
+    <sp_page action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <css>.body{
+  background-color: $pageBgColor;
+  padding:0;
+}
+.custom-container-column{
+  padding:0;
+}
+.content-left-pane{
+padding-left:10px !important;
+  padding-right:5px !important;
+}
+
+.content-right-pane{
+padding-left:10px !important;
+  padding-right:10px !important;
+}
+.select2-drop { 
+  color: $fontColor;
+  background-color: $bgColor;
+  border-color:  $borderColor;
+}
+.select2-choice {
+  box-shadow: none;
+}
+.select2-highlighted {
+  background-color: $hoverBgColor;
+  color: $fontHoverColor;
+}
+input, textarea {
+  background-color: $cardBgColor;
+  color: $cardFontColor;
+  border-color: $borderColor;
+  &amp;:focus {
+    border-color: $borderColor;
+    box-shadow: 0px 0px 5px $hoverShadowPrimaryColor, 0px 0px 3px $hoverShadowSecondaryColor;
+  }
+}
+
+section.page{
+  position: fixed;
+  overflow: auto;
+  top: 96px;
+	//padding-bottom:96px;
+}</css>
+        <draft>false</draft>
+        <dynamic_title_structure>vRA-Cart</dynamic_title_structure>
+        <id>vra_cartpage</id>
+        <internal>false</internal>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <seo_script/>
+        <short_description/>
+        <sys_class_name>sp_page</sys_class_name>
+        <sys_created_by>Navdeep</sys_created_by>
+        <sys_created_on>2019-08-02 07:23:10</sys_created_on>
+        <sys_id>89755245db0bb300291d61ca0b9619d0</sys_id>
+        <sys_mod_count>14</sys_mod_count>
+        <sys_name>vra_cartpage</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_page_89755245db0bb300291d61ca0b9619d0</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-23 10:13:47</sys_updated_on>
+        <title>vRA_cartPage</title>
+        <use_seo_script>false</use_seo_script>
+    </sp_page>
+    <sys_translated_text action="delete_multiple" query="documentkey=89755245db0bb300291d61ca0b9619d0"/>
+</record_update>

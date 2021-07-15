@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script><![CDATA[function call() {
+    var resp = ("$[jvar_stateCode]");
+    if (resp != 'false') {
+		var response = JSON.parse(resp);		
+        //alert('INFO : state code :' + response.state+' Resp = '+resp);
+        redirect(resp);
+    } else {
+        alert('Error : There is an error while authenticating with VRA cloud. Please try again and if issue persist contact your system administrator');
+        window.close();
+    }
+}
+
+function redirect(resp) {
+	var response = JSON.parse(resp);
+    window.location.replace(response.auth_url+'?response_type=code&state=' + response.state + '&redirect_uri='+response.redirct_url+'&client_id='+response.client_id+'&prompt=login&orgLink=/csp/gateway/am/api/orgs/'+response.orgID);	
+}]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint>x_vmw_cloudservice_oauth_authorize_vra.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	<g2:evaluate var="jvar_stateCode">
+		try{
+			var endpoint =  RP.getParameterValue("endpoint");
+			var oauthUtil = new vRAOAuthUtil();
+			var code = oauthUtil.getOAuthStateCode(endpoint);
+			code;
+		} catch(ex){
+			gs.error('Caught exception in ui_page.oauth_authorize_vra : '+ex);
+		}
+	</g2:evaluate>
+	
+	<body onload = 'call()'>
+	</body>
+	
+</j:jelly>]]></html>
+        <name>oauth_authorize_vra</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-11-30 11:04:08</sys_created_on>
+        <sys_id>457a75291b3020109fb21067bc4bcbb2</sys_id>
+        <sys_mod_count>24</sys_mod_count>
+        <sys_name>oauth_authorize_vra</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_ui_page_457a75291b3020109fb21067bc4bcbb2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-01-14 13:16:41</sys_updated_on>
+    </sys_ui_page>
+</record_update>

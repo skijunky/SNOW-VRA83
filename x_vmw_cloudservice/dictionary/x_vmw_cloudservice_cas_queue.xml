@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Job Queue" max_length="40" name="x_vmw_cloudservice_cas_queue" sizeclass="62" type="collection">
+        <element attributes="edge_encryption_enabled=true" label="Endpoint" max_length="32" name="organization" read_only="true" reference="x_vmw_cloudservice_register_cas_organization" type="reference"/>
+        <element label="Request" max_length="1000000" name="request" type="string"/>
+        <element label="Response" max_length="1000000" name="response" type="string"/>
+        <element attributes="edge_encryption_enabled=true" choice="1" label="State" max_length="50" name="state" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Completed" value="Completed"/>
+                <element inactive_on_update="false" label="Error" value="Error"/>
+                <element inactive_on_update="false" label="Processing" value="Processing"/>
+                <element inactive_on_update="false" label="Ready" value="Ready"/>
+            </choice>
+        </element>
+        <element label="Topic" max_length="50" name="topic" type="string"/>
+        <index name="index">
+            <element name="organization"/>
+        </index>
+    </element>
+</database>

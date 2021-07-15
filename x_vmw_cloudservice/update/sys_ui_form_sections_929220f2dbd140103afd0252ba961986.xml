@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_ui_form_sections form_id="929220f2dbd140103afd0252ba961986" sys_domain="global" table="cmdb_ci_vm_instance" version="3">
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>0</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-11-27 05:51:24</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>de9220f2dbd140103afd0252ba961986</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="cmdb_ci_vm_instance" name="cmdb_ci_vm_instance" sys_domain="global" view="Default view">929220f2dbd140103afd0252ba961986</sys_ui_form>
+            <sys_ui_section caption="NULL" display_value="" name="cmdb_ci_vm_instance" sys_domain="global" view="Default view">9bf5f1670ab301502410ae398a6fe952</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-11-27 05:51:24</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>1</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-11-27 05:51:24</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>5a9220f2dbd140103afd0252ba961987</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="cmdb_ci_vm_instance" name="cmdb_ci_vm_instance" sys_domain="global" view="Default view">929220f2dbd140103afd0252ba961986</sys_ui_form>
+            <sys_ui_section caption="Machines" display_value="Machines" name="cmdb_ci_vm_instance" sys_domain="global" view="Default view">107b68a01beb3300e61b21b6bc4bcbe6</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-11-27 05:51:24</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form action="INSERT_OR_UPDATE">
+            <name>cmdb_ci_vm_instance</name>
+            <roles/>
+            <sys_class_name>sys_ui_form</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-11-27 05:51:24</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>929220f2dbd140103afd0252ba961986</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>cmdb_ci_vm_instance</sys_name>
+            <sys_overrides/>
+            <sys_package display_value="Configuration Management (CMDB)" source="com.snc.cmdb">b8950abbb8202010304ceb7d5057e7e8</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_ui_form_sections_929220f2dbd140103afd0252ba961986</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-11-27 05:51:24</sys_updated_on>
+            <sys_user/>
+            <view display_value="Default view" name="NULL">Default view</view>
+            <view_name/>
+        </sys_ui_form>
+    </sys_ui_form_sections>
+</record_update>

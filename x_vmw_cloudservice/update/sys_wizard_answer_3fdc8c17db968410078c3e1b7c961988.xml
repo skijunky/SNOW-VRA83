@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_wizard_answer">
+    <sys_wizard_answer action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <answer>Catalog Items</answer>
+        <button_label/>
+        <dependent_value/>
+        <element/>
+        <name>Catalog Items</name>
+        <next_question/>
+        <order>100</order>
+        <payload_name/>
+        <question display_value="">00583e011b0020103c5186a3cc4bcb5c</question>
+        <roles/>
+        <script/>
+        <sys_class_name>sys_wizard_answer</sys_class_name>
+        <sys_created_by>manish.patil</sys_created_by>
+        <sys_created_on>2020-01-17 10:36:13</sys_created_on>
+        <sys_id>3fdc8c17db968410078c3e1b7c961988</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Catalog Items</sys_name>
+        <sys_package display_value="Global" source="global">global</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_wizard_answer_3fdc8c17db968410078c3e1b7c961988</sys_update_name>
+        <sys_updated_by>manish.patil</sys_updated_by>
+        <sys_updated_on>2020-01-17 10:36:13</sys_updated_on>
+        <table/>
+        <target_url>x_vmw_cloudservice_cas_catalog_items.do</target_url>
+        <type>1</type>
+    </sys_wizard_answer>
+</record_update>

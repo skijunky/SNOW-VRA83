@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope, $rootScope, $timeout, spUtil, $location) {
+	//--------------------------VARIABLES---------------------------------------
+	var c = this;
+	$scope.showWidget = "";
+
+
+
+	$scope.$on("getPaginationDataEvent", function (evt, response) {
+		if (response.table == c.data.requestTable) {
+			c.data.requestArray = response.itemsArray;
+		} else {
+			c.data.approvalArray = response.itemsArray;
+		}
+		$scope.totalRecords = response.totalRecords;
+	});
+
+	$scope.redirect=function(url){
+		$location.url(url);
+	}
+	
+	
+		$scope.$on('sp_loading_indicator', function(e, value) {
+			c.data.loaderShow=value;
+   });
+	
+	
+	$scope.$on('statusUpdated', function() {
+		c.data.action='refresh';
+		c.server.update().then(function(){
+			c.data.action='';
+			$scope.totalRecords=(c.data.tablename=='sc_req_item')?c.data.requestArray.length:c.data.approvalArray.length;
+		});
+	});
+
+	
+	$scope.setRequestAction = function (sysId,state) {		
+		//$location.search('sys_id', sysId);
+		//alert(sysId+' '+state)
+		c.data.ticketConversation='';
+		c.data.state=state;
+		c.data.action='ticketConversation';
+		c.data.obj_sysId=sysId;
+		c.server.update().then(function(){
+			c.data.obj_sysId='';
+			c.data.action='';
+			c.data.state='';
+			$scope.filterSearch('');
+		});		
+	}	
+	
+	
+	$scope.filterSearch = function(passedSearch) {
+		var passingObj = {};
+		var query = '';
+		if (passedSearch != '' && c.data.tablename == c.data.requestTable) {
+			query = 
+				'cat_itemLIKE' + passedSearch + '^NQ' +
+				'numberLIKE' + passedSearch + '^NQ' +
+				'stateLIKE' + passedSearch + '^NQ' +
+				'stageLIKE' + passedSearch + '^NQ' +
+				'request.requested_forLIKE' + passedSearch + '^NQ' +
+				'requestLIKE' + passedSearch + '^NQ' +
+				'sys_created_onLIKE' + passedSearch + '^NQ' +
+				'sys_created_byLIKE' + passedSearch;
+		} else if (passedSearch != '') {
+			query = 
+				'stateLIKE' + passedSearch + '^NQ' +
+				'sysapproval.descriptionLIKE'+ passedSearch + '^NQ' +
+				'sysapprovalLIKE' + passedSearch + '^NQ' +
+				'approverLIKE' + passedSearch + '^NQ' +
+				'sys_created_byLIKE' + passedSearch + '^NQ' +
+				'sys_created_onLIKE' + passedSearch + '^NQ' +
+				'sysapproval.short_descriptionLIKE' + passedSearch + '^NQ';
+		}
+		passingObj={'query':query};
+		$scope.$broadcast('setPaginationDataEvent', passingObj)
+	}
+
+	$scope.setOrder = function (passedOrder) {
+		var passingObj = {};
+		passingObj = {orderBy : passedOrder.name, orderByAsc: passedOrder.ascending};
+		$scope.$broadcast('setPaginationDataEvent', passingObj);
+	}
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.cas-content-area {
+  padding-bottom: 0px;
+}
+.cas-clr-col-6 &gt; h2 {
+  margin-top: 0;
+  line-height: 1.475rem;
+}
+
+.header-tool-container {
+  display: flex;
+}
+.wdg-btn-link {
+  padding: 0 .4rem;
+  min-width: 30px;
+  fill: #0078b8;
+  &amp;:hover  {
+    fill: #004d8a;
+  }
+}
+.loader-container {
+  position: relative;
+  z-index: 2000 !important;
+  top:0;
+  left:0;
+  background-color: rgba(0,0,0,0);
+  overflow: hidden;
+  color:#ffffff;
+  text-align:center;
+}
+.cas-disabled {
+  fill: #565656;
+  cursor: not-allowed;
+  opacity: .4;
+  background-color: transparent;
+  border-color: transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  &amp;:hover {
+    fill: #565656;
+  }
+}
+.wdg-badge-count {
+  vertical-align: middle;
+}
+.wdg-badge-close {
+  margin-left: 4px;
+}
+.wdg-search {
+  width: calc(100% - 1px);
+}
+.infinite-container {
+  height: calc(100vh - 157.4px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.col-lg-3, .col-md-4, col-12 {
+  padding: 0px 12px;
+}
+span[shape="search"] {
+  margin: 3px;
+}
+span[shape="cas-logo"] {
+  margin-right: 10px;
+  vertical-align: top;
+}
+
+span[shape="success-standard"], span[shape="close-circle"], span[shape="info-standard"] {
+  vertical-align: text-bottom;
+}
+.wdg-state {
+  display: flex;
+  align-items: center;
+  span {
+    margin-left: 4px;
+  }
+}
+.wdg-desc {
+  display: inline-block;
+  overflow-x: hidden;
+  width: calc(100% - 45px);
+  a {
+    font-size: 16px;
+  }
+  div {
+    font-size: 12px;
+  }
+}
+
+.wdg-desc.wdg-empty {
+  color: #9a9a9a !important;
+}
+
+
+.wdg-value {
+  font-weight: 500;
+}
+
+.cas-dropdown .cas-dropdown-toggle.cas-btn {
+  padding-right: 0.5rem;
+}
+
+.wdg-action {
+  position: absolute;
+  right: 0;
+  top: 6px;
+}
+
+.wdg-load-more-container {
+  display: flex;
+  justify-content: center;
+}
+
+.empty-message-container {
+  height: calc(100vh - 157.4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  span {
+    span {
+      display: inline-flex;
+      margin: auto;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+}
+.wdg-dropdown {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 0px;
+  margin-bottom: -3px;
+}
+.dropdown-menu {
+  padding: .5rem 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: .125rem;
+      margin-right: 8px;
+  box-shadow: 0 1px 0.125rem rgba(115,115,115,.25);
+}
+.cas-dropdown-item {
+  a {
+    color: #575757;
+  }
+  padding: .125rem 1rem;
+  &amp;:hover {
+    background-color: #ededed;
+    color: #575757;
+    text-decoration: none;
+  }
+}
+
+.clearSearch{
+  position:relative;
+  right:15px;
+}
+.cas-modal-body{
+height:70vh;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_activitiescard</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_activitiesCard</name>
+        <option_schema>[{"hint":"","name":"page_window_size","section":"other","default_value":"20","label":"Page window size","type":"integer"}]</option_schema>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+
+	try { 
+		CASLogger.debug('Inside CAS_activitiesGrid widget: For displaying the requests, approvals and action requests in card format.');
+
+		var appUtil = new CASAppUtil();
+		var daoUtil = new CASDaoUtil();
+		var paginationOptionSchema;
+		var urlTable = $sp.getParameter('table') || appUtil.configuration.table.requests;
+		data.approvalActionArray = ['Approve', 'Reject', 'Comment'];
+		data.ActionArray = ['Comment'];
+		
+		data.filterText='';
+		data.tablename = urlTable;
+		var urlFilter = $sp.getParameter('filter') || '';
+		var urlOrder = $sp.getParameter('order') || ((urlTable == appUtil.configuration.table.approvals)? 10 : 6);
+		var urlPage = $sp.getParameter('id') || '';
+		var urlMyFlag = ($sp.getParameter('myFlag') != '' && $sp.getParameter('myFlag') != null && $sp.getParameter('myFlag')) ?  $sp.getParameter('myFlag') : true + '';
+		//---------------------------------------------DATA VARIABLES--------------------------------------------
+		var setRequestLegend = function (filter) {
+			switch (filter) {
+				case 'In Progress':
+					return 'Work In Progress';
+				case 'Open':
+					return 'Open';
+				/*case 'Rejected':
+					return 'Rejected';
+					*/
+				case 'Closed Complete':
+					return 'Closed Complete';
+				case 'Closed Incomplete':
+					return 'Closed Incomplete';
+			}
+		};
+		var setApprovalLegend = function (filter) {
+			switch (filter) {
+				case 'Awaiting Approval':
+					return 'Requested';
+				case 'Rejected':
+					return 'Rejected';
+				case 'Approved':
+					return 'Approved';
+			}
+		};
+
+		if (urlTable == appUtil.configuration.table.approvals) {
+			paginationOptionSchema = {
+				legend : setApprovalLegend(urlFilter),
+				showMyFilter: urlMyFlag,
+				table: appUtil.configuration.table.approvals,
+				query:'',
+				windowSize: (options.page_window_size) ? options.page_window_size : 20,
+				infiniteScroll: true,
+				method:'fetchPortalApprovalItems'
+			};
+			data.headerTitle = 'Approvals';
+			data.approvalArray = daoUtil.fetchPortalApprovalItems(paginationOptionSchema);
+			data.widgetScript = $sp.getWidget('cas_pagination', paginationOptionSchema);
+		} else {
+			paginationOptionSchema = {
+				legend: setRequestLegend(urlFilter),
+				showMyFilter: urlMyFlag,
+				table: appUtil.configuration.table.requests,
+				windowSize: (options.page_window_size) ? options.page_window_size : 20,
+				infiniteScroll: true,
+				query:'',
+				method:'fetchPortalRequestItems'
+			};
+			data.headerTitle = 'Requests';
+			data.requestArray = daoUtil.fetchPortalRequestItems(paginationOptionSchema);
+			data.widgetScript = $sp.getWidget('cas_pagination', paginationOptionSchema);
+		}
+
+		data.link = {
+			list: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+appUtil.configuration.page.activitiesList + '&table=' + urlTable + '&order=' + urlOrder + '&filter=' + urlFilter + '&myFlag=' + urlMyFlag,
+			card: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+appUtil.configuration.page.activitiesCard + '&table=' + urlTable + '&order=' + urlOrder + '&filter=' + urlFilter + '&myFlag=' + urlMyFlag,
+			showMyFilterTrue: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + urlPage + '&table=' + urlTable + '&order=' + urlOrder + '&filter=' + urlFilter + '&myFlag=true',
+			additionalContent : '&order=' + urlOrder + '&filter=' + urlFilter + '&myFlag=' + urlMyFlag + '&layout=card',
+			showMyFilterFalse: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + urlPage + '&table=' + urlTable + '&order=' + urlOrder + '&filter=' + urlFilter + '&myFlag=false',
+			badgeLink: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + urlPage + '&table=' + urlTable + '&myFlag=' + urlMyFlag + '&order=' + ((urlTable == appUtil.configuration.table.approvals)? 10 : 6)
+		}
+
+		data.requestTable = appUtil.configuration.table.requests;
+		data.myFlag = urlMyFlag;
+		data.filter = $sp.getParameter('filter') || '';
+		var catalogAdmin = gs.getProperty(appUtil.configuration.properties.vraCatalogAdmin);
+		data.showFilter = (gs.getUser().hasRole('admin') || gs.getUser().hasRole(catalogAdmin));
+		data.emptyMessage = {
+			heading : 'No record found'
+		};
+		
+		if(input && input.action=='ticketConversation'){
+			data.obj_sysId=input.obj_sysId;
+			var ticketConversationOptions = {
+				requestStatus : input.state,
+				sys_id:  data.obj_sysId,
+				table: $sp.getParameter('table'),
+				title: gs.getMessage("Activity Stream"),
+				placeholder: gs.getMessage("Type your message here..."),
+				placeholderNoEntries: gs.getMessage("Start a conversation..."),
+				btnLabel: gs.getMessage("Send"),
+				type:'listOptions'
+			};
+			data.ticketConversation = $sp.getWidget('cas_ticketconversations', ticketConversationOptions);
+		
+		}
+		
+		
+	} catch(e) {
+		CASLogger.error('Error caught inside CAS_activitiesGrid widget: '+ e);
+	}
+})();
+
+]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-15 08:46:58</sys_created_on>
+        <sys_id>8eeb7d9bdb223300291d61ca0b9619c4</sys_id>
+        <sys_mod_count>378</sys_mod_count>
+        <sys_name>CAS_activitiesCard</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_8eeb7d9bdb223300291d61ca0b9619c4</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-23 10:12:22</sys_updated_on>
+        <template><![CDATA[<div class="cas-content-area">
+  <div class="cas-clr-row">
+    <div class="cas-clr-col-6">
+      <h2>
+        <span>{{(c.data.myFlag == 'true') ? 'My ' : 'All '}}{{c.data.headerTitle}}</span>
+        <span class="cas-label cas-label-info wdg-badge-count">{{(c.data.requestArray) ? c.data.requestArray.length : c.data.approvalArray.length}} of {{totalRecords}} {{(totalRecords > 0) ? 'Items' : 'Item'}}</span>
+        <span class="cas-label cas-label-light-blue wdg-badge-count" ng-if="c.data.filter != ''">{{c.data.filter}}<a href="{{c.data.link.badgeLink}}"><cas-clr-icon class="wdg-badge-close" shape="close" size="13"></cas-clr-icon></a></span>
+      </h2>
+    </div>
+    <div class="cas-clr-col-6 header-tool-container" style="display:flex">
+      <div class="dropdown cas-dropdown">
+        <button ng-if="c.data.showFilter" class="dropdown-toggle cas-dropdown-toggle cas-btn cas-btn-link" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          View My Activities
+          <cas-clr-icon shape="angle" dir="down" color="#0077b7" size="12" role="none"></cas-clr-icon>
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+          <div class="cas-dropdown-item" ng-click="redirect(c.data.link.showMyFilterTrue)">
+            View My Activities
+          </div>
+          <div class="cas-dropdown-item" ng-click="redirect(c.data.link.showMyFilterFalse)">
+            View All Activities
+          </div>
+        </div>
+      </div>
+      <!--
+<div class="cas-dropdown cas- open">
+<button ng-if="c.data.showFilter" class="cas-dropdown-toggle cas-btn cas-btn-sm cas-btn-link" onclick="$('.cas-dropdown-menu').toggle()">
+View My Activities
+<cas-clr-icon shape="angle" dir="down" color="#0077b7" size="12" role="none"></cas-clr-icon>------
+</button>
+<div class="cas-dropdwn-menu" style="display: none;">
+<a href="{{c.data.link.showMyFilterTrue}}"><div class="cas-dropdown-item">View My Activities</div></a>
+<a href="{{c.data.link.showMyFilterFalse}}"><div class="cas-dropdown-item">View All Activities</div></a>
+</div>
+</div>
+-->
+      <cas-clr-icon size="16" shape="search"></cas-clr-icon>
+      <input type="text" placeholder="Search" 
+             class="wdg-search cas-clr-input"
+             ng-model="c.data.filterText" 
+             ng-model-options="{ debounce: 900 }" 
+             ng-change="filterSearch(c.data.filterText)" />
+      <span class="clearSearch" ng-show="c.data.filterText!=''" ng-click="filterSearch('');c.data.filterText='';"><i class="fa fa-times" aria-hidden="true"></i></span>
+
+
+      <a class="wdg-btn-link cas-toggle-view" href="{{c.data.link.list}}">
+        <cas-clr-icon shape="view-list" size="20" role="none"></cas-clr-icon>
+      </a>
+      <a class="wdg-btn-link cas-disabled" href="{{c.data.link.card}}">
+        <cas-clr-icon shape="view-cards" size="20" role="none"></cas-clr-icon>
+      </a>
+    </div>
+  </div>
+  <div class="infinite-container" ng-show="c.data.requestArray.length || c.data.approvalArray.length">
+    <div class="cas-clr-row" ng-repeat="card in c.data.requestArray">
+      <div class="cas-clr-col-12">
+        <div class="cas-card">
+          <div class="cas-card-block">
+            <div class="card-text cas-clr-row">
+              <div class="cas-clr-col-4">
+                <div class="wdg-desc">
+                  <a href="{{card.link}}+{{c.data.link.additionalContent}}">{{card.item}}</a>
+                  <div>{{card.request}}</div>
+                  <div>{{card.number}}</div>
+                </div>
+              </div>
+              <div class="cas-clr-col-4">
+                <div>Request stage:
+                  <span ng-if="card.stage == 'Waiting for Approval'" class="cas-spinner cas-spinner-inline"></span>
+                  <cas-clr-icon ng-if="card.stage == 'closed_incomplete'" shape="info-standard" size="17" color="red" class="is-success" role="none"></cas-clr-icon>
+                  <cas-clr-icon ng-if="card.stage == 'Request Cancelled'" shape="close-circle" size="17" color="red" class="is-success" role="none"></cas-clr-icon>
+                  <cas-clr-icon ng-if="card.stage == 'Fulfillment' || list.stage == 'Request Approved'" shape="success-standard" size="17" color="green" class="is-success" role="none"></cas-clr-icon>
+                  <cas-clr-icon ng-if="card.stage == 'Assess or Scope Task'" shape="info-standard" size="17" color="orange" class="is-success" role="none"></cas-clr-icon>
+                  <span class="wdg-value request-stage">{{card.stage}}</span>
+                </div>
+                <div>Request state:
+                  <span class="wdg-value">{{card.state}}</span>
+                </div>
+                <div>Request date: <span class="wdg-value">{{card.created}}</span></div>
+              </div>
+              <div class="cas-clr-col-4">
+                <div>Requested by: <span class="wdg-value">{{card.created_by}}</span></div>
+                <div>Requested for: <span class="wdg-value">{{card.requested_for}}</span></div>
+                <div>Configuration item: <span class="wdg-value">{{card.item}}</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="cas-clr-row" ng-repeat="card in c.data.approvalArray">
+      <div class="cas-clr-col-12">
+        <div class="cas-card">
+          <div class="cas-card-block">
+            <div class="cas-card-text cas-clr-row">
+              <div class="cas-clr-col-4">
+                <div class="wdg-desc">
+                  <a href="{{card.link}}+{{c.data.link.additionalContent}}">{{card.item}}</a>
+                  <div>{{card.number}}</div>
+                </div>
+              </div>
+              <div class="cas-clr-col-4">
+                <div class="wdg-state">Request state:
+                  <cas-clr-icon ng-if="card.state == 'Requested'" shape="warning-standard" size="17" color="orange" class="is-warning" role="none"></cas-clr-icon>
+                  <cas-clr-icon ng-if="card.state == 'Rejected'" shape="close-circle" size="17" color="red" class="is-error" role="none"></cas-clr-icon>
+                  <cas-clr-icon ng-if="card.state == 'Approved'" shape="success-standard" size="17" color="green" class="is-success" role="none"></cas-clr-icon>
+                  <cas-clr-icon ng-if="card.state == 'No Longer Required'" shape="info-circle" size="17" color="gray" class="is-success" role="none"></cas-clr-icon>
+                  <span class="wdg-value request-stage">{{card.state}}</span>
+                </div>
+                <div>Request date: <span class="wdg-value">{{card.created}}</span></div>
+              </div>
+              <div class="cas-clr-col-4">
+                <div>Requested by: <span class="wdg-value">{{card.created_by}}</span></div>
+                <div>Approver: <span class="wdg-value">{{card.approver}}</span></div>
+              </div>
+            </div>
+            <div class="wdg-action">
+              <div class="dropdown cas-dropdown">
+                <button class="dropdown-toggle wdg-dropdown cas-dropdown-toggle cas-btn cas-btn-link" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="cas-nav-text" style="color:{{c.data.json[0].color.text_color.color}}">Actions</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+                  <div class="cas-dropdown-item" 
+                       ng-if="card.state!='Requested'"
+                       onclick="$('.action-modal, .action-modal-backdrop').show()" 
+                       ng-click="setRequestAction(card.sysId,card.state)"
+                       ng-repeat="action in c.data.ActionArray">
+                    <a>{{action}}</a>
+                  </div>
+                  <div class="cas-dropdown-item" 
+                       ng-if="card.state=='Requested'"
+                       onclick="$('.action-modal, .action-modal-backdrop').show()" 
+                       ng-click="setRequestAction(card.sysId,card.state)"
+                       ng-repeat="action in c.data.approvalActionArray">
+                    <a>{{action}}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cas-clr-row">
+      <div class="cas-clr-col-12 wdg-load-more-container">
+        <sp-widget widget="c.data.widgetScript" ng-show="c.data.requestArray.length || c.data.approvalArray.length"></sp-widget>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-message-container" ng-if="!c.data.requestArray.length && !c.data.approvalArray.length">
+    <span><cas-clr-icon shape="sad-face" color="#717171" size="30"></cas-clr-icon>
+      <p>No record found</p>
+    </span>
+  </div>
+</div>
+
+<!-----------------modal---------------------------->
+<div class="cas-modal action-modal" style="display: none">
+  <div class="cas-modal-dialog" role="dialog" aria-hidden="true">
+    <div class="cas-modal-content">
+      <div class="cas-modal-header">
+        <button aria-label="Close" class="cas-close" type="button" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">
+          <cas-clr-icon aria-hidden="true" shape="close" color="#565656" size="25" role="none"></cas-clr-icon>
+        </button>
+        <h3 class="cas-modal-title">Activities</h3>
+      </div>
+      <div class="cas-modal-body">
+        <div ng-if="c.data.ticketConversation!=''">
+          <sp-widget widget="data.ticketConversation" />
+      
+        </div>
+      </div>
+     <!-- <div class="cas-modal-footer">
+        <button class="cas-btn cas-btn-outline" type="button" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">Cancel</button>
+        <button class="cas-btn cas-btn-primary" type="button" ng-click="submitAction(c.data.reason)" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">Submit</button>
+      </div>-->
+    </div>
+  </div>
+</div>
+<div class="cas-modal-backdrop action-modal-backdrop" aria-hidden="true" style="display: none;"></div>
+<!-----------------modal ends here----------------->
+
+
+<script>
+  function toggleAction (element) {
+    if ($(element).hasClass('cas-open')) {
+      $('.wdg-action .cas-dropdown').removeClass('cas-open');
+    } else {
+      $('.wdg-action .cas-dropdown').removeClass('cas-open');
+      $(element).addClass('cas-open');
+    }
+  }
+</script>
+]]></template>
+    </sp_widget>
+</record_update>

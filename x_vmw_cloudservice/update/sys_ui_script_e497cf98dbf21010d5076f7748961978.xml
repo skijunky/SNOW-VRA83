@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_script">
+    <sys_ui_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <description/>
+        <global>false</global>
+        <name>x_vmw_cloudservice.datagrid_uiscript</name>
+        <script><![CDATA[var angApp;
+var count;
+var divCount;
+
+if (angApp == undefined) {
+//     jslog('first time initialization');
+    count = 0;
+    divCount = 0;
+    angApp = angular.module('angularapp' + count, ['angularjs-datetime-picker']);
+
+} else {
+//     jslog('more time intitialization');
+    count = count + 1;
+    angApp = angular.module('angularapp' + count, ['angularjs-datetime-picker']);
+}
+
+angApp.controller('AngularAppCtrl', function($scope) {
+
+    $scope.myVar = '';
+    $scope.i = 0;
+    $scope.edit = false;
+    $scope.row = 0;
+    $scope.submitted = false;
+    $scope.paginatedArr = [];
+    $scope.next_btn_disable_color = '';
+    $scope.previous_btn_disable_color = '';
+    $scope.fields_arr = [];
+    $scope.datagridObj = {};
+    $scope.answer = {};
+	$scope.loader = false;
+	$scope.date4 = "";
+	$scope.dateError = '';
+    // 	var appUtil = new appUtil();
+	var previousPageSize = '';
+    var URL = document.URL;
+    var isNativeUI = false;
+    var macro_sysid = $j('.myWidget').parent().parent().parent()[divCount].id.split(':')[1];
+	
+	
+
+	$scope.updateAnswer = function (field) {
+		var previousDate = $j('#'+field.fieldId).val();
+
+		var dateInterval = setInterval(function(){
+			if($j('#'+field.fieldId).val() != previousDate){
+				stopIntervalFunction();
+			}    
+
+		}, 100);
+
+		function stopIntervalFunction() {
+			clearInterval(dateInterval);
+			var field_value = $j('#'+field.fieldId).val();
+			$scope.updateDatagridAnswer(field.name, field_value, 'date', field);
+			$scope.$apply();
+		}
+		
+	};
+
+    var gr = new GlideRecord('item_option_new');
+    gr.addQuery('sys_id', macro_sysid);
+    gr.query();
+    if (gr.next()) {
+        $scope.datagridObj = JSON.parse(gr.default_value);
+    }
+
+    $scope.inputJSON = $scope.datagridObj.field || [];
+    $scope.renderJSON = $scope.inputJSON.default_value || [];
+    $scope.paginatedArr = $scope.renderJSON;
+    $scope.tableHeaders = $scope.inputJSON.json.type.fields;
+	previousPageSize = $scope.inputJSON.pageSize;
+
+    if (URL.search("com.glideapp.servicecatalog_cat_item_view") != -1) {
+        isNativeUI = true;
+    } else {
+        isNativeUI = false;
+    }
+
+
+    //************************************ Client Script ***************************************
+	
+    var checkDefaultValueNative = setInterval(function() {
+        if (isNativeUI) {
+            if ($scope.renderJSON.length <= 0 && $scope.inputJSON.defaultClientScript != '') {
+				$scope.loader = true;
+				$scope.$apply();
+                if (g_form.getValue($scope.inputJSON.name) != '') {
+                    $scope.renderJSON = JSON.parse(g_form.getValue($scope.inputJSON.name));
+                    $scope.paginatedArr = $scope.renderJSON;
+					$scope.totalSegment = Math.ceil($scope.renderJSON.length / $scope.pageSize);
+                    $scope.$apply();
+                    stopIntervalFunction();
+					$scope.changeDisableState('initial');
+					$scope.loader = false;
+                }
+            }
+        } else {
+            stopIntervalFunction();
+        }
+
+    }, 500);
+
+    function stopIntervalFunction() {
+        clearInterval(checkDefaultValueNative);
+    }
+
+    $scope.setRegex = function(pattern) {
+        if (pattern == "") {
+            return false;
+        } else {
+            var newPattern = '^' + pattern + '$';
+            return newPattern;
+        }
+    };
+
+    $scope.validateInteger = function(evt) {
+        return evt.charCode >= 48 && evt.charCode <= 57;
+    };
+
+    $scope.stringEncryption = function(string, field_type) {
+
+        if (field_type == 'password') {
+            var str = '';
+            for (var i = 0; i < string.length; i++) {
+                str = str + '*';
+            }
+            return str;
+        }
+
+        if (field_type == 'date') {
+            return new Date(string).toLocaleString();
+        }
+
+    };
+
+    $scope.closeDataGridModel = function() {
+        $j('#' + $scope.inputJSON.name + '__model').hide();
+        $j('#' + $scope.inputJSON.name + '__model_backdrop').hide();
+        $scope.answer = {};
+    };
+
+    $scope.changeDisableState = function(operation) {
+        // console.log(pageNum)
+        var disableColor = 'hsl(198, 0%, 50%)';
+        var enabledColor = 'hsl(198, 0%, 20%)';
+		
+		if (operation == 'initial') {
+            $scope.next_btn_disable_color = enabledColor;
+			$scope.previous_btn_disable_color = enabledColor;
+			
+			if ($scope.pageNum >= $scope.totalSegment) {
+                $scope.next_btn_disable_color = disableColor;
+            }
+			if ($scope.pageNum <= 1) {
+                $scope.previous_btn_disable_color = disableColor;
+            }
+			if ($scope.totalSegment == 1){
+				$scope.next_btn_disable_color = disableColor;
+				$scope.previous_btn_disable_color = disableColor;
+			}
+						
+        }
+		
+        if (operation == 'next') {
+            $scope.previous_btn_disable_color = enabledColor;
+            if ($scope.pageNum >= $scope.totalSegment) {
+                $scope.next_btn_disable_color = disableColor;
+            } else {
+                $scope.next_btn_disable_color = enabledColor;
+            }
+        }
+
+        if (operation == 'previous') {
+            $scope.next_btn_disable_color = enabledColor;
+            if ($scope.pageNum <= 1) {
+                $scope.previous_btn_disable_color = disableColor;
+            } else {
+                $scope.previous_btn_disable_color = enabledColor;
+            }
+        }
+
+        if (operation == 'disableAll') {
+            if ($scope.pageNum >= $scope.totalSegment && $scope.pageNum <= 1) {
+                $scope.previous_btn_disable_color = disableColor;
+                $scope.next_btn_disable_color = disableColor;
+            }
+        }
+
+        if (operation == 'enableAll') {
+            if ($scope.pageNum <= $scope.totalSegment && $scope.pageNum > 1) {
+                $scope.previous_btn_disable_color = enabledColor;
+                $scope.next_btn_disable_color = enabledColor;
+            }
+        }
+		
+		$j('.cas-pagination-last').css({ fill : $scope.next_btn_disable_color });
+		$j('.cas-pagination-next').css({ fill : $scope.next_btn_disable_color });
+		$j('.cas-pagination-previous').css({ fill : $scope.previous_btn_disable_color });
+		$j('.cas-pagination-first').css({ fill : $scope.previous_btn_disable_color });
+
+    };
+	$scope.changeDisableState('initial');
+
+    function broadcastJSON() {
+
+        if (g_form != undefined) {
+//             jslog($scope.renderJSON);
+            if ($scope.renderJSON.length >= 0) {
+                g_form.setValue($scope.inputJSON.name, JSON.stringify($scope.renderJSON));
+            }
+        }
+
+    }
+    // broadcastJSON();
+
+    $scope.stringEncryption = function(string, field_type) {
+
+        if (field_type == 'password') {
+            var str = '';
+            for (var i = 0; i < string.length; i++) {
+                str = str + '*';
+            }
+            //return string.replaceAll(/./g, '*');
+            return str;
+        }
+
+        if (field_type == 'date') {
+            return new Date(string).toLocaleString();
+        }
+
+    };
+
+    $scope.deleteRow = function(arr, index) {
+	
+        if ($scope.inputJSON.pageSize != '') {
+
+            var removedItem = arr.splice(index, 1);
+            var removedIndex = $scope.renderJSON.indexOf(removedItem[0]);
+            $scope.renderJSON.splice(removedIndex, 1);
+            $scope.setPaginationArr($scope.pageNum, $scope.pageSize, 'deleteRow');
+			
+			if(previousPageSize == '' && $scope.renderJSON.length  < 11){
+				$scope.inputJSON.pageSize = '';
+				$scope.pageSize = '';
+				$scope.paginatedArr = $scope.renderJSON;
+			}
+
+        } else {
+            arr.splice(index, 1);
+        }
+		
+        broadcastJSON();
+    };
+
+    $scope.editRow = function(arr, row, index) {
+        var removedIndex = '';
+        if ($scope.inputJSON.pageSize != '') {
+            removedIndex = $scope.renderJSON.indexOf(arr[index]);
+        } else {
+            removedIndex = index;
+        }
+
+        $scope.edit = true;
+        $scope.row = removedIndex;
+        populateField($scope.inputJSON.json, row);
+        document.getElementById($scope.inputJSON.name + '__model').style.display = 'inline-flex';
+        document.getElementById($scope.inputJSON.name + '__model_backdrop').style.display = 'inline-flex';
+    };
+
+    $scope.addRow = function() {
+        $scope.answer = {};
+        populateField($scope.inputJSON.json, '');
+        document.getElementById($scope.inputJSON.name + '__model').style.display = 'inline-flex';
+        document.getElementById($scope.inputJSON.name + '__model_backdrop').style.display = 'inline-flex';
+    };
+
+    $scope.updateDatagridAnswer = function(field_id, field_value, field_type, field) {
+
+        if (field_type == 'date') {
+
+            var selectedDate = new Date(field_value);
+            var minDate = new Date(field.scale_min);
+            var maxDate = new Date(field.scale_max);
+
+            if (selectedDate < minDate && (selectedDate.toLocaleDateString() != minDate.toLocaleDateString())) {
+                $scope.dateError = 'Please select a valid min date.';
+            } else if (selectedDate > maxDate && (selectedDate.toLocaleDateString() != maxDate.toLocaleDateString())){
+                $scope.dateError = 'Please select a valid max date.';
+            } else {
+                $scope.dateError = '';
+            }
+            field_value = new Date(field_value).toISOString();
+
+        }
+
+        if ((typeof field_value != 'undefined') && field_value != null)
+            $scope.answer[field_id] = field_value;
+		
+	
+        jslog($scope.answer);
+		jslog($scope.dateError);
+
+    };
+
+    //----------------------- DataGrid Pagination ------------------
+
+    $scope.setPaginationArr = function(page_num, pageSize, operation, id) {
+
+        $scope.totalSegment = Math.ceil($scope.renderJSON.length / $scope.pageSize);
+
+        if (operation == 'next') {
+            page_num = parseInt(page_num) + 1;
+        }
+
+        if (operation == 'previous') {
+            page_num = parseInt(page_num) - 1;
+        }
+
+        if (operation == 'search') {
+            page_num = parseInt($j('#' + id).val());
+        }
+
+        if (operation == 'deleteRow') {
+            if (page_num > $scope.totalSegment) {
+                page_num = $scope.totalSegment;
+            }
+            $j('#' + 'searchInputId_' + $scope.inputJSON.name).val(page_num);
+        }
+
+		
+        if (page_num > 0 && page_num <= $scope.totalSegment) {
+
+
+            $scope.pageNum = page_num;
+
+            if ($scope.totalSegment <= 1) {
+                $scope.changeDisableState('disableAll');
+            }
+
+            if (page_num == 1) {
+                $scope.changeDisableState('previous');
+            }
+
+            if (operation == 'search') {
+                if (page_num >= $scope.totalSegment) {
+                    $scope.changeDisableState('next');
+                } else if (page_num > 1 && page_num <= $scope.totalSegment) {
+                    $scope.changeDisableState('enableAll');
+                }
+
+            }
+
+            $j('#' + id).val(page_num);
+            $scope.paginatedArr = paginate(pageSize, page_num);
+        }
+
+    };
+
+    function paginate(page_size, page_number) {
+        return $scope.renderJSON.slice((page_number - 1) * page_size, page_number * page_size);
+    }
+
+    if ($scope.inputJSON.pageSize != '' || $scope.renderJSON.length > 10) {
+
+        if ($scope.inputJSON.pageSize == '') {
+            $scope.pageSize = 10;
+			$scope.inputJSON.pageSize = $scope.pageSize;
+        } else {
+            $scope.pageSize = $scope.inputJSON.pageSize;
+        }
+
+        $scope.pageNum = 1;
+        $scope.totalSegment = Math.ceil($scope.renderJSON.length / $scope.pageSize);
+        $scope.setPaginationArr($scope.pageNum, $scope.pageSize);
+
+    } else {
+        $scope.pageNum = 1;
+        $scope.paginatedArr = $scope.renderJSON;
+    }
+
+
+    //-------------------------------------------------------------------
+
+    $scope.submitChange = function(datagridForm, edit) {
+
+        $scope.submitted = true;
+
+        document.getElementById($scope.inputJSON.name + '__model').style.display = 'none';
+        document.getElementById($scope.inputJSON.name + '__model_backdrop').style.display = 'none';
+		
+		
+
+        if ($scope.inputJSON.pageSize != '') {
+            var page_num = parseInt($j('#searchInputId_' + $scope.inputJSON.name).val());
+// 			jslog(page_num);
+            if ((page_num > 0 && page_num <= $scope.totalSegment) || isNaN(page_num)) {
+				
+                if (!$scope.edit) {
+                    $scope.renderJSON.push($scope.answer);
+                } else {
+                    $scope.renderJSON[$scope.row] = $scope.answer;
+                }
+                $scope.setPaginationArr($scope.pageNum, $scope.pageSize);
+				
+            }
+        } else {
+            if (!$scope.edit) {
+                $scope.renderJSON.push($scope.answer);
+            } else {
+                $scope.renderJSON[$scope.row] = $scope.answer;
+            }
+
+            //Automatic pagination after exceeding 10 records	
+            if ($scope.inputJSON.pageSize == '' && $scope.renderJSON.length > 10) {
+                $scope.inputJSON.pageSize = 10;
+                $scope.pageSize = $scope.inputJSON.pageSize;
+                $scope.totalSegment = Math.ceil($scope.renderJSON.length / $scope.pageSize);
+                $scope.setPaginationArr($scope.pageNum, $scope.pageSize);
+            }
+        }
+		
+        broadcastJSON();
+        $scope.edit = false;
+        $scope.submitted = false;
+    };
+
+
+
+
+
+    //************************************ Client Script End ************************************
+
+
+    //************************************ Server Script ****************************************
+
+    //for populating the default datagrid form
+    populateField($scope.inputJSON.json, '');
+
+    function populateField(inputJSON, answerJSON) {
+
+        $scope.answer = {};
+        $scope.fields_arr = [];
+        $scope.tableHeaders = inputJSON.type.fields;
+
+        for (var i = 0; i < $scope.tableHeaders.length; i++) {
+
+            var type = fetchDatatype($scope.tableHeaders[i].type.dataType);
+            var editValue = '';
+            var mandatory = false;
+            var minValue = '';
+            var maxValue = '';
+            var pattern = '';
+            var patternMsg = '';
+            if ($scope.tableHeaders[i].constraints != undefined) {
+
+                if ($scope.tableHeaders[i].constraints.required != undefined)
+                    mandatory = $scope.tableHeaders[i].constraints.required;
+
+                if ($scope.tableHeaders[i].constraints['min-value'] != undefined)
+                    minValue = $scope.tableHeaders[i].constraints['min-value'];
+
+                if ($scope.tableHeaders[i].constraints['max-value'] != undefined)
+                    maxValue = $scope.tableHeaders[i].constraints['max-value'];
+
+                if ($scope.tableHeaders[i].constraints.pattern != undefined) {
+                    if ($scope.tableHeaders[i].constraints.pattern.value != undefined) {
+                        pattern = $scope.tableHeaders[i].constraints.pattern.value;
+                        patternMsg = $scope.tableHeaders[i].constraints.pattern.message;
+                    }
+                }
+
+            }
+
+            if (answerJSON != '') {
+                if (type.fieldType == 'number') {
+                    if (type.datatype == 'Decimal') {
+                        editValue = parseFloat(answerJSON[$scope.tableHeaders[i].id]);
+                    } else {
+                        editValue = parseInt(answerJSON[$scope.tableHeaders[i].id]);
+                    }
+                } else {
+                    editValue = answerJSON[$scope.tableHeaders[i].id];
+                }
+
+                $scope.answer[$scope.tableHeaders[i].id] = answerJSON[$scope.tableHeaders[i].id];
+            }
+
+            if (answerJSON == '') {
+                if (type.fieldType == 'number') {
+                    if (type.datatype == 'Decimal') {
+                        $scope.answer[$scope.tableHeaders[i].id] = minValue;
+                    } else {
+                        $scope.answer[$scope.tableHeaders[i].id] = minValue;
+                    }
+                } else {
+                    $scope.answer[$scope.tableHeaders[i].id] = '';
+                }
+
+            }
+
+            $scope.fields_arr.push({
+                "name": ($scope.tableHeaders[i].id) ? $scope.tableHeaders[i].id + '' : '',
+                "display_name": ($scope.tableHeaders[i].label) ? $scope.tableHeaders[i].label + '' : '',
+                "type": type.type + '',
+                "help_text": '',
+                "mandatory": (mandatory == true) ? mandatory : false,
+                "order": i,
+                "fieldId": 'form_field--' + inputJSON.name + "--" + $scope.tableHeaders[i].id,
+                "value": (editValue != '') ? editValue : (minValue != '' && type.fieldType == 'number') ? minValue : '',
+                "visible": 'true',
+                "read_only": false,
+                "pattern": (pattern != '') ? pattern : '',
+                "scale_max": (maxValue != '') ? maxValue : '',
+                "scale_min": (minValue != '') ? minValue : '',
+                "field_type": (type.fieldType) ? type.fieldType : 'text',
+                "datatype": (type.datatype != '') ? type.datatype : 'string',
+                "pattern_msg": (patternMsg != '') ? patternMsg : ''
+            });
+        }
+    }
+
+    function fetchDatatype(type) {
+        if (type == 'string') return {
+            'type': 6,
+            'fieldType': 'text',
+            'datatype': ''
+        };
+        else if (type == 'integer') return {
+            'type': 6,
+            'fieldType': 'number',
+            'datatype': ''
+        };
+        else if (type == 'boolean') return {
+            'type': 7,
+            'fieldType': 'boolean',
+            'datatype': ''
+        };
+        else if (type == 'secureString') return {
+            'type': 25,
+            'fieldType': 'password',
+            'datatype': ''
+        };
+        else if (type == 'decimal') return {
+            'type': 6,
+            'fieldType': 'number',
+            'datatype': 'Decimal'
+        };
+        else if (type == 'dateTime') return {
+            'type': 10,
+            'fieldType': 'date',
+            'datatype': ''
+        };
+        else return {
+            'type': 6,
+            'fieldType': 'text',
+            'datatype': ''
+        };
+    }
+
+    //************************************ Server Script End ************************************
+
+    divCount = divCount + 1;
+
+});
+
+// jslog(angApp);
+angular.element(function() {
+    angular.bootstrap(document, ['angularapp' + count]);
+});]]></script>
+        <script_name>datagrid_uiscript</script_name>
+        <sys_class_name>sys_ui_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-08-19 09:13:33</sys_created_on>
+        <sys_id>e497cf98dbf21010d5076f7748961978</sys_id>
+        <sys_mod_count>280</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.datagrid_uiscript</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_ui_script_e497cf98dbf21010d5076f7748961978</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-03-10 12:50:28</sys_updated_on>
+        <ui_type>10</ui_type>
+        <use_scoped_format>false</use_scoped_format>
+    </sys_ui_script>
+</record_update>

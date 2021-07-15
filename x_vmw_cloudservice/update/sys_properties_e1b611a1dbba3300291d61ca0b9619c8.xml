@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="INSERT_OR_UPDATE">
+        <choices/>
+        <description>Default header JSON</description>
+        <ignore_cache>false</ignore_cache>
+        <is_private>false</is_private>
+        <name>x_vmw_cloudservice.CASdefaultHeaderJSON</name>
+        <read_roles>admin,x_vmw_cloudservice.vra_catalog_admin</read_roles>
+        <suffix>CASdefaultHeaderJSON</suffix>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-22 05:49:59</sys_created_on>
+        <sys_id>e1b611a1dbba3300291d61ca0b9619c8</sys_id>
+        <sys_mod_count>137</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.CASdefaultHeaderJSON</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_properties_e1b611a1dbba3300291d61ca0b9619c8</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-09-23 08:57:54</sys_updated_on>
+        <type>string</type>
+        <value>[&#13;
+  {&#13;
+    "color": {&#13;
+      &#13;
+      "background_color": {&#13;
+        "color": "#314351",&#13;
+        "label": "Background Color "&#13;
+      },&#13;
+      "cart_icon": {&#13;
+        "color": "#f4280b",&#13;
+        "label": "Cart Badge Icon Color "&#13;
+      },&#13;
+      "text_color": {&#13;
+        "color": "#FFFFFF",&#13;
+        "label": "Text Color "&#13;
+      },&#13;
+      "label": "Color"&#13;
+    },&#13;
+    "logo": {&#13;
+      "textbanner": {&#13;
+        "label": "Banner Text",&#13;
+        "value": "VMware Cloud Services"&#13;
+      },&#13;
+      "logo": {&#13;
+        "label": "Image",&#13;
+        "value": "vmwareLogo.svg"&#13;
+      },&#13;
+      "label": "Logo"&#13;
+    },&#13;
+    "label": "Header",&#13;
+    "order": "1"&#13;
+  },&#13;
+  {&#13;
+    "color": {&#13;
+      &#13;
+      "background_color": {&#13;
+        "color": "#314351",&#13;
+        "label": "Background Color "&#13;
+      },&#13;
+      "text_color": {&#13;
+        "color": "#FFFFFF",&#13;
+        "label": "Text Color "&#13;
+      },&#13;
+      "color1": {&#13;
+        "color": "#6DB33F",&#13;
+        "label": "Gradient (First Color)"&#13;
+      },&#13;
+      "color2": {&#13;
+        "color": "#1e7579",&#13;
+        "label": "Gradient (Second Color)"&#13;
+      },&#13;
+      "label": "Color",&#13;
+      "hover_color": {&#13;
+        "color": "#F8F8F8",&#13;
+        "label": "Hover Color "&#13;
+      }&#13;
+    },&#13;
+    "logo": {&#13;
+      "logo": {&#13;
+        "label": "Image",&#13;
+        "value": "vmwareLogo.svg"&#13;
+      },&#13;
+      "label": "Logo"&#13;
+    },&#13;
+    "weighted_links": {&#13;
+      "visible": "true",&#13;
+      "label": "Weighted Links",&#13;
+      "fields": [&#13;
+        {&#13;
+          "name": "Contact Sales",&#13;
+          "url": "https://www.vmware.com/in/company/contact_sales.html",&#13;
+          "order": 0&#13;
+        },&#13;
+        {&#13;
+          "name": "Get Support",&#13;
+          "url": "https://www.vmware.com/in/support.html",&#13;
+          "order": 1&#13;
+        },&#13;
+        {&#13;
+          "name": "About VMware",&#13;
+          "url": "https://www.vmware.com/in/company.html",&#13;
+          "order": 2&#13;
+        },&#13;
+        {&#13;
+          "name": "Careers",&#13;
+          "url": "https://careers.vmware.com/",&#13;
+          "order": 3&#13;
+        },&#13;
+        {&#13;
+          "name": "Thought Leadership",&#13;
+          "url": "https://www.vmware.com/radius",&#13;
+          "order": 4&#13;
+        }&#13;
+      ]&#13;
+    },&#13;
+    "links": {&#13;
+      "visible": "true",&#13;
+      "label": "Links",&#13;
+      "fields": [&#13;
+        {&#13;
+          "name": "Terms of Use",&#13;
+          "url": "https://www.vmware.com/in/help/legal.html",&#13;
+          "order": 1&#13;
+        },&#13;
+        {&#13;
+          "name": "Privacy",&#13;
+          "url": "https://www.vmware.com/in/help/privacy.html",&#13;
+          "order": 2&#13;
+        },&#13;
+        {&#13;
+          "name": "Accessibility",&#13;
+          "url": "https://www.vmware.com/in/help/accessibility.html",&#13;
+          "order": 3&#13;
+        },&#13;
+        {&#13;
+          "name": "Site Map",&#13;
+          "url": "https://www.vmware.com/in/site_index.html",&#13;
+          "order": 4&#13;
+        },&#13;
+        {&#13;
+          "name": "Trademarks",&#13;
+          "url": "https://www.vmware.com/in/help/trademarks.html",&#13;
+          "order": 5&#13;
+        },&#13;
+        {&#13;
+          "name": "Glossary",&#13;
+          "url": "https://www.vmware.com/topics/glossary",&#13;
+          "order": 6&#13;
+        },&#13;
+        {&#13;
+          "name": "Help",&#13;
+          "url": "https://www.vmware.com/in/help.html",&#13;
+          "order": 7&#13;
+        }&#13;
+      ]&#13;
+    },&#13;
+    "label": "Footer",&#13;
+    "icon_socialize": {&#13;
+      "visible": "true",&#13;
+      "label": "Social Icons",&#13;
+      "fields": [&#13;
+        {&#13;
+          "name": "twitter",&#13;
+          "url": "https://twitter.com/VMwareIN",&#13;
+          "order": 0&#13;
+        },&#13;
+        {&#13;
+          "name": "facebook",&#13;
+          "url": "https://www.facebook.com/vmwareindia/",&#13;
+          "order": 1&#13;
+        },&#13;
+        {&#13;
+          "name": "linkedin",&#13;
+          "url": "https://www.linkedin.com/company/vmware",&#13;
+          "order": 2&#13;
+        },&#13;
+        {&#13;
+          "name": "youtube",&#13;
+          "url": "https://www.youtube.com/channel/UCkBka9x8KSOa6tXxn8PWGXQ",&#13;
+          "order": 3&#13;
+        }&#13;
+      ]&#13;
+    },&#13;
+    "order": "2"&#13;
+  }&#13;
+]</value>
+        <write_roles>admin,x_vmw_cloudservice.vra_catalog_admin</write_roles>
+    </sys_properties>
+    <sys_translated_text action="delete_multiple" query="documentkey=e1b611a1dbba3300291d61ca0b9619c8"/>
+</record_update>

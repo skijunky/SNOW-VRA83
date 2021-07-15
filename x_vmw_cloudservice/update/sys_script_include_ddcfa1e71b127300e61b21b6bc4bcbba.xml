@@ -1,0 +1,1114 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.vRAImportStart</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description>Import start</description>
+        <name>vRAImportStart</name>
+        <script><![CDATA[var vRAImportStart = Class.create();
+vRAImportStart.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+    initialize: function() {
+        this.order = 5;
+        this.appUtil = new CASAppUtil();
+        this.daoUtil = new CASDaoUtil();
+    },
+
+
+
+
+    startImportProject: function(OrgId) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.startImportProject: Start of Import of Project');
+            var selectedOrganization = '';
+            if (OrgId) {
+                selectedOrganization = OrgId;
+            } else {
+                selectedOrganization = this.getParameter('sysparam_selectedOrganizations');
+            }
+
+            var appUtil = new CASAppUtil();
+
+            var checkRecord = new CASDaoUtil();
+            var Result = checkRecord.SelectedOrganizationCheck(selectedOrganization);
+            if (Result == true) {
+                new checkRecord.insert("StartImportProject", " ", " ", selectedOrganization);
+                new checkRecord.insert("ReconcileImportProject", " ", " ", selectedOrganization);
+
+            }
+        } catch (e) {
+
+            CASLogger.error("Exception caught inside vRAImportStart.startImportProject" + e);
+
+        }
+    },
+
+    startImportCatalog: function() {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.startImportCatalog: Start of Import of Catalog');
+            var OrgnizationId = new CASDaoUtil();
+            var appUtil = new CASAppUtil();
+            var selectedProjects = this.getParameter('sysparm_selectedProject');
+            var projects = selectedProjects.split(",");
+            for (var i = 0; i < projects.length; i++) {
+                var obj = OrgnizationId.GetOrganizationId(projects[i]);
+                var organization = obj.organization;
+                var ProjectID = obj.project_id;
+                new OrgnizationId.insert("StartImportCatalog", " ", ProjectID, organization);
+                new OrgnizationId.insert("ReconcileImportCatalog", " ", ProjectID, organization);
+
+            }
+
+        } catch (e) {
+
+            CASLogger.error("Exception caught inside vRAImportStart.startImportCatalog" + e);
+
+        }
+    },
+
+
+    preImportCMDB: function(OrgId) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.preImportCMDB: Pre Import of Catalog.');
+            var selectedOrganization = '';
+            if (OrgId) {
+                selectedOrganization = OrgId;
+            } else {
+
+            }
+
+            var appUtil = new CASAppUtil();
+            var checkRecord = new CASDaoUtil();
+            var Result = checkRecord.SelectedOrganizationCheck(selectedOrganization);
+            if (Result == true) {
+                new checkRecord.insert("StartImportCMDB", " ", " ", selectedOrganization);
+                new checkRecord.insert("reconcileCMDB", " ", " ", selectedOrganization);
+
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.preImportCMDB. Error=" + e);
+
+        }
+    },
+
+    StartImportCMDB: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.StartImportCMDB: Start Import of CMDB');
+            var appUtil = new CASAppUtil();
+            var organization = current.organization;
+            // var casHost = appUtil.configuration.api.hostname; //CAS endpoint name.
+
+            var endPoint = '';
+            var midserver = '';
+            var token = '';
+            var numOfDeploy = '';
+            var deploymentId = '';
+
+            //for cas
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue();
+                endPoint = organization.cas_url + "/deployment/api/deployments?size=20&page=0";
+
+            }
+
+
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + "/deployment/api/deployments?size=20&page=0";
+                midserver = organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue();
+            }
+            var response1 = appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+            if (response1.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportStart.StartImportCMDB: ' + response1.getErrorMessage());
+                return;
+            } else {
+                var addTopic = new CASDaoUtil();
+                var responsebody = response1.getBody();
+                var obj = appUtil.parse(responsebody);
+                var pageLength = obj.totalPages;
+                new addTopic.insert("IndivImportCMDB", responsebody, endPoint, organization);
+                for (var i = 1; i < pageLength; i++) {
+
+                    if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                        token = current.organization.api_token.getDecryptedValue().toString();
+                        endPoint = organization.cas_url + "/deployment/api/deployments?size=20&page=" + i;
+
+                    }
+                    if (organization.select_automation_service == 'vrealizeAutomationService') {
+                        endPoint = organization.hostname + "/deployment/api/deployments?size=20&page=" + i;
+                        midserver = organization.mid_server.name;
+                        token = current.organization.api_token.getDecryptedValue().toString();
+                    }
+
+                    var response = appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+                    if (response.haveError()) {
+                        CASLogger.error('REST call error found inside vRAImportStart.StartImportCMDB: ' + response.getErrorMessage());
+                        return;
+                    } else {
+                        var deploymentResponse = response.getBody();
+                        new addTopic.insert("IndivImportCMDB", deploymentResponse, endPoint, organization);
+                    }
+
+                }
+
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.StartImportCMDB. Error=" + e);
+
+        }
+    },
+
+
+
+
+
+    parseIndivCMDB: function(current) { //current=queue table record
+        //http://{{vRAhost}}/deployment/api/deployments/8efe0847-d1cd-46c2-bfe5-088af2cbb02d
+        try {
+            CASLogger.debug('Inside  vRAImportStart.parseIndivCMDB: parse Indiv CMDB');
+            var OrdSysId = current.organization;
+            var appUtil = new CASAppUtil();
+            var organization = current.organization;
+            //var casHost = appUtil.configuration.api.hostname;
+            //var casHost=appUtil.configuration.api.hostname;//CAS endpoint name
+
+            var endPoint = '';
+            var midserver = '';
+            var token = '';
+            var response = current.response;
+            response = appUtil.parse(response);
+            for (var i = 0; i < response.content.length; i++) {
+                var deploymentId = response.content[i].id;
+
+
+                //cas
+                if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                    endPoint = organization.cas_url + this.appUtil.configuration.api.deployment + deploymentId;
+                    token = organization.api_token.getDecryptedValue().toString();
+                }
+                if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                    endPoint = organization.hostname + this.appUtil.configuration.api.deployment + deploymentId;
+                    midserver = organization.mid_server.name;
+                    token = organization.api_token.getDecryptedValue().toString();
+                }
+                var response1 = appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+                if (response1.haveError()) {
+                    CASLogger.error('REST call error found inside vRAImportStart.parseIndivCMDB: ' + response.getErrorMessage());
+                    return;
+                } else {
+                    var responsebody = response1.getBody();
+                    var addTopic = new CASDaoUtil();
+                    new addTopic.insert("createCMDB", responsebody, endPoint, organization);
+                    //new addTopic.insert("startDeploymentAction","",deploymentId,organization);
+
+                }
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.parseIndivCMDB. Error=" + e);
+
+        }
+    },
+
+    insertCMDB: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.insertCMDB: Insert of  CMDB Data');
+            this.appUtil = new CASAppUtil();
+            var organization = current.organization;
+            var obj = this.appUtil.parse(current.response);
+            var deploymentId = obj.id;
+
+            var addTopic = new CASDaoUtil();
+            new addTopic.insert("preImportResource", deploymentId, '', organization);
+            var initializeImportTable = new CASDaoUtil().insertCMDBData(current);
+
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.insertCMDB  " + e);
+        }
+
+    },
+
+
+    preImportResource: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.preImportResource: Start of Resource import');
+            this.appUtil = new CASAppUtil();
+            var organization = current.organization;
+            // var casHost = this.appUtil.configuration.api.hostname; //CAS endpoint name
+            var deploymentId = current.response;
+            var endPoint = '';
+            var midserver = '';
+            var token = '';
+
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue().toString();
+                endPoint = organization.cas_url + this.appUtil.configuration.api.machine + deploymentId + '/resources';
+            }
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + this.appUtil.configuration.api.machine + deploymentId + '/resources';
+                midserver = organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue().toString();
+            }
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportStart.preImportResource: ' + response.getErrorMessage());
+                return;
+            } else {
+                var responsebody = response.getBody();
+
+                var addTopic = new CASDaoUtil();
+                new addTopic.insert("parseResource", responsebody, deploymentId, organization);
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.preImportResource  " + e);
+        }
+    },
+
+    parseResource: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.preImportResource: Parsing of Resource');
+            this.appUtil = new CASAppUtil();
+            var organization = current.organization;
+            //  var casHost = this.appUtil.configuration.api.hostname; //CAS endpoint name
+            var endPoint = '';
+            var midserver = '';
+            var token = '';
+            var deploymentId = current.request;
+            var obj = this.appUtil.parse(current.response);
+            var contentLength = obj.content.length;
+            for (i = 0; i < contentLength; i++) {
+                var resourceId = obj.content[i].id;
+
+                if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                    token = current.organization.api_token.getDecryptedValue().toString();
+                    endPoint = organization.cas_url + this.appUtil.configuration.api.machine + deploymentId + '/resources/' + resourceId;
+                }
+
+                if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                    endPoint = organization.hostname + this.appUtil.configuration.api.machine + deploymentId + '/resources/' + resourceId;
+                    midserver = organization.mid_server.name;
+                    token = current.organization.api_token.getDecryptedValue().toString();
+                }
+                var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+                if (response.haveError())
+
+                {
+                    CASLogger.error('REST call error found inside vRAImportStart.parseResource: ' + response.getErrorMessage());
+                    return;
+                } else {
+                    var responsebody = response.getBody();
+                    var addTopic = new CASDaoUtil();
+                    new addTopic.insert("createResource", responsebody, deploymentId, organization);
+
+
+
+                }
+            }
+
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.parseResource  " + e);
+        }
+    },
+
+    insertResource: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.preImportResource: Insert  Resource');
+            var addMachine = new CASDaoUtil();
+            var initializeImportTable = new CASDaoUtil().insertResource(current);
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.insertResource  " + e);
+        }
+    },
+
+
+    startImportActionForDeployment: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.startImportActionForDeployment: Start Of Import Action for Deployment');
+            this.appUtil = new CASAppUtil();
+            var addTopic = new CASDaoUtil();
+            var organization = current.organization;
+            // var casHost = this.appUtil.configuration.api.hostname; //CAS endpoint name
+            var endPoint = '';
+            var midserver = '';
+            var token = '';
+            var deploymentId = current.request;
+
+
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue().toString();
+                endPoint = organization.cas_url + this.appUtil.configuration.api.deployment + deploymentId + "/actions";
+            }
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + this.appUtil.configuration.api.deployment + deploymentId + "/actions";
+                midserver = organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue().toString();
+            }
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportStart.startImportActionForDeployment: ' + response.getErrorMessage());
+                return;
+            } else {
+                var responsebody = response.getBody();
+                new addTopic.insert("parseActionForDeployment", responsebody, deploymentId, organization);
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.startImportActionForDeployment  " + e);
+        }
+
+    },
+
+
+    parseActionForDeployment: function(current) {
+        try {
+
+            CASLogger.debug('Inside  vRAImportStart.parseActionForDeployment');
+            var storeAction = new CASDaoUtil().insertDeploymentActionTable(current);
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.parseActionForDeployment  " + e);
+        }
+    },
+
+
+    startImportActionForResource: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.startImportActionForResource: Start Of Import Action for Resource');
+            this.appUtil = new CASAppUtil();
+            var addTopic = new CASDaoUtil();
+            var organization = current.organization;
+            //var casHost = this.appUtil.configuration.api.hostname; //CAS endpoint name
+            var endPoint = '';
+            var midserver = '';
+            var token = '';
+            var deploymentId = current.response;
+            var MachineId = current.request;
+
+            //for cas
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue().toString();
+                endPoint = organization.cas_url + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + MachineId + "/actions";
+            }
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + MachineId + "/actions";
+                midserver = organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue().toString();
+            }
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportStart.startImportActionForResource: ' + response.getErrorMessage());
+                return;
+            } else {
+                var responsebody = response.getBody();
+                new addTopic.insert("parseActionForResource", responsebody, MachineId, organization);
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.startImportActionForResource  " + e);
+        }
+
+    },
+
+    parseActionForResource: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.parseActionForResource: parse Action for Resource');
+            var storeAction = new CASDaoUtil().insertResourceActionTable(current);
+
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.parseActionForResource  " + e);
+        }
+    },
+
+    reconcileCMDB: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.reconcileCMDB: reconcile CMDB Data');
+            var appUtil = new CASAppUtil();
+            var organization = current.organization;
+            // var casHost = appUtil.configuration.api.hostname; //CAS endpoint name
+
+            var endPoint = '';
+            var midserver = '';
+            var token = '';
+            var List = '';
+            var deploymentId = '';
+            var machineId = '';
+            var machineList = '';
+
+
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue();
+                endPoint = organization.cas_url + "/deployment/api/deployments?size=20&page=0";
+            }
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + "/deployment/api/deployments?size=20&page=0";
+                midserver = organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue();
+            }
+            var response1 = appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+            if (response1.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportStart.reconcileCMDB: ' + response1.getErrorMessage());
+                return;
+            } else {
+                var addTopic = new CASDaoUtil();
+                var responsebody = response1.getBody();
+                var obj = appUtil.parse(responsebody);
+                var contentLength = obj.content.length;
+                for (var j = 0; j < contentLength; j++) {
+                    deploymentId = obj.content[j].id;
+                    List = List + deploymentId + ';';
+                }
+                var pageLength = obj.totalPages;
+                for (var i = 1; i < pageLength; i++) {
+
+                    if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                        token = current.organization.api_token.getDecryptedValue().toString();
+                        endPoint = organization.cas_url + "/deployment/api/deployments?size=20&page=" + i;
+                    }
+                    if (organization.select_automation_service == 'vrealizeAutomationService') {
+                        endPoint = organization.hostname + "/deployment/api/deployments?size=20&page=" + i;
+                        midserver = organization.mid_server.name;
+                        token = current.organization.api_token.getDecryptedValue().toString();
+                    }
+
+                    var response = appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+                    if (response.haveError()) {
+                        CASLogger.error('REST call error found inside vRAImportStart.reconcileCMDB: ' + response.getErrorMessage());
+
+                        return;
+                    } else {
+                        var deploymentResponse = response.getBody();
+                        obj = appUtil.parse(deploymentResponse);
+                        contentLength = obj.content.length;
+                        for (j = 0; j < contentLength; j++) {
+                            deploymentId = obj.content[j].id;
+                            List = List + deploymentId + ';';
+                        }
+
+                    }
+
+                }
+
+            }
+
+            if (List) {
+                var inActiveDeployment = this.daoUtil.reconcileDeployment(List, current);
+                token = current.organization.api_token.getDecryptedValue();
+                var ListArray = [];
+                ListArray = List.slice(0, -1);
+                ListArray = ListArray.split(';');
+                for (var k = 0; k < ListArray.length; k++) {
+
+                    if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                        endPoint = organization.cas_url + this.appUtil.configuration.api.machine + ListArray[k] + '/resources';
+                        token = current.organization.api_token.getDecryptedValue();
+                    }
+                    if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                        endPoint = organization.hostname + this.appUtil.configuration.api.machine + ListArray[k] + '/resources';
+                        midserver = organization.mid_server.name;
+                        token = current.organization.api_token.getDecryptedValue();
+                    }
+                    var responseResource = appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+                    var responseStatusCheckMac = responseResource.getStatusCode();
+                    if (responseStatusCheckMac == '200') {
+                        var machineResponse = responseResource.getBody();
+                        var objMac = appUtil.parse(machineResponse);
+                        var contentLengths = objMac.content.length;
+                        for (var z = 0; z < contentLengths; z++) {
+                            machineId = objMac.content[z].id;
+                            machineList = machineList + machineId + ';';
+                        }
+                    }
+                }
+            }
+
+            if (machineList) {
+                var machineIdList = machineList.slice(0, -1);
+                var inActiveMachine = this.daoUtil.reconcileResource(machineIdList, current);
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportStart.reconcileCMDB  " + e);
+        }
+    },
+
+
+    // 	  testpreImportResource: function(Actionorganization,ActiondeploymentId,ActionresourceId) {
+    //         try {
+    // 			gs.error("test"+Actionorganization+ActiondeploymentId+ActionresourceId);
+
+    //             CASLogger.debug('Inside  vRAImportStart.preImportResource: Start of Resource import');
+    //             this.appUtil = new CASAppUtil();
+    //             var organization = Actionorganization;
+    //             var casHost = this.appUtil.configuration.api.hostname; //CAS endpoint name
+    //             var deploymentId = ActiondeploymentId;
+    //             var endPoint = '';
+    //             var midserver = '';
+    //             var token = '';
+    // 			var ActualList='';
+    // 			var test='';
+    //             token = organization.api_token.getDecryptedValue().toString();
+    // 			gs.error("token"+token);
+    //             endPoint = casHost + this.appUtil.configuration.api.machine + deploymentId + '/resources';
+
+    //             if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+    //                 endPoint = organization.hostname + this.appUtil.configuration.api.machine + deploymentId + '/resources';
+    //                 midserver = organization.mid_server.name;
+    //                 token = organization.api_token.getDecryptedValue().toString();
+    //             }
+    //             var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+    //             if (response.haveError()) {
+    //                 CASLogger.error('REST call error found inside vRAImportStart.preImportResource: ' + response.getErrorMessage());
+    //                 return;
+    //             } else {
+    //                 var responsebody = response.getBody();
+    // 				var obj= this.appUtil.parse(responsebody);
+    // 				var contentLength = obj.content.length;
+    //                 for (var j = 0; j < contentLength; j++) {
+    //                     test = obj.content[j].id;
+    //                     ActualList = ActualList + test + ';';
+    //                 }
+
+    // 				if(ActualList)
+    // 					{
+    // 						var machineIdList = machineList.slice(0, -1);
+    // 						this.daoUtil
+    // 					}
+
+    // 				gs.error("LIST"+ActualList);
+
+
+    //             }
+    //         } catch (e) {
+    //             CASLogger.error("Exception caught inside vRAImportStart.testpreImportResource  " + e);
+    //         }
+    //     },
+
+
+
+
+
+    createItemOptionNew: function(current) {
+        try {
+
+            CASLogger.debug('Inside  vRAImportStart.createItemOptionNew: Creation of Item Option New');
+            this.appUtil = new CASAppUtil();
+            var obj = this.appUtil.parse(current.response);
+            var actionID = current.request;
+            if (obj.schema.properties == null || obj.schema == null || Object.keys(obj.schema.properties).length == 0)
+
+            {
+
+                this.deleteItemOptionRecord(actionID);
+                this.createContainerStart(current, actionID, '');
+                this.createContainerEnd(current, actionID);
+            } else {
+
+                this.deleteItemOptionRecord(actionID);
+
+                var properties = obj.schema.properties;
+
+                this.createContainerStart(current, actionID, '');
+
+                for (var key in properties) {
+
+                    this.createVariable(key, obj.schema, actionID, '');
+
+                }
+                this.createContainerEnd(current, actionID);
+
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside VRAImportStart.createItemOptionNew  " + e);
+        }
+    },
+
+    deleteItemOptionRecord: function(actionID) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.deleteItemOptionRecord: Used for deletion of Item option new records');
+            this.daoUtil.deleteItemOptionRecord(actionID);
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.deleteItemOptionRecord  " + e);
+        }
+    },
+
+    createContainerStart: function(current, actionID, catalog) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.createContainerStart');
+            var gr = new GlideRecord(this.appUtil.configuration.table.variable);
+            gr.initialize();
+            gr.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+            gr.type = '19';
+            gr.display_title = 'false';
+
+            gr.active = 'true';
+            gr.order = '1';
+            if (catalog) {
+                gr.cat_item = catalog;
+            } else {
+                gr.x_vmw_cloudservice_vra_action = actionID;
+            }
+
+            this.order = this.order + 1;
+            gr.visible_standalone = 'true';
+            gr.visible_bundle = 'true';
+            gr.visible_guide = 'true';
+            gr.visible_summary = 'true';
+            gr.question_text = 'General';
+            gr.name = 'General';
+            gr.layout = 'normal';
+            gr.insert();
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.createContainerStart  " + e);
+        }
+    },
+
+
+    createVariable: function(key, response, actionID, catalog) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.createVariable:');
+            var dropdown;
+            var stringDropdown;
+
+            var gr = new GlideRecord(this.appUtil.configuration.table.variable);
+            gr.initialize();
+            gr.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+            //gr.x_vmw_cloudservice_cas_scale_min=0;
+            //gr.x_vmw_cloudservice_cas_scale_max=0;
+            gr.type = '6';
+            gr.x_vmw_cloudservice_cas_name = 'STR__' + key;
+
+
+            if (response.properties[key]["enum"]) {
+                gr.type = '5';
+                dropdown = 'true';
+                //stringDropdown = 'true';
+            }
+
+
+
+
+            if (response.properties.snapshotId || response.properties.diskId) {
+
+                gr.type = '5';
+                stringDropdown = 'true';
+            }
+
+            if (response.properties[key].type == 'integer' || response.properties[key].type == 'number') {
+                gr.x_vmw_cloudservice_cas_name = 'INT__' + key;
+            }
+            if (response.properties[key].format == 'date-time') {
+                gr.type = '10';
+                gr.x_vmw_cloudservice_cas_name = 'Date__' + key;
+            }
+            if (response.properties[key]['minLength']) {
+
+                gr.x_vmw_cloudservice_cas_scale_min = response.properties[key]['minLength'];
+            }
+            if (response.properties[key]['minimum']) {
+                gr.x_vmw_cloudservice_cas_scale_min = response.properties[key]['minimum'];
+            }
+
+            if (response.properties[key]['maxLength']) {
+                gr.x_vmw_cloudservice_cas_scale_max = response.properties[key]['maxLength'];
+            }
+            if (response.properties[key]['maximum']) {
+
+                gr.x_vmw_cloudservice_cas_scale_max = response.properties[key]['maximum'];
+
+            }
+
+            if (response.properties[key].type == 'boolean') {
+                gr.type = '7';
+                gr.x_vmw_cloudservice_cas_name = 'BOOL__' + key;
+
+            }
+
+
+
+            gr.display_title = 'true';
+            gr.mandatory = 'false';
+            if (typeof response.required !== 'undefined' && response.required.length > 0) {
+                for (var i = 0; i < response.required.length; i++) {
+                    if (response.required[i] == key) {
+                        gr.mandatory = 'true';
+                    }
+                }
+            }
+
+            if (response.properties[key]['readOnly']) {
+                gr.show_help_on_load = response.properties[key]['readOnly'];
+            }
+
+            if (response.properties[key]["default"] && !catalog) {
+                gr.default_value = response.properties[key]["default"];
+            }
+
+            /*if(response.properties[key].type=='array')
+            	{
+            		
+            		gr.x_vmw_cloudservice_cas_name = 'OBJ__' + key;
+            		gr.x_vmw_cloudservice_vra_action_json=this.appUtil.stringify(obj);
+            		gr.default_value='';
+            		
+            	} */
+            if (response.properties[key].description) {
+                gr.tooltip = response.properties[key].description;
+            }
+            if (catalog) {
+                gr.cat_item = catalog;
+            } else {
+                gr.x_vmw_cloudservice_vra_action = actionID;
+            }
+
+            gr.active = 'true';
+            //gr.x_vmw_cloudservice_vra_action = actionID;
+            gr.order = this.order;
+            gr.variable_width = 100;
+            this.order = this.order + 1;
+            gr.visible_standalone = 'true';
+            gr.visible_bundle = 'true';
+            gr.visible_guide = 'true';
+            gr.visible_summary = 'true';
+
+
+
+            var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+
+            if (response.properties[key].title) {
+                gr.question_text = response.properties[key].title;
+            } else {
+                gr.question_text = key;
+            }
+
+            gr.name = key.replace(rgx, ' ').trim().replaceAll(' ', '_');
+
+
+            gr.layout = '2across';
+            var variable = gr.insert();
+            if (catalog) {
+                var count = '';
+                var agg = new GlideAggregate(this.appUtil.configuration.table.variable);
+                agg.addAggregate('COUNT');
+                agg.addQuery('name', key.replace(rgx, ' ').trim().replaceAll(' ', '_'));
+                agg.addQuery('cat_item', catalog);
+                agg.query();
+                if (agg.next()) {
+                    count = agg.getAggregate('COUNT');
+                }
+                if (count > 1) {
+                    var itemGR = new GlideRecord(this.appUtil.configuration.table.variable);
+                    itemGR.addQuery('name', key.replace(rgx, ' ').trim().replaceAll(' ', '_'));
+                    itemGR.addQuery('cat_item', catalog);
+                    itemGR.orderByDesc();
+                    itemGR.query();
+                    if (itemGR.next() && count != 1) {
+                        itemGR.active = false;
+                        itemGR.name = itemGR.name + count;
+                        itemGR.update();
+                        count--;
+                    }
+                }
+            }
+
+
+            if (dropdown == 'true' && !catalog) {
+
+                this.createChoice(response.properties[key]['enum'], variable);
+
+            }
+            if (stringDropdown == 'true' && !catalog) {
+
+                this.createChoiceString(response.properties[key]["oneOf"], variable);
+            }
+
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.createVariable  " + e);
+        }
+
+    },
+
+    createContainerEnd: function(current, actionID) {
+        try {
+
+            CASLogger.debug('Inside  vRAImportStart.createContainerEnd:');
+            var gr = new GlideRecord(this.appUtil.configuration.table.variable);
+            gr.initialize();
+            gr.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+            gr.type = '20';
+            gr.x_vmw_cloudservice_vra_action = actionID;
+            gr.active = 'true';
+            gr.order = this.order;
+            this.order = this.order + 1;
+            gr.insert();
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.createContainerEnd  " + e);
+        }
+    },
+
+    createChoice: function(response, variable) {
+        try {
+            CASLogger.debug('Inside  vRAImportStart.createChoice:');
+            for (var i = 0; i < response.length; i++) {
+
+                this.daoUtil.insertActionChoice(response[i], variable);
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.createChoice  " + e);
+        }
+    },
+    createChoiceString: function(response, variable) {
+        try {
+            for (var i = 0; i < response.length; i++) {
+                this.daoUtil.insertActionChoiceString(response[i]['title'], response[i]['const'], variable);
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.createChoiceString " + e);
+        }
+    },
+
+    createdefaultActionVariables: function(catalog, resourceId, resourceType) {
+        try {
+            this.createContainerStart('', '', catalog);
+            var variableset = '';
+            if (resourceType == 'Deployment') {
+                variableset = gs.getProperty(this.appUtil.configuration.properties.deploymentVariableSet);
+            }
+            if (resourceType == 'Machine') {
+                variableset = gs.getProperty(this.appUtil.configuration.properties.resourceVariableSet);
+            }
+            //var app_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+            var varset = new sn_sc.CatalogItemVariableSetM2M();
+            var attr = {
+                'variable_set': variableset,
+                'sc_cat_item': catalog,
+                'order': 0
+            };
+            varset.setAttributes(attr);
+            varset.create(true);
+
+            /*
+			var variableGR = new GlideRecord('item_option_new');
+            variableGR.newRecord();
+            variableGR.type = '8';
+            variableGR.reference = 'x_vmw_cloudservice_register_cas_organization';
+            variableGR.question_text = 'Endpoint';
+            variableGR.name = 'endpoint';
+            variableGR.cat_item = catalog;
+            variableGR.order = 4;
+            
+            
+            variableGR.insert();
+            var projectGR = new GlideRecord('item_option_new');
+            projectGR.newRecord();
+            projectGR.type = '8';
+            projectGR.reference = 'x_vmw_cloudservice_cas_project';
+            projectGR.question_text = 'Project';
+            projectGR.name = 'project';
+            projectGR.order =5;
+            projectGR.cat_item = catalog;
+            projectGR.insert();
+
+            var deploymentGR = new GlideRecord('item_option_new');
+            deploymentGR.newRecord();
+            deploymentGR.type = '8';
+            deploymentGR.reference = 'x_vmw_cloudservice_deployments';
+            deploymentGR.question_text = 'Deployment';
+            deploymentGR.name = 'deployment';
+            deploymentGR.use_reference_qualifier = 'advanced';
+            deploymentGR.reference_qual = "javascript: new x_vmw_cloudservice.CASDaoUtil().getDeploymentList(current.cat_item.sys_id)";
+            deploymentGR.order = 2;
+            deploymentGR.mandatory = true;
+            deploymentGR.cat_item = catalog;
+            deploymentGR.insert();
+
+            if (resourceType == 'Machine') {
+                var machineGR = new GlideRecord('item_option_new');
+                machineGR.newRecord();
+                machineGR.type = '8';
+                machineGR.reference = 'x_vmw_cloudservice_machines';
+                machineGR.question_text = 'Machine';
+                machineGR.name = 'machine';
+                machineGR.use_reference_qualifier = 'advanced';
+                machineGR.reference_qual = "javascript: new x_vmw_cloudservice.CASDaoUtil().getMachineList(current.cat_item.sys_id,current.variables.deployment.deployment_id)";
+                machineGR.order = 3;
+                machineGR.mandatory = true;
+                machineGR.cat_item = catalog;
+                machineGR.insert();
+            }
+			*/
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.createdefaultActionVariables " + e);
+        }
+    },
+
+    insertActionVariables: function(current, catalogId) {
+        try {
+
+            var addTopic = new CASDaoUtil();
+            var deploymentId = '';
+            var organization = '';
+            var endPoint = '';
+            var midserver = '';
+            var token = '';
+            var actionId = current.action_id;
+            if (current.deployment) {
+                deploymentId = current.deployment.deployment_id;
+                organization = current.deployment.u_project.organization;
+                if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                    token = organization.api_token.getDecryptedValue().toString();
+                    endPoint = organization.cas_url + this.appUtil.configuration.api.deployment + deploymentId + "/actions/" + actionId;
+                }
+                if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                    endPoint = organization.hostname + this.appUtil.configuration.api.deployment + deploymentId + "/actions/" + actionId;
+                    midserver = organization.mid_server.name;
+                    token = organization.api_token.getDecryptedValue().toString();
+                }
+            }
+            if (current.machine) {
+                var machineId = current.machine.machine_id;
+                deploymentId = current.machine.deploymentid;
+                organization = current.machine.project.organization;
+                if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                    token = organization.api_token.getDecryptedValue().toString();
+                    endPoint = organization.cas_url + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + machineId + "/actions/" + actionId;
+                }
+                if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                    endPoint = organization.hostname + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + machineId + "/actions/" + actionId;
+                    midserver = organization.mid_server.name;
+                    token = organization.api_token.getDecryptedValue().toString();
+                }
+            }
+
+			//check endpoint
+			if(endPoint != '')
+			{
+				var actionResponse = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+				
+				if (actionResponse.haveError() || actionResponse.getStatusCode() != '200') { 
+					CASLogger.error('REST call error found inside CASImportStart.insertActionVariables ' + actionResponse.getErrorMessage());
+				} else {
+					var actionResponseBody = actionResponse.getBody();
+					if (current.action_schema != actionResponseBody) {
+						new addTopic.insert("actionSchema", actionResponseBody, catalogId, organization);
+					}
+					return actionResponseBody;
+				}
+			}
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.insertActionVariables " + e);
+        }
+    },
+    parseActionSchema: function(current) {
+        try {
+            var catalog = current.request;
+            var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+            var obj = this.appUtil.parse(current.response);
+            var properties = '';
+            if (obj.schema && obj.schema.properties) {
+                properties = obj.schema.properties;
+            }
+            if (obj.schema && obj.schema.properties && Object.keys(obj.schema.properties).length) {
+
+                for (var key in properties) {
+                    var name = key.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                    var gr = new GlideRecord(this.appUtil.configuration.table.variable);
+                    gr.addQuery('name', name);
+                    gr.addQuery('cat_item', catalog);
+                    gr.query();
+                    if (!gr.next()) {
+                        this.createVariable(key, obj.schema, '', catalog);
+                    }
+
+                }
+            } else {
+                var varGR = new GlideRecord(this.appUtil.configuration.table.variable);
+                varGR.initialize();
+                varGR.name = 'reason';
+                varGR.question_text = 'Reason';
+                varGR.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+                varGR.type = '2';
+                varGR.cat_item = catalog;
+                varGR.order = 6;
+                varGR.insert();
+                this.order = 7;
+            }
+            this.orderAction(catalog);
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.parseActionSchema " + e);
+        }
+    },
+
+    orderAction: function(catalog) {
+        try {
+            var end = false;
+            var varGR = new GlideRecord(this.appUtil.configuration.table.variable);
+            varGR.addQuery('cat_item', catalog);
+            varGR.query();
+            while (varGR.next()) {
+                if (varGR.type == '20') {
+                    end = true;
+                    break;
+                }
+            }
+            if (end == false) {
+                var gr = new GlideRecord(this.appUtil.configuration.table.variable);
+                gr.initialize();
+                gr.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+                gr.type = '20';
+                gr.active = 'true';
+                gr.order = 1000;
+                gr.cat_item = catalog;
+                gr.insert();
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside CASImportStart.orderAction " + e);
+        }
+    },
+
+
+
+    type: 'vRAImportStart'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-03 17:04:14</sys_created_on>
+        <sys_id>ddcfa1e71b127300e61b21b6bc4bcbba</sys_id>
+        <sys_mod_count>372</sys_mod_count>
+        <sys_name>vRAImportStart</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_ddcfa1e71b127300e61b21b6bc4bcbba</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-02-11 11:44:40</sys_updated_on>
+    </sys_script_include>
+</record_update>

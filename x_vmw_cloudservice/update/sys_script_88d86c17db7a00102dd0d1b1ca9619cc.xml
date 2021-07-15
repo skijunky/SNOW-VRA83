@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_cas_catalog_entitlement</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRA Notify when entitle is Update</name>
+        <order>50</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/ ) {
+
+    var appUtil = new CASAppUtil();
+
+    try {
+        CASLogger.debug("Inside Send email on Notify when entitle is Update :Business Rule");
+        var entitlement = gs.getProperty(appUtil.configuration.properties.vRA_entitlement);
+
+        if (entitlement == 'true' && (current.active == true || previous.active == true)) {
+            // B :- Normal Entitlement Update like project, actions, active status, catalog item
+            // C :- Only Entitle Users
+            // D :- Only Entitle Groups
+            var B = (current.endpoint.changes() || current.select_projects.changes() || current.select_catalog_items.changes() || current.active.changes() || current.deployment_actions.changes() || current.machine_actions.changes()) ? true : false;
+            var C = current.entitled_users.changes();
+            var D = current.entitled_groups.changes();
+
+            //gs.error("hello1 "+B+C+D);
+
+            if (B && C && D) {
+
+                var Cusers = current.entitled_users.toString().split(',');
+                var Pusers = previous.entitled_users.toString().split(',');
+                var arrNew1 = [];
+
+                for (var i = 0; i < Cusers.length; i++) {
+                    for (var j = 0; j < Pusers.length; j++) {
+                        if (Cusers[i] == Pusers[j]) {
+                            arrNew1.push(Cusers[i]);
+                        }
+                    }
+                }
+
+                var Cgroups = current.entitled_groups.toString().split(',');
+                var Pgroups = previous.entitled_groups.toString().split(',');
+                var arrNew2 = [];
+
+                for (var i = 0; i < Cgroups.length; i++) {
+                    for (var j = 0; j < Pgroups.length; j++) {
+                        if (Cgroups[i] == Pgroups[j]) {
+                            arrNew2.push(Cgroups[i]);
+                        }
+                    }
+                }
+
+                var newRecievers = ['user&group'];
+                newRecievers = newRecievers.concat(arrNew1);
+                newRecievers = newRecievers.concat(arrNew2);
+
+                normalEntitlementUpdate(newRecievers);
+                entitleUsersNotificationUpdate();
+
+            } else if (C && D) {
+                entitleUsersNotificationUpdate();
+            } else if (B && C) {
+
+                var Cusers = current.entitled_users.toString().split(',');
+                var Pusers = previous.entitled_users.toString().split(',');
+                var arrNew = [];
+                arrNew.push('user');
+
+                for (var i = 0; i < Cusers.length; i++) {
+                    for (var j = 0; j < Pusers.length; j++) {
+                        if (Cusers[i] == Pusers[j]) {
+                            arrNew.push(Cusers[i]);
+                        }
+                    }
+                }
+
+                normalEntitlementUpdate(arrNew);
+                entitleUsersNotificationUpdate();
+
+            } else if (B && D) {
+
+                var Cgroups = current.entitled_groups.toString().split(',');
+                var Pgroups = previous.entitled_groups.toString().split(',');
+                var arrNew = [];
+                arrNew.push('group');
+
+                for (var i = 0; i < Cgroups.length; i++) {
+                    for (var j = 0; j < Pgroups.length; j++) {
+                        if (Cgroups[i] == Pgroups[j]) {
+                            arrNew.push(Cgroups[i]);
+                        }
+                    }
+                }
+
+                normalEntitlementUpdate(arrNew);
+                entitleGroupsNotificationUpdate();
+
+            } else if (B) {
+                normalEntitlementUpdate('');
+            } else if (C) {
+                entitleUsersNotificationUpdate();
+            } else if (D) {
+                entitleGroupsNotificationUpdate();
+            }
+
+        }
+    } catch (e) {
+        CASLogger.error("Exception caught inside Send email on Notify when entitle is Update:Business Rule" + e);
+    }
+
+    function normalEntitlementUpdate(Recievers) {
+
+        var reciever = '';
+
+        if (current.entitled_users != '') {
+            var userRecievers = current.entitled_users.toString().split(',');
+
+            reciever = getUserRecieverEmail(userRecievers);
+
+            if (reciever == '' && current.entitled_groups != '') {
+                var groupRecievers = current.entitled_groups.toString().split(',');
+				reciever = getGroupRecieverEmail(groupRecievers);
+            }
+
+        } else if (current.entitled_groups != '') {
+            var groupRecievers = current.entitled_groups.toString().split(',');
+            reciever = getGroupRecieverEmail(groupRecievers);
+        }
+
+        gs.eventQueue('x_vmw_cloudservice.entitlement_update', current, reciever, Recievers);
+        //if(Creator_email == Updator_email) gs.eventQueue('x_vmw_cloudservice.entitlement_update', current, Creator_email);
+        //else gs.eventQueue('x_vmw_cloudservice.entitlement_update', current, updatorReceivers);
+
+    }
+
+    function entitleUsersNotificationUpdate() {
+
+        //****  User Changes Start ********************
+
+        var Cusers = current.entitled_users.toString();
+        var Pusers = previous.entitled_users.toString();
+        var arr1 = [];
+        var arr2 = [];
+        var arr3 = [];
+        var user = [];
+        var user2 = [];
+        user = Cusers.split(',');
+        var user3 = [];
+        user3 = Pusers.split(',');
+        var index;
+
+        if (Cusers == '') {
+            for (var x = 0; x < user3.length; x++) {
+                arr3.push(user3[x]);
+            }
+            //var newArr4=[];
+            //for(var z1=1;z1<=arr3.length;z1++)
+            //{
+            //newArr4.push(arr3[z1])  ;
+            //}
+
+            var reciever = getUserRecieverEmail(arr3);
+
+            gs.eventQueue('x_vmw_cloudservice.entitlment_user_updat', current, reciever, arr3);
+        } else if (Pusers == '') {
+
+            for (var x = 0; x < user.length; x++) {
+                arr3.push(user[x]);
+            }
+            //var newArr1=[];
+            //for(var z1=1;z1<=arr3.length;z1++)
+            //{
+            //newArr1.push(arr3[z1])  ;
+            //}
+
+            var reciever = getUserRecieverEmail(arr3);
+
+            gs.eventQueue('x_vmw_cloudservice.entitlment_user_updat', current, reciever, arr3);
+        } else {
+
+            for (var j = 0; j < user.length; j++) {
+                arr1.push(user[j]);
+            }
+
+            user2 = Pusers.split(',');
+            for (var k = 0; k < user2.length; k++) {
+                arr2.push(user2[k]);
+            }
+            var arrayDiff = [];
+            arrayDiff = diff(arr1, arr2);
+
+            //var newArr=[];
+            //for(var z=1;z<=arrayDiff.length;z++)
+            //{
+            //newArr.push(arrayDiff[z])  ;
+            //}				
+
+            var reciever = getUserRecieverEmail(arrayDiff);
+
+
+            gs.eventQueue('x_vmw_cloudservice.entitlment_user_updat', current, reciever, arrayDiff);
+
+        }
+        //****  User Changes End ********************
+    }
+
+    function entitleGroupsNotificationUpdate() {
+
+        var cGrp = current.entitled_groups.toString();
+        var pGrp = previous.entitled_groups.toString();
+        var arr1 = [];
+        var arr2 = [];
+        var arr3 = [];
+        var arr4 = [];
+        var grp = [];
+        var grp2 = [];
+        var grp3 = [];
+        grp = cGrp.split(',');
+        grp3 = pGrp.split(',');
+        var index;
+        var reciever = '';
+
+        if (cGrp == '') {
+            for (var x = 0; x < grp3.length; x++) {
+                arr4.push(grp3[x]);
+            }
+            //var newArr1=[];
+            //for(var z1=1;z1<=arr4.length;z1++)
+            //{
+            //	newArr1.push(arr4[z1])  ;
+            //}
+
+            reciever = getGroupRecieverEmail(arr4);
+            gs.eventQueue('x_vmw_cloudservice.vRA_entitle_grp_chang', current, reciever, arr4);
+        } else if (pGrp == '') {
+            for (var x = 0; x < grp.length; x++) {
+                arr3.push(grp[x]);
+            }
+            // 				var newArr1=[];
+            // 				for(var z1=1;z1<=arr3.length;z1++)
+            // 				{
+            // 					newArr1.push(arr3[z1])  ;
+            // 				}
+			
+            reciever = getGroupRecieverEmail(arr3);
+            gs.eventQueue('x_vmw_cloudservice.vRA_entitle_grp_chang', current, reciever, arr3);
+        } else {
+
+            for (var j = 0; j < grp.length; j++) {
+                arr1.push(grp[j]);
+            }
+
+            grp2 = pGrp.split(',');
+            for (var k = 0; k < grp2.length; k++) {
+                arr2.push(grp2[k]);
+            }
+            var arrayDiff = [];
+            arrayDiff = diff(arr1, arr2);
+            // 				var newArr=[];
+            // 				for(var z=1;z<=arrayDiff.length;z++)
+            // 				{
+            // 					newArr.push(arrayDiff[z]) ;
+            // 				}
+
+            reciever = getGroupRecieverEmail(arrayDiff);
+            gs.eventQueue('x_vmw_cloudservice.vRA_entitle_grp_chang', current, reciever, arrayDiff);
+            //****  Group Changes End ********************
+
+        }
+    }
+
+	function getUserRecieverEmail(recieversArr) {
+		var user = new GlideRecordSecure(appUtil.configuration.table.users_table);
+		user.addQuery("sys_id", recieversArr);
+		user.addQuery("email", "!=", "");
+		user.addQuery("active=true");
+		user.addQuery("user_name", "!=", current.sys_created_by);
+		user.query();
+
+		while(user.next()) {
+			return user.email;
+		}
+	}
+	
+    function getGroupRecieverEmail(recieversArr) {
+
+        var group = new GlideRecordSecure(appUtil.configuration.table.group_users_member);
+        group.addQuery("group", recieversArr);
+        group.query();
+
+        var preGroup = '';
+
+        while (group.next()) {
+            //email trigger for Group Email ID.
+			if(group.group.active == true){
+				if (preGroup != group.group.name) {
+					if (group.group.email != '') {
+						var reciever = group.group.email;
+						return reciever;
+					}
+					preGroup = group.group.name;
+				}
+
+				//email trigger for Group's Members Email ID
+				if (group.user.email != '' && group.user.active == true) {
+					var reciever = group.user.email;
+					return reciever;
+				}
+			}
+            
+        }
+    }
+
+    function diff(arr1, arr2) {
+        var newArr = [];
+        var arr = arr1.concat(arr2);
+
+        for (var i in arr) {
+            var f = arr[i];
+            var t = 0;
+            for (j = 0; j < arr.length; j++) {
+                if (arr[j] === f) {
+                    t++;
+                }
+            }
+            if (t === 1) {
+                newArr.push(f);
+            }
+        }
+        return newArr;
+    }
+
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-02-11 09:09:41</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>88d86c17db7a00102dd0d1b1ca9619cc</sys_id>
+        <sys_mod_count>109</sys_mod_count>
+        <sys_name>vRA Notify when entitle is Update</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_88d86c17db7a00102dd0d1b1ca9619cc</sys_update_name>
+        <sys_updated_by>prateek</sys_updated_by>
+        <sys_updated_on>2020-04-09 10:32:04</sys_updated_on>
+        <template/>
+        <when>before</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=88d86c17db7a00102dd0d1b1ca9619cc"/>
+</record_update>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element extends="cmdb_ci_appl" label="Deployments" max_length="40" name="x_vmw_cloudservice_deployments" sizeclass="23" type="collection">
+        <element attributes="edge_encryption_enabled=true" default="true" label="Active" max_length="40" name="active" type="boolean"/>
+        <element label="Blueprint Version" max_length="50" name="blueprint_version" type="string"/>
+        <element label="Bluprint Id" max_length="100" name="bluprint_id" type="string"/>
+        <element label="Catalog Id" max_length="100" name="catalog_id" type="string"/>
+        <element label="Catalog Version" max_length="50" name="catalog_version" type="string"/>
+        <element label="Code" max_length="300" name="code" type="string"/>
+        <element label="Created At" max_length="100" name="created_at" type="string"/>
+        <element label="Deployment Id" max_length="100" name="deployment_id" type="string"/>
+        <element attributes="edge_encryption_enabled=true,no_sort=true,slushbucket_ref_no_expand=true" label="Entitled Users" max_length="4000" name="entitled_users" reference="sys_user" type="glide_list"/>
+        <element attributes="edge_encryption_enabled=true" label="Expired" max_length="10" name="expired" type="boolean"/>
+        <element label="Expires On" max_length="50" name="expires_on" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="IRE Created By" max_length="40" name="ire_created_by" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="IRE Organization" max_length="40" name="ire_organization" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="iRE ProjectID" max_length="40" name="ire_projectid" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="IRE Status" max_length="40" name="ire_status" type="string"/>
+        <element label="Last Updated At" max_length="100" name="last_updated_at" type="string"/>
+        <element label="Last Updated by" max_length="100" name="last_updated_by" type="string"/>
+        <element label="Last Updated Time" max_length="300" name="last_updated_time" type="string"/>
+        <element label="Message" max_length="1000" name="message" type="string"/>
+        <element label="Organization Id" max_length="100" name="organization_id" type="string"/>
+        <element label="Project ID" max_length="50" name="project_id" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="ServiceNow Owner" max_length="32" name="servicenow_owner" reference="sys_user" type="reference"/>
+        <element attributes="edge_encryption_enabled=true,no_sort=true,slushbucket_ref_no_expand=true" label="Entitled Groups" max_length="4000" name="shared_groups" reference="sys_user_group" type="glide_list"/>
+        <element label="Status" max_length="100" name="status" type="string"/>
+        <element label="Stimulated" max_length="100" name="stimulated" type="string"/>
+        <element label="Unit" max_length="300" name="unit" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="Catalog Item" max_length="32" name="u_catalog_item" reference="x_vmw_cloudservice_cas_catalog_items" type="reference"/>
+        <element attributes="edge_encryption_enabled=true" label="Project" max_length="32" name="u_project" reference="x_vmw_cloudservice_cas_project" type="reference"/>
+        <element attributes="edge_encryption_enabled=true,no_sort=true,slushbucket_ref_no_expand=true" label="vRA Owner" max_length="1024" name="vra_owner" reference="sys_user" type="glide_list"/>
+    </element>
+</database>

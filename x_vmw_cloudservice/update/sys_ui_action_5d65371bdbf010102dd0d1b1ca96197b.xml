@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_ui_action">
+    <sys_ui_action action="INSERT_OR_UPDATE">
+        <action_name>sysverb_delete</action_name>
+        <active>true</active>
+        <client>false</client>
+        <client_script_v2><![CDATA[function onClick(g_form) {
+
+}]]></client_script_v2>
+        <comments/>
+        <condition>current.isValidRecord() &amp;&amp; current.canDelete()</condition>
+        <form_action>true</form_action>
+        <form_button>true</form_button>
+        <form_button_v2>false</form_button_v2>
+        <form_context_menu>false</form_context_menu>
+        <form_link>false</form_link>
+        <form_menu_button_v2>false</form_menu_button_v2>
+        <form_style/>
+        <hint/>
+        <isolate_script>false</isolate_script>
+        <list_action>false</list_action>
+        <list_banner_button>false</list_banner_button>
+        <list_button>false</list_button>
+        <list_choice>false</list_choice>
+        <list_context_menu>false</list_context_menu>
+        <list_link>false</list_link>
+        <list_save_with_form_button>false</list_save_with_form_button>
+        <list_style/>
+        <name>Delete</name>
+        <onclick/>
+        <order>200</order>
+        <script><![CDATA[var appUtil = new CASAppUtil();
+
+var sharedR= new GlideAggregate(appUtil.configuration.table.shared_resources);
+sharedR.addAggregate('COUNT');
+sharedR.query();
+sharedR.next();
+if(sharedR.getAggregate('COUNT')>0)
+{
+	var flag=0;
+	var gr = new GlideRecord(appUtil.configuration.table.shared_resources);
+	gr.query();
+	while(gr.next())
+	{
+		var gr1=new GlideRecord(appUtil.configuration.table.deployments);
+		gr1.addEncodedQuery('sys_idIN'+gr.deployments);
+		gr1.addQuery('u_project.organization',current.sys_id);
+		gr1.query();		
+		if(gr1.next())
+
+		{
+			{
+				gs.addErrorMessage('There are resource sharing records related to this endpoint. Please unshare those records first and then proceed with endpoint deletion');
+
+				flag=0;
+				break;
+			}
+		}
+		else
+		{
+			var grEntmt = new GlideRecord(appUtil.configuration.table.entitlement); //entitlement
+			grEntmt.addQuery('endpoint', current.sys_id);
+			grEntmt.query();
+			if (grEntmt.next()) 
+			{
+				gs.addErrorMessage('There are manage entitlement records related to this endpoint. Please delete those first and then proceed with endpoint deletion');flag=0;
+				break;
+			}
+			else
+			{
+				flag=1;
+			}
+		}
+	}
+
+	if(flag==1)
+	{
+		//gs.info('delete Record');
+		current.deleteRecord();
+	}
+}
+else
+{
+	var grEntmt1 = new GlideRecord(appUtil.configuration.table.entitlement); //entitlement
+	grEntmt1.addQuery('endpoint', current.sys_id);
+	grEntmt1.query();
+
+	if (grEntmt1.next()) {
+		gs.addErrorMessage('There are manage entitlement records related to this endpoint. Please delete those first and then proceed with endpoint deletion');
+
+	} else {
+		// current.deleteRecord();
+		//action.setRedirectURL(previous);
+		//gs.addErrorMessage('delete Record');
+		current.deleteRecord();
+	}
+}
+
+]]></script>
+        <show_insert>false</show_insert>
+        <show_multiple_update>false</show_multiple_update>
+        <show_query>false</show_query>
+        <show_update>true</show_update>
+        <sys_class_name>sys_ui_action</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-05-21 10:09:29</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>5d65371bdbf010102dd0d1b1ca96197b</sys_id>
+        <sys_mod_count>53</sys_mod_count>
+        <sys_name>Delete</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_ui_action_5d65371bdbf010102dd0d1b1ca96197b</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-05-26 06:53:29</sys_updated_on>
+        <table>x_vmw_cloudservice_register_cas_organization</table>
+        <ui11_compatible>true</ui11_compatible>
+        <ui16_compatible>false</ui16_compatible>
+    </sys_ui_action>
+</record_update>

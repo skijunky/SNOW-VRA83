@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_db_object">
+    <sys_db_object action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <actions_access>false</actions_access>
+        <alter_access>false</alter_access>
+        <caller_access/>
+        <client_scripts_access>false</client_scripts_access>
+        <configuration_access>false</configuration_access>
+        <create_access>true</create_access>
+        <create_access_controls>true</create_access_controls>
+        <delete_access>false</delete_access>
+        <extension_model/>
+        <is_extendable>false</is_extendable>
+        <label>Catalog Items</label>
+        <live_feed_enabled>false</live_feed_enabled>
+        <name>x_vmw_cloudservice_cas_catalog_items</name>
+        <number_ref/>
+        <provider_class/>
+        <read_access>true</read_access>
+        <scriptable_table>false</scriptable_table>
+        <super_class display_value="Catalog Item" name="sc_cat_item">92778233b8242010304ceb7d5057e744</super_class>
+        <sys_class_code/>
+        <sys_class_name>sys_db_object</sys_class_name>
+        <sys_class_path/>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-15 07:30:58</sys_created_on>
+        <sys_id>ceaa2ddbdb2233006adb48703996192c</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>Catalog Items</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_db_object_ceaa2ddbdb2233006adb48703996192c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-09-04 10:12:50</sys_updated_on>
+        <update_access>true</update_access>
+        <user_role display_value="x_vmw_cloudservice.vra_end_user" name="x_vmw_cloudservice.vra_end_user">456a0205db11bb407c83712ebf961939</user_role>
+        <ws_access>true</ws_access>
+    </sys_db_object>
+</record_update>

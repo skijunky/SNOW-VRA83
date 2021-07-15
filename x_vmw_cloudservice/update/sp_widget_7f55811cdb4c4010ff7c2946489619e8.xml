@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope) {
+	/* widget controller */
+	var c = this;
+
+}
+]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.no-margin {
+  margin: 0;
+}
+.cas-card-block {
+  text-align: center;
+}
+.cas-card-block, .cas-card-header {
+  border-bottom: 1px solid #eee;
+}
+.cas-card-block.with-row {
+  padding: 0;
+}
+.chart{
+  border: 1px solid red; 
+  width:auto; 
+  height:200px; 
+  position: relative;
+}
+
+.cas-card-block &gt; div.cas-card-row:not(:last-child) {
+  border-bottom: 1px solid #eee;
+}
+.cas-card-block &gt; div.cas-card-row {
+  text-align: left;
+  padding: 6px 18px;
+  cursor: pointer;
+}
+span.details, time {
+  color: #919FA8;
+  font-size: 12px;
+}
+/*span.details:before, time:before {
+content: "• ";
+}*/
+.cas-label.cas-label-success, .cas-label.cas-label-info {
+  background-color: #fff;
+}
+.cas-card-footer span {
+  float: right;
+}
+.cas-card .cas-btn-link {
+  min-width: 0;
+  padding: 0;
+}
+.cas-card-block &gt; .value {
+  font-family: sans-serif;
+  font-size: 2rem;
+  margin: 25px 0;
+  display: block;
+}
+/*a.link-visited:link, a:visited {
+color: #5659b9;
+text-decoration: none;
+}*/
+a.link-normal:link, a:link {
+  color: #0079b8;
+  text-decoration: none;
+}
+.fix-height-approval{
+	height: 23vh;
+}
+.fix-height-header{
+	height: 7vh;
+}
+.fix-height-chart{
+	height: 15h;
+}
+.fix-height-block{
+	height: 11vh;
+  overflow: auto;
+}
+.fix-height-footer{
+	height: 7vh;
+}
+
+.approval-card{
+margin-bottom: 1rem;
+  height:150px;
+  
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_approval_summary</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_approval_summary</name>
+        <option_schema>[{"name":"record_limit","section":"other","label":"Record Limit","type":"integer"},{"name":"view_all_link","section":"other","label":"View All Link","type":"string"}]</option_schema>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object. */
+	/* e.g., data.table = $sp.getValue('table'); */
+	var daoUtil= new CASDaoUtil()
+	var appUtil=new CASAppUtil();
+
+	var catalogAdmin = gs.getProperty(appUtil.configuration.properties.vraCatalogAdmin);
+	//data.hasRole=gs.hasRole('admin');
+
+	data.arr=daoUtil.fetchApprovalReportList(appUtil.configuration.table.approvals,options.record_limit);
+	var assignment_group=gs.getProperty(appUtil.configuration.properties.assignment_group);
+
+	data.isMember=gs.hasRole('admin');
+	
+	if(data.isMember==false){
+		var groups_arr=[];
+		groups_arr=assignment_group.split(',');
+		if(groups_arr.length != 0){
+			for(var i=0;i<groups_arr.length;i++){
+				data.isMember=gs.getUser().isMemberOf(groups_arr[i]);
+				if(data.isMember==true){break;}
+			}
+		}
+	}
+//save
+	var filter='state=requested^group.assignment_group.nameIN'+assignment_group+'^approverDYNAMIC90d1921e5f510100a9ad2572f2b477fe';
+
+	data.total_records=daoUtil.getTotalRecordCount(appUtil.configuration.table.approvals,filter);
+
+	data.view_all_link=options.view_all_link;
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-18 10:40:01</sys_created_on>
+        <sys_id>7f55811cdb4c4010ff7c2946489619e8</sys_id>
+        <sys_mod_count>92</sys_mod_count>
+        <sys_name>CAS_approval_summary</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_7f55811cdb4c4010ff7c2946489619e8</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-05-14 13:03:17</sys_updated_on>
+        <template><![CDATA[<div>
+<div class="approval-card" ng-if="c.data.isMember">
+  <div class="cas-card no-margin">
+    <div class="cas-card-header">
+      Awaiting Approvals
+    </div>
+
+    <div class="cas-card-block fix-height-chart">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.8/c3.css">
+      <!--<div class="value">{{c.data.otal_records}}</div>-->
+      <a href="{{c.data.view_all_link}}" class="value">{{c.data.total_records}}</a>
+    </div>
+    
+ <!--   <div class="cas-card-block with-row fix-height-block">
+      <div class="cas-card-row" ng-repeat="item in c.data.arr">
+        <a href="{{item.link}}"
+    <!--      <span>{{itm.item}}</span>
+          <span class="deails"• </span>
+         <span>{{item.name}}</span></
+          <span class="details">• </span>
+          <time>{{item.createdAt}}</time>
+        </a></div>
+
+    </div>
+    <div class="cas-card-footer fix-height-footer">
+      <a href="{{c.data.view_all_link}}" class="cas-btn cas-btn-sm cas-btn-link">View All</a>
+ <span style="float:right;">
+           <span ng-if="c.options.record_limit>=c.data.total_records">{{c.data.total_records}}</span>
+           <span ng-if="c.options.record_limit<c.data.total_records">{{c.options.record_limit}}</span>
+           of {{c.data.total_records}} Requests
+     </span>
+    </div>
+  -->
+  </div>
+</div>
+  
+</div>
+]]></template>
+    </sp_widget>
+</record_update>

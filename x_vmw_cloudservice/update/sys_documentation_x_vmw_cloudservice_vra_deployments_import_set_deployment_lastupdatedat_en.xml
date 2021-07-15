@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="deployment_lastupdatedat" label="Deployment lastUpdatedAt" language="en" table="x_vmw_cloudservice_vra_deployments_import_set">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>deployment_lastupdatedat</element>
+            <help/>
+            <hint/>
+            <label>Deployment lastUpdatedAt</label>
+            <language>en</language>
+            <name>x_vmw_cloudservice_vra_deployments_import_set</name>
+            <plural>Deployment lastUpdatedAts</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>manish.admin</sys_created_by>
+            <sys_created_on>2019-08-16 09:18:45</sys_created_on>
+            <sys_id>6b46feeddbd33300da86f26b68961905</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Deployment lastUpdatedAt</sys_name>
+            <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_documentation_x_vmw_cloudservice_vra_deployments_import_set_deployment_lastupdatedat_en</sys_update_name>
+            <sys_updated_by>manish.admin</sys_updated_by>
+            <sys_updated_on>2019-08-16 09:18:45</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

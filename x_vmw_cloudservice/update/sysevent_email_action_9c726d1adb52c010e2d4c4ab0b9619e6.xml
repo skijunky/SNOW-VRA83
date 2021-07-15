@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sysevent_email_action">
+    <sysevent_email_action action="INSERT_OR_UPDATE">
+        <action_insert>false</action_insert>
+        <action_update>false</action_update>
+        <active>false</active>
+        <advanced_condition/>
+        <affected_field_on_event/>
+        <category display_value="Uncategorized" name="Uncategorized">c97d83137f4432005f58108c3ffa917a</category>
+        <collection>sc_req_item</collection>
+        <condition/>
+        <content_type>text/html</content_type>
+        <default_interval/>
+        <description/>
+        <digest_from/>
+        <digest_html/>
+        <digest_reply_to/>
+        <digest_separator_html><![CDATA[<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>]]></digest_separator_html>
+        <digest_separator_text><![CDATA[\n--------------------------------------------------------------------------------\n]]></digest_separator_text>
+        <digest_subject/>
+        <digest_template/>
+        <digest_text/>
+        <digestable>false</digestable>
+        <event_name>x_vmw_cloudservice.request failed</event_name>
+        <event_parm_1>true</event_parm_1>
+        <event_parm_2>false</event_parm_2>
+        <exclude_delegates>false</exclude_delegates>
+        <force_delivery>false</force_delivery>
+        <from/>
+        <generation_type>event</generation_type>
+        <importance/>
+        <include_attachments>false</include_attachments>
+        <item>event.parm1</item>
+        <item_table/>
+        <mandatory>false</mandatory>
+        <message/>
+        <message_html><![CDATA[<div><br /><br /></div>
+<div style="background-color: #003d79; color: #e0e0e0; font-family: Arial, Helvetica, sans-serif; text-align: center; padding: 17px; letter-spacing: 2px;"><span style="font-size: 32px;">FAILED CATALOG ITEM DETAILS</span></div>
+<div style="height: 125px; display: flex; flex-direction: column; justify-content: space-around;">
+<div style="font-family: Arial, Helvetica, sans-serif; color: #eb681f; font-size: 20px; font-weight: 600; letter-spacing: 1px;"><br />Hi ${request.requested_for},</div>
+<div style="text-align: left;"><span style="font-size: 14pt; font-family: Arial, Helvetica, sans-serif; color: #555555;">Your request for catalog item ${cat_item} has failed.&nbsp;</span></div>
+<div style="text-align: left;"><span style="font-size: 14pt; font-family: Arial, Helvetica, sans-serif; color: #555555;">Details of the failed catalog items </span></div>
+</div>
+<table style="width: 50%; background-color: #f2f2f2; border: 1px solid black; font-family: Arial, Helvetica, sans-serif; justify-content: space-between; font-size: 18px; height: 170px;">
+<tbody style="font-size: 18px;">
+<tr>
+<td style="border: 1px solid black; font-size: 18px;">Request Number</td>
+<td style="border: 1px solid black;">${number}</td>
+</tr>
+<tr>
+<td style="border: 1px solid black; font-size: 18px;">Catalog Item</td>
+<td style="border: 1px solid black;">${cat_item}</td>
+</tr>
+<tr>
+<td style="border: 1px solid black; font-size: 18px;">State</td>
+<td style="border: 1px solid black;">${state}</td>
+</tr>
+<tr>
+<td style="border: 1px solid black; font-size: 18px;">Deployment Details</td>
+<td style="border: 1px solid black;">${mail_script:DisplayDeployments}</td>
+</tr>
+<tr>
+<td style="border: 1px solid black; font-size: 18px;">Machine Details</td>
+<td style="border: 1px solid black;">${mail_script:DisplayMachines}</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>]]></message_html>
+        <message_list/>
+        <message_text/>
+        <name>vRA Failure of Catalog Items</name>
+        <omit_watermark>false</omit_watermark>
+        <order>100</order>
+        <push_message_only>false</push_message_only>
+        <recipient_fields>request.requested_for,request.opened_by</recipient_fields>
+        <recipient_groups/>
+        <recipient_users/>
+        <reply_to/>
+        <send_self>true</send_self>
+        <sms_alternate/>
+        <style/>
+        <subject>Your request ${number} for ${cat_item} has failed.</subject>
+        <subscribable>false</subscribable>
+        <sys_class_name>sysevent_email_action</sys_class_name>
+        <sys_created_by>ayush.aman</sys_created_by>
+        <sys_created_on>2020-01-14 14:18:57</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>9c726d1adb52c010e2d4c4ab0b9619e6</sys_id>
+        <sys_mod_count>6</sys_mod_count>
+        <sys_name>vRA Failure of Catalog Items</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sysevent_email_action_9c726d1adb52c010e2d4c4ab0b9619e6</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-01-15 08:08:49</sys_updated_on>
+        <sys_version>2</sys_version>
+        <template display_value="Unsubscribe and Preferences">7ed0481f3b0b2200c869c2c703efc487</template>
+        <type>email</type>
+        <weight>0</weight>
+    </sysevent_email_action>
+</record_update>

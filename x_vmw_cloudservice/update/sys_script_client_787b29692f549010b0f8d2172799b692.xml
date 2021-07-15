@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script_client">
+    <sys_script_client action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <applies_extended>false</applies_extended>
+        <condition/>
+        <description>Display the Base Url field option onLoad from system property..</description>
+        <field>api_token</field>
+        <global>false</global>
+        <isolate_script>true</isolate_script>
+        <messages/>
+        <name>vRAGetUrl</name>
+        <order/>
+        <script><![CDATA[function onLoad() {
+	
+	
+	var ga = new GlideAjax('vRABaseUrlCheck');
+	ga.addParam('sysparm_name','fetchBaseUrl');
+	ga.getXML(processresp);
+	
+	
+	function processresp(response)
+	
+	{
+		var answer = response.responseXML.documentElement.getAttribute("answer");
+		//alert(answer);
+		answer=answer.replace(/,\s*$/, "");
+		var url_arr=answer.split(',');
+		for(var i=0;i<url_arr.length;i++)
+		
+		{
+			g_form.addOption('cas_url',url_arr[i]+'',url_arr[i]+'');
+		}
+	}
+}
+
+
+]]></script>
+        <sys_class_name>sys_script_client</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-04-20 17:07:47</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>787b29692f549010b0f8d2172799b692</sys_id>
+        <sys_mod_count>38</sys_mod_count>
+        <sys_name>vRAGetUrl</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_client_787b29692f549010b0f8d2172799b692</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-04-21 08:57:43</sys_updated_on>
+        <table>x_vmw_cloudservice_register_cas_organization</table>
+        <type>onLoad</type>
+        <ui_type>0</ui_type>
+        <view/>
+    </sys_script_client>
+</record_update>

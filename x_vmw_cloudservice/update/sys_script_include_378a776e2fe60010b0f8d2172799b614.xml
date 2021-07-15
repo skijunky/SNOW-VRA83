@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.vRAAvoidParallelScheduleJobs</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>vRAAvoidParallelScheduleJobs</name>
+        <script><![CDATA[var vRAAvoidParallelScheduleJobs = Class.create();
+vRAAvoidParallelScheduleJobs.prototype = {
+	initialize: function() {
+	},
+
+	checkQueueEmpty : function(type,organization)
+	{
+		try
+		{
+			CASLogger.debug('Inside  checkQueueEmpty');
+			var gr = new GlideRecordSecure('x_vmw_cloudservice_cas_queue');	
+			var query='';
+			if(type == 'Project Import')
+			{  
+
+				query = 'topicINStartImportProject,StartedImportProject,ParseProject,ReconcileImportProject^state!=Completed^organization='+organization;
+
+
+
+			}
+			else if(type == 'Catalog Import')
+			{
+
+
+				query = 'topicINStartImportCatalog,ScheduledImportCatalog,PreImportCatalog,ImportCatalog,ReconcileImportCatalog^state!=Completed^organization='+organization;
+
+
+			}
+			else if(type == 'CMDB Import')
+			{
+
+
+				query = 'topicINStartImportCMDB,IndivImportCMDB,createCMDB,preImportResource,parseResource,createResource,reconcileCMDB,startImportActionForDeployment,parseActionForDeployment,parseActionSchemaForDeployment,startImportActionForResource,parseActionForResource,parseActionSchemaForResource^state!=Completed^organization='+organization;
+
+
+			}
+
+			gr.addEncodedQuery(query);
+			gr.query();
+			if(gr.next())
+			{	
+				
+				return false;
+			}
+			else
+			{
+				
+				return true;
+			}
+
+		}
+		catch(e)
+		{
+			CASLogger.error('Exception caught inside  checkQueueEmpty'+e);
+		}
+	},
+
+
+	type: 'vRAAvoidParallelScheduleJobs'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-01-28 06:26:16</sys_created_on>
+        <sys_id>378a776e2fe60010b0f8d2172799b614</sys_id>
+        <sys_mod_count>7</sys_mod_count>
+        <sys_name>vRAAvoidParallelScheduleJobs</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_378a776e2fe60010b0f8d2172799b614</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-02-03 05:10:33</sys_updated_on>
+    </sys_script_include>
+</record_update>

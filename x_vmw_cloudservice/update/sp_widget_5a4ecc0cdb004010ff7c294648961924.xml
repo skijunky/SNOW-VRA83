@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope) {
+	/* widget controller */
+	var c = this;
+	$scope.dataValue = {};
+	$scope.fields = [];
+	c.data.inputdata.forEach(function(e) {
+		$scope.fields.push(e.name);
+		$scope.dataValue[e.name] = parseInt(e.value);
+	})    
+
+	  c3.generate({
+			bindto: '#chart2',
+		size: {
+			height: 200,
+			width: 300
+		},
+		data: {
+			json: [ $scope.dataValue ],
+			keys: {
+				value: $scope.fields
+			},
+			onclick: function () { 
+				alert(arguments['0'].id+" value = "+arguments['0'].value); 
+			},
+			type:'donut'
+		},
+		legend: {
+			position: 'right'
+		},
+		donut:{
+			title:c.data.total_records,
+			label: {
+				show: false
+			}
+
+		},
+		color: {
+			pattern: ['#FF9C32', '#FFE860', '#85C81A', '#F54F47']	}
+	});
+	/*
+	 chart=c3.generate({
+      //  bindto: '#chart',
+        size: {
+            height: 136,
+            width: 300
+        },
+        data: {
+            columns: [
+                ['Available', 8],
+                ['In Progress', 2],
+                ['Missing', 6],
+                ['Failed', 3]
+            ],
+            type : 'donut',
+            onclick:  function(){
+                window.location.href ='';// `/page/deployments?filter=${d.id} (Status)`;
+            }
+        },
+        donut: {
+          label: {
+              show: false
+          }
+        },
+        color: {
+            pattern: ['#85C81A', '#49AFD9', '#FF9C32', '#F54F47']
+        },
+        tooltip: {
+            format: {
+                value: value 
+            }
+        },
+        legend: {
+            position: 'right'
+        }
+    });
+*/
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.no-margin {
+    margin: 0;
+}
+.cas-card-block {
+    text-align: center;
+}
+.cas-card-block, .cas-card-header {
+    border-bottom: 1px solid #eee;
+}
+.cas-card-block.with-row {
+    padding: 0;
+}
+.chart{
+  border: 1px solid red; 
+  width:auto; 
+  height:200px; 
+  position: relative;
+}
+
+.cas-card-block &gt; div.cas-card-row:not(:last-child) {
+    border-bottom: 1px solid #eee;
+}
+.cas-card-block &gt; div.cas-card-row {
+    text-align: left;
+    padding: 6px 18px;
+    cursor: pointer;
+}
+span.details, time {
+    color: #919FA8;
+    font-size: 12px;
+}
+/*span.details:before, time:before {
+    content: "• ";
+}*/
+.cas-label.cas-label-success, .cas-label.cas-label-info {
+    background-color: #fff;
+}
+.cas-card-footer span {
+    float: right;
+}
+.cas-card .cas-btn-link {
+    min-width: 0;
+    padding: 0;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_request_report</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_request_report</name>
+        <option_schema>[{"name":"heading","section":"other","label":"Heading","type":"string"},{"displayValue":"Table","name":"table","display_value_list":[],"section":"other","label":"Table","type":"string","value":"sys_db_object","ed":{"reference":"sys_db_object"}},{"name":"group_by","section":"other","label":"Group by","type":"string"},{"name":"record_limit","section":"other","label":"Record Limit","type":"integer"},{"name":"view_all_link","section":"other","label":"View All Link","type":"string"},{"name":"report_type","section":"other","label":"Report type","type":"choice","choices":[{"label":"Deployment summary","value":"Deployment summary"},{"label":"Request summary","value":"Request summary"},{"label":"Awaiting approval","value":"Awaiting approval"},{"label":"Deployments expiring","value":"Deployments expiring"}]}]</option_schema>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object */
+	/* e.g., data.table = $sp.getValue('table'); */
+
+	
+	
+	var gr = new GlideAggregate(options.table);
+	var appUtil = new CASAppUtil();
+	gr.addAggregate('COUNT');
+	gr.groupBy(options.group_by)
+	gr.query();
+	data.inputdata=[];
+	data.total_records=0;
+	while(gr.next()) {
+		data.inputdata.push({'name':gr[options.group_by+''].getDisplayValue(),'value':gr.getAggregate('COUNT')}); 
+		data.total_records=data.total_records+parseInt(gr.getAggregate('COUNT'));
+	}
+	
+	data.listLimit=options.record_limit;
+	data.arr=[];
+
+	var gr1=new GlideRecordSecure(options.table);
+	gr1.setLimit(data.listLimit);
+	gr1.orderBy('sys_created_on');
+	gr1.query();
+	
+		while(gr1.next()){
+		data.arr.push({
+			"cat_item":gr1.cat_item+'',
+			"name":gr1.number+'',
+			"createdAt":gr1.opened_at+'',
+			"status":gr1[options.group_by+''].getDisplayValue(),
+			"link":"/"+gs.getProperty(appUtil.configuration.properties.portalPrefix)+"?id="+appUtil.configuration.page.activitiesList
+		})
+	
+	}
+	data.view_all_link=options.view_all_link;
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-09-17 12:00:52</sys_created_on>
+        <sys_id>5a4ecc0cdb004010ff7c294648961924</sys_id>
+        <sys_mod_count>27</sys_mod_count>
+        <sys_name>CAS_request_report</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_5a4ecc0cdb004010ff7c294648961924</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-01-13 10:20:50</sys_updated_on>
+        <template><![CDATA[
+<div style="margin:10px;">
+  <div class="cas-card no-margin">
+    <div class="cas-card-header">
+      {{options.heading}}
+    </div>
+    
+    <div class="cas-card-block">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.8/c3.css">
+  <div id="chart2">
+  </div>
+ </div>
+    
+    
+    <div class="cas-card-block with-row">
+      <div class="cas-card-row" ng-repeat="item in data.arr">
+       <a href="{{item.link}}">
+         <span>{{item.cat_item}}</span>
+        <span class="details">• </span>
+         <span>{{item.name}}</span>
+        <span class="details">• </span>
+        <time>{{item.createdAt}}</time>
+        <span class="details">• </span>
+        <span class="cas-label cas-label-success">{{item.status}}</span>
+      
+        </a></div>
+      
+  </div>
+     <div class="cas-card-footer">
+            <a href="{{c.data.view_all_link}}" class="cas-btn cas-btn-sm cas-btn-link">View All</a>
+            <span>{{c.data.listLimit}} of {{c.data.total_records}} requests</span>
+        </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>

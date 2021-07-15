@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_shared_resources</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>VRAUpdateDeploymentResource</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+	try
+	{
+		
+		CASLogger.debug('Inside  VRAUpdateDeploymentResource.BusinessRule: Update of Machine and Deployment Resources in Resource Sharing');
+		this.appUtil  = new CASAppUtil();
+		
+		var  removeDuplicate=function(sysIdArr) {
+			var newARR=[];
+			for(var i in sysIdArr) {
+				if(newARR.indexOf(sysIdArr[i]) == -1)
+					newARR.push(sysIdArr[i]);
+			}
+			
+			return newARR;
+		};
+		
+		var fetchRemoval=function(pre, cur) {
+			var mainArray  = pre.concat(cur);
+			var removalArray = [];
+			mainArray = removeDuplicate(mainArray);
+			for (var i = 0; i < mainArray.length; i++) {
+				if (cur.indexOf(mainArray[i]) == -1) {
+					removalArray.push(mainArray[i]);
+				}
+			}
+			
+			return removalArray;
+		};
+		
+						
+		var previousDeployment=previous.deployments+'';
+		previousDeployment=previousDeployment.split(',');
+		//gs.info('prevDeploymdsent'+previousDeployment);
+		var currentDeployment=current.deployments+'';
+		currentDeployment=currentDeployment.split(',');
+		//gs.info('currDeployment'+currentDeployment);
+		var previousDeploymentsLength = (previous.deployments)? previousDeployment.length : 0;
+		var currentDeploymentsLength = (current.deployments)? currentDeployment.length : 0;
+		//gs.error(previousDeploymentsLength+"lolwa"+currentDeploymentsLength);
+		//if (previousDeploymentsLength >= currentDeploymentsLength) {
+			//gs.error('prevDeployLen'+previousDeploymentsLength);
+			var previousDeployments = previous.deployments.toString().split(',');
+			//gs.error(deployments+'Prevdep'+previousDeployments);
+			for (var j = 0; j < previousDeployments.length; j++) {
+				if (!current.deployments.includes(previousDeployments[j])) {
+				
+					var deleteDeploymentGR = new GlideRecord(this.appUtil.configuration.table.deployments);
+					if(deleteDeploymentGR.get(previousDeployments[j])) {
+						//gs.error('ayush12345:'+previousDeployment);
+						deleteDeploymentGR.entitled_users = '';
+						deleteDeploymentGR.shared_groups = '';
+						deleteDeploymentGR.update();
+					
+				}
+			}
+		}
+			
+	
+						
+		var previousMachine=previous.machines+'';
+		previousMachine=previousMachine.split(',');
+		var currentMachine=current.machines+'';
+		currentMachine=currentMachine.split(',');
+		var previousMachinesLength = (previous.machines)? previousMachine.length : 0;
+		var currentMachinesLength = (current.machines)? currentMachine.length : 0;
+		//if (previousMachinesLength > currentMachinesLength) {
+			//var previousMachines = previous.machines.split(',');
+			for (var i = 0; i < previousMachine.length; i++) {
+				if (!current.machines.includes(previousMachine[i])) {
+					var deleteMachineGR = new GlideRecord(this.appUtil.configuration.table.machines);
+					if(deleteMachineGR.get(previousMachine[i])){
+						deleteMachineGR.entitled_users = '';
+						deleteMachineGR.entitled_groups = '';
+						deleteMachineGR.update();
+					}
+				}
+			}
+	
+			
+
+		
+		
+		
+		if (current.deployments) {
+			try{
+				CASLogger.debug('Inside  VRAUpdateDeploymentResource.BusinessRule: Update of Deployment Resources');
+				var deploymentGR = new GlideRecord(this.appUtil.configuration.table.deployments);
+				deploymentGR.addEncodedQuery('sys_idIN'+ current.deployments);
+				deploymentGR.query();
+				while(deploymentGR.next()) {
+					
+					
+					var mainSet = [];
+					var entitledUser = deploymentGR.entitled_users+'';
+					entitledUser = entitledUser.split(',');
+					//gs.info('LogsEntuser:'+entitledUser);
+					for (var index = 0; index < entitledUser.length; index++) {
+						mainSet.push(entitledUser[index]);
+					}
+					//gs.info('LogsMainset'+mainSet);
+					var currentUser = current.users+'';
+					currentUser = currentUser.split(',');
+					//gs.info('LogsCurrentUser:'+currentUser);
+					var previousUser  = previous.users + '';
+					previousUser = previousUser.split(',');
+					for (var index1 = 0; index1 < currentUser.length; index1++) {
+						mainSet.push(currentUser[index1]);
+					}
+					
+					
+					mainSet = removeDuplicate(mainSet);
+					var removalArray = fetchRemoval(previousUser, currentUser);
+					for (var index2 = 0; index2 < removalArray.length; index2++) {
+						var mainSetIndex = mainSet.indexOf(removalArray[index2]);
+						mainSet.splice(mainSetIndex, 1);
+						
+					}
+					
+					//gs.info('ayush4 after duplicate removal'+JSON.stringify(mainSet));
+					var returnString = mainSet.join(',');
+					deploymentGR.entitled_users = returnString;
+					
+					var mainSetGroup = [];
+					var entitledGroup = deploymentGR.shared_groups+'';
+					entitledGroup = entitledGroup.split(',');
+					for (var indexG = 0; indexG < entitledGroup.length; indexG++) {
+						mainSetGroup.push(entitledGroup[indexG]);
+					}
+					
+					var currentGroup = current.groups+'';
+					currentGroup = currentGroup.split(',');
+					var previousGroup  = previous.groups + '';
+					previousGroup = previousGroup.split(',');
+					for (var indexP = 0; indexP < currentGroup.length; indexP++) {
+						mainSetGroup.push(currentGroup[indexP]);
+					}
+					mainSetGroup = removeDuplicate(mainSetGroup);
+					var removalGroupArray = fetchRemoval(previousGroup, currentGroup);
+					for (var indexR = 0; indexR < removalGroupArray.length; indexR++) {
+						var mainSetIndexGroup = mainSetGroup.indexOf(removalGroupArray[indexR]);
+						mainSetGroup.splice(mainSetIndexGroup, 1);
+					}
+					var returnStringGroup = mainSetGroup.join(',');
+					deploymentGR.shared_groups = returnStringGroup;
+					
+					deploymentGR.update();
+					
+				}
+				
+			}
+			catch(e) {
+				CASLogger.error('Exception caught inside BR VRAUpdateDeploymentResource : if(current.deployments)' +e);
+			}
+			
+		}
+		
+		if (current.machines) {
+			try{
+				CASLogger.debug('Inside  VRAUpdateDeploymentResource.BusinessRule: Update of Machine Resources');
+				var machineGR = new GlideRecord(this.appUtil.configuration.table.machines);
+				machineGR.addEncodedQuery('sys_idIN'+ current.machines);
+				machineGR.query();
+				while(machineGR.next()) {
+					var mainSet = [];
+					var entitledUser = machineGR.entitled_users+'';
+					entitledUser = entitledUser.split(',');
+					for (var index = 0; index < entitledUser.length; index++) {
+						mainSet.push(entitledUser[index]);
+					}
+					
+					var currentUser = current.users+'';
+					currentUser = currentUser.split(',');
+					var previousUser  = previous.users + '';
+					previousUser = previousUser.split(',');
+					for (var index1 = 0; index1 < currentUser.length; index1++) {
+						mainSet.push(currentUser[index1]);
+					}
+					mainSet = removeDuplicate(mainSet);
+					var removalArray = fetchRemoval(previousUser, currentUser);
+					for (var index2 = 0; index2 < removalArray.length; index2++) {
+						var mainSetIndex = mainSet.indexOf(removalArray[index2]);
+						mainSet.splice(mainSetIndex, 1);
+					}
+					var returnString = mainSet.join(',');
+					
+					machineGR.entitled_users = returnString;
+					
+					
+					var mainSetGroup = [];
+					var entitledGroup = machineGR.entitled_groups+'';
+					entitledGroup = entitledGroup.split(',');
+					for (var indexG = 0; indexG < entitledGroup.length; indexG++) {
+						mainSetGroup.push(entitledGroup[indexG]);
+					}
+					
+					var currentGroup = current.groups+'';
+					currentGroup = currentGroup.split(',');
+					var previousGroup  = previous.groups + '';
+					previousGroup = previousGroup.split(',');
+					for (var indexP = 0; indexP < currentGroup.length; indexP++) {
+						mainSetGroup.push(currentGroup[indexP]);
+					}
+					mainSetGroup = removeDuplicate(mainSetGroup);
+					var removalGroupArray = fetchRemoval(previousGroup, currentGroup);
+					for (var indexR = 0; indexR < removalGroupArray.length; indexR++) {
+						var mainSetIndexGroup = mainSetGroup.indexOf(removalGroupArray[indexR]);
+						mainSetGroup.splice(mainSetIndexGroup, 1);
+					}
+					var returnStringGroup = mainSetGroup.join(',');
+					machineGR.entitled_groups = returnStringGroup;
+					
+					machineGR.update();
+					
+				}
+			}
+			catch(e) {
+				CASLogger.error('Exception caught inside BR VRAUpdateDeploymentResource  : if(current.machines)' +e);
+			}
+		}
+		
+			
+		
+		
+		
+
+		
+	}
+	catch(e)
+	{
+		CASLogger.error("Exception caught inside BR VRAUpdateDeploymentResource   "+e);
+	}
+	
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-09-21 06:03:56</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>c320a3491b800410e61b21b6bc4bcb38</sys_id>
+        <sys_mod_count>135</sys_mod_count>
+        <sys_name>VRAUpdateDeploymentResource</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_c320a3491b800410e61b21b6bc4bcb38</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-02-11 09:26:39</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=c320a3491b800410e61b21b6bc4bcb38"/>
+</record_update>

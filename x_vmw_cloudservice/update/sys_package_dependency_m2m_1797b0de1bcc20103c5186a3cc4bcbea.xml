@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_package_dependency_m2m">
+    <sys_package_dependency_m2m action="INSERT_OR_UPDATE">
+        <dependency display_value="">7602015d1b1910103c5186a3cc4bcb38</dependency>
+        <min_version/>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-26 07:10:04</sys_created_on>
+        <sys_id>1797b0de1bcc20103c5186a3cc4bcbea</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-10-26 07:10:04</sys_updated_on>
+    </sys_package_dependency_m2m>
+</record_update>

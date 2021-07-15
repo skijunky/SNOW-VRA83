@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="catalog_ui_policy_action">
+    <catalog_ui_policy_action action="INSERT_OR_UPDATE">
+        <catalog_item/>
+        <catalog_variable>IO:af620201dbd35010ca597b3868961920</catalog_variable>
+        <cleared>false</cleared>
+        <disabled>true</disabled>
+        <field/>
+        <mandatory>ignore</mandatory>
+        <order>100</order>
+        <sys_class_name>catalog_ui_policy_action</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-09-15 08:58:18</sys_created_on>
+        <sys_id>83274285dbd35010ca597b38689619a3</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>project</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>catalog_ui_policy_action_83274285dbd35010ca597b38689619a3</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-09-15 08:58:18</sys_updated_on>
+        <table/>
+        <ui_policy display_value="Make Read Only">aed68245dbd35010ca597b386896198b</ui_policy>
+        <variable>project</variable>
+        <variable_set display_value="Deployment Default Variables">e9e7bd89db935010ca597b3868961900</variable_set>
+        <visible>ignore</visible>
+    </catalog_ui_policy_action>
+</record_update>

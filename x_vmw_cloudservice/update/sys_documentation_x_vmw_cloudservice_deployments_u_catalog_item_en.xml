@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="u_catalog_item" label="Catalog Item" language="en" table="x_vmw_cloudservice_deployments">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>u_catalog_item</element>
+            <help/>
+            <hint/>
+            <label>Catalog Item</label>
+            <language>en</language>
+            <name>x_vmw_cloudservice_deployments</name>
+            <plural>Catalog Items</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-08-29 08:04:38</sys_created_on>
+            <sys_id>2802a935dbe7f300da86f26b68961902</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Catalog Item</sys_name>
+            <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_documentation_x_vmw_cloudservice_deployments_u_catalog_item_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-08-29 08:04:38</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

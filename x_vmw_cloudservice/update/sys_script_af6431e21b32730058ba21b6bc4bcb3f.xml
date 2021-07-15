@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>true</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>false</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_cas_resource_sharing</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>deleteCMDBEntitlement</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+   var appUtil = new CASAppUtil();
+	if (current.entitled_machines) {
+		try{
+			CASLogger.debug('Inside  deleteCMDBEntitlement.Business Rule: Used for deletion of CMDB resource Entitlements');
+			var machineGR = new GlideRecord(appUtil.configuration.table.resources);
+			machineGR.addEncodedQuery('sys_idIN'+ current.entitled_machines);
+			machineGR.query();
+			while(machineGR.next()) {
+				machineGR.entitled_users = '';
+				machineGR.entitled_groups = '';
+				machineGR.update();
+			}
+		} 
+		catch(e) {
+			CASLogger.error('Exception caught inside deleteCMDBEntitlement BR : if(current.entitled_machines)'+e);
+		}
+
+	}
+
+	if (current.entitled_deployments) {
+		try{
+			CASLogger.debug('Inside  deleteCMDBEntitlement.Business Rule: Used for deletion of CMDB deployment Entitlements');
+			var deploymentGR = new GlideRecord(appUtil.configuration.table.deployments);
+			deploymentGR.addEncodedQuery('sys_idIN'+ current.entitled_deployments);
+			deploymentGR.query();
+			while(deploymentGR.next()) {
+				deploymentGR.entitled_users = '';
+				deploymentGR.entitled_groups = '';
+				deploymentGR.update();
+			}
+		} 
+		catch(e) {
+			CASLogger.error('Exception caught inside deleteCMDBEntitlement BR : if(current.entitled_deployments)'+e);
+		}
+
+	}
+
+	// Add your code here
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-25 10:44:19</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>af6431e21b32730058ba21b6bc4bcb3f</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>deleteCMDBEntitlement</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_af6431e21b32730058ba21b6bc4bcb3f</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-06-04 09:11:34</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=af6431e21b32730058ba21b6bc4bcb3f"/>
+</record_update>

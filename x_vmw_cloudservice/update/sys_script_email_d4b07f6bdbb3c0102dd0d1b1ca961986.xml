@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>vRA_GMT_Time</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript(/* GlideRecord */ current, /* TemplatePrinter */ template,
+										   /* Optional EmailOutbound */ email, /* Optional GlideRecord */ email_action,
+										   /* Optional GlideRecord */ event) {
+	try {
+		CASLogger.debug("Inside EmailScript : vRA approval requested Notification for Insert Operation");
+		var appUtil = new CASAppUtil();
+
+		//convert the dateTime to GMT datetime.
+		var newCreatedOn = appUtil.getGMTDateTime(current.sys_created_on, 'GMT');
+		template.print(newCreatedOn);
+	} catch (e) {
+		CASLogger.error("Exception caught inside EmailScript : vRA approval requested Notification for Insert Operation " + e);
+	}
+
+
+})(current, template, email, email_action, event);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-04-02 11:26:34</sys_created_on>
+        <sys_id>d4b07f6bdbb3c0102dd0d1b1ca961986</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>vRA_GMT_Time</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_email_d4b07f6bdbb3c0102dd0d1b1ca961986</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-04-02 11:26:34</sys_updated_on>
+    </sys_script_email>
+</record_update>

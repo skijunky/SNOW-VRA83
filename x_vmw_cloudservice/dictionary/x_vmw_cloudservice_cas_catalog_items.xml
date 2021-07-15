@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element attributes="update_synch=true" extends="sc_cat_item" label="Catalog Items" max_length="40" name="x_vmw_cloudservice_cas_catalog_items" sizeclass="16" type="collection">
+        <element label="vRA UID" max_length="50" name="cas_uid" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="Endpoint" max_length="32" name="organisation_name" reference="x_vmw_cloudservice_register_cas_organization" type="reference"/>
+        <element label="Versions" max_length="5000" name="versions" type="string"/>
+        <index name="index">
+            <element name="organisation_name"/>
+        </index>
+    </element>
+</database>

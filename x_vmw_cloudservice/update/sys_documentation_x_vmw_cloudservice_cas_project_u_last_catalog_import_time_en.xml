@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="u_last_catalog_import_time" label="Last Catalog Import time" language="en" table="x_vmw_cloudservice_cas_project">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>u_last_catalog_import_time</element>
+            <help/>
+            <hint/>
+            <label>Last Catalog Import time</label>
+            <language>en</language>
+            <name>x_vmw_cloudservice_cas_project</name>
+            <plural>Last Catalog Import times</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>manish.admin</sys_created_by>
+            <sys_created_on>2019-08-06 12:48:44</sys_created_on>
+            <sys_id>b976cc6edb87f300da86f26b6896190f</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Last Catalog Import time</sys_name>
+            <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_documentation_x_vmw_cloudservice_cas_project_u_last_catalog_import_time_en</sys_update_name>
+            <sys_updated_by>manish.admin</sys_updated_by>
+            <sys_updated_on>2019-08-06 12:48:44</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

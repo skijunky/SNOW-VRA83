@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column">
+    <sp_column action="INSERT_OR_UPDATE">
+        <class_name>content-right-pane</class_name>
+        <order>2</order>
+        <size>10</size>
+        <size_lg/>
+        <size_sm/>
+        <size_xs/>
+        <sp_row display_value="1">ef9b622fdb223300291d61ca0b96198a</sp_row>
+        <sys_class_name>sp_column</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-16 06:52:49</sys_created_on>
+        <sys_id>ab9b622fdb223300291d61ca0b96198e</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>2</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_column_ab9b622fdb223300291d61ca0b96198e</sys_update_name>
+        <sys_updated_by>Navdeep</sys_updated_by>
+        <sys_updated_on>2019-09-12 15:04:59</sys_updated_on>
+    </sp_column>
+</record_update>

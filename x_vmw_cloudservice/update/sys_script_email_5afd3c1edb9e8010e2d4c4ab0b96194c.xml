@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>Display_Deployments_RITM</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript(/* GlideRecord */ current, /* TemplatePrinter */ template,
+          /* Optional EmailOutbound */ email, /* Optional GlideRecord */ email_action,
+          /* Optional GlideRecord */ event) {
+
+	var appUtil= new CASAppUtil();
+	try
+		{
+		CASLogger.debug('Inside Display_Deployments_RITM :Notification email script');
+	var gr = new GlideRecordSecure(appUtil.configuration.table.deployments);
+	
+	gr.addQuery('deployment_id',current.x_vmw_cloudservice_deployment_id);
+	gr.query();
+	if(gr.next())
+		{
+			//template.print('arr');
+			template.print(gr.name +'<br/>');
+		}
+			else
+				{
+					template.print('&nbsp &nbsp &nbsp &nbsp &nbsp-');
+				}
+		}
+	catch(e)
+		{
+			CASLogger.error('Exception caught inside Display_Deployments_RITM :Notification email script'+e);
+		}
+	
+          // Add your code here
+// 	//VRASNLogger.error('inside testscript '+current.sys_id);
+// 	var gr=new GlideRecord('x_vmw_cloudservice_deployments');
+// 	gr.addQuery('deployment_id',current.x_vmw_cloudservice_deployment_id);
+// 	gr.query();
+// 	if(gr.next()){
+// 	//	VRASNLogger.error('abctest '+gr.name);
+// 		template.print(gr.name +'<br />');	
+// 	}
+	
+	
+
+})(current, template, email, email_action, event);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>ayush.aman</sys_created_by>
+        <sys_created_on>2020-01-14 11:37:07</sys_created_on>
+        <sys_id>5afd3c1edb9e8010e2d4c4ab0b96194c</sys_id>
+        <sys_mod_count>16</sys_mod_count>
+        <sys_name>Display_Deployments_RITM</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_email_5afd3c1edb9e8010e2d4c4ab0b96194c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-01-28 12:15:21</sys_updated_on>
+    </sys_script_email>
+</record_update>

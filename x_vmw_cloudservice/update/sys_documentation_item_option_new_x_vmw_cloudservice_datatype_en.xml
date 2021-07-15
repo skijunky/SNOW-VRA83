@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="x_vmw_cloudservice_datatype" label="Datatype" language="en" table="item_option_new">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>x_vmw_cloudservice_datatype</element>
+            <help/>
+            <hint/>
+            <label>Datatype</label>
+            <language>en</language>
+            <name>item_option_new</name>
+            <plural>Datatypes</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>ayush aman</sys_created_by>
+            <sys_created_on>2020-06-09 10:22:09</sys_created_on>
+            <sys_id>b19ead212f5910103aa25d372799b6a3</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Datatype</sys_name>
+            <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_documentation_item_option_new_x_vmw_cloudservice_datatype_en</sys_update_name>
+            <sys_updated_by>ayush aman</sys_updated_by>
+            <sys_updated_on>2020-06-09 10:22:09</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_js_include">
+    <sp_js_include action="INSERT_OR_UPDATE">
+        <display_name>d3</display_name>
+        <source>local</source>
+        <sys_class_name>sp_js_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-09-25 11:06:24</sys_created_on>
+        <sys_id>167e89aa1b444010485164e6ec4bcb14</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>d3</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_ui_script display_value="x_vmw_cloudservice.d3.js">298258bfdbaf3300ff7c29464896198b</sys_ui_script>
+        <sys_update_name>sp_js_include_167e89aa1b444010485164e6ec4bcb14</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-09-25 11:06:24</sys_updated_on>
+        <url/>
+    </sp_js_include>
+</record_update>

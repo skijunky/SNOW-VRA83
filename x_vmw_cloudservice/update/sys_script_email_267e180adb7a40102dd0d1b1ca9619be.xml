@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>vRA_deploy_action</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript(/* GlideRecord */ current, /* TemplatePrinter */ template,
+          /* Optional EmailOutbound */ email, /* Optional GlideRecord */ email_action,
+          /* Optional GlideRecord */ event) {
+try{
+		
+		CASLogger.debug("Inside EmailScript : Entitlement Email Notification for vRA_deploy_action");
+        var deploy_action=current.getDisplayValue('deployment_actions');
+	if(current.deployment_actions=="")
+		{
+			template.print('&nbsp;&nbsp;-');
+		}
+	else{
+		
+		template.print(deploy_action);
+	}
+	}catch(e){
+		CASLogger.error("Exception caught inside EmailScript : vRA_deploy_action "+e);
+	}
+
+})(current, template, email, email_action, event);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-02-07 11:12:08</sys_created_on>
+        <sys_id>267e180adb7a40102dd0d1b1ca9619be</sys_id>
+        <sys_mod_count>4</sys_mod_count>
+        <sys_name>vRA_deploy_action</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_email_267e180adb7a40102dd0d1b1ca9619be</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-02-07 11:49:39</sys_updated_on>
+    </sys_script_email>
+</record_update>

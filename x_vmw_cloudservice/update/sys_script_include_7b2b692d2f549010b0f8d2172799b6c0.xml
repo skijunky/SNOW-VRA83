@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.vRABaseUrlCheck</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>vRABaseUrlCheck</name>
+        <script><![CDATA[var vRABaseUrlCheck = Class.create();
+vRABaseUrlCheck.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+
+
+	
+	
+	
+fetchBaseUrl: function() {
+    try {
+        CASLogger.debug('Inside  vRABaseUrlCheck.fetchBaseUrl: Fetch Base Url.');
+        this.appUtil = new CASAppUtil();
+
+        return gs.getProperty(this.appUtil.configuration.properties.BaseUrlCheck);
+
+    } catch (e) {
+        CASLogger.error("Exception caught inside vRABaseUrlCheck.fetchBaseUrl" + e);
+    }
+},
+
+
+    HostNameRegionCheck: function(current)
+
+ {
+     try {
+
+         this.appUtil = new CASAppUtil();
+         CASLogger.debug('Inside  vRABaseUrlCheck.HostNameRegionCheck: Base Url Check.');
+         var midserver = '';
+         var endPoint = '';
+         var token = '';
+         //var casHost=this.appUtil.configuration.api.hostname;
+
+         if (current.select_automation_service == 'vRealiseAutomationCloud') {
+
+             token = current.api_token.getDecryptedValue().toString();
+             endPoint = current.cas_url + this.appUtil.configuration.api.projects + "/?size=20&page=0";
+
+         }
+         if (current.select_automation_service == 'vrealizeAutomationService') {
+
+             endPoint = current.hostname + this.appUtil.configuration.api.projects + "/?size=20&page=0";
+             midserver = current.mid_server.name;
+             token = current.api_token.getDecryptedValue().toString();
+         }
+         var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+         if (response.haveError()) {
+
+             CASLogger.error('REST call error found inside vRABaseUrlCheck.HostNameRegionCheck:' + response.getErrorMessage());
+             return false;
+
+         }
+     } catch (e) {
+         CASLogger.error("Exception caught inside vRABaseUrlCheck.HostNameRegionCheck" + e);
+     }
+ },
+                    type: 'vRABaseUrlCheck'
+                });]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-04-20 17:05:06</sys_created_on>
+        <sys_id>7b2b692d2f549010b0f8d2172799b6c0</sys_id>
+        <sys_mod_count>17</sys_mod_count>
+        <sys_name>vRABaseUrlCheck</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_7b2b692d2f549010b0f8d2172799b6c0</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-04-21 08:50:02</sys_updated_on>
+    </sys_script_include>
+</record_update>

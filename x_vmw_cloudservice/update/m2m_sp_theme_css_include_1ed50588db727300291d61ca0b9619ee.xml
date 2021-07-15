@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_sp_theme_css_include">
+    <m2m_sp_theme_css_include action="INSERT_OR_UPDATE">
+        <order/>
+        <sp_css_include display_value="casFont.css">73954948db727300291d61ca0b96190f</sp_css_include>
+        <sp_theme display_value="CAS_light">cb3c2e4ddb22330086f22706ca9619ff</sp_theme>
+        <sys_class_name>m2m_sp_theme_css_include</sys_class_name>
+        <sys_created_by>Navdeep</sys_created_by>
+        <sys_created_on>2019-07-17 12:45:08</sys_created_on>
+        <sys_id>1ed50588db727300291d61ca0b9619ee</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>font.css.CAS_theme</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>m2m_sp_theme_css_include_1ed50588db727300291d61ca0b9619ee</sys_update_name>
+        <sys_updated_by>Navdeep</sys_updated_by>
+        <sys_updated_on>2019-07-17 12:45:08</sys_updated_on>
+    </m2m_sp_theme_css_include>
+</record_update>

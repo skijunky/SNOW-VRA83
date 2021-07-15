@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>true</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_register_cas_organization</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRACS_Delete_VRA_Data</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) 
+ {
+	var appUtil = new CASAppUtil();	
+
+	try
+	{
+		CASLogger.debug('Inside  vRACS_Delete_VRA_Data.Business Rule:');
+
+//
+// 		var activeEntitle = new GlideRecord(appUtil.configuration.table.entitlement);//entitlement
+// 		activeEntitle.addQuery('endpoint',current.sys_id);
+// 		activeEntitle.addEncodedQuery('active=true');
+// 		activeEntitle.query();
+// 		if(activeEntitle.next())
+// 		{//
+
+// 			gs.addErrorMessage(' There is an active Entitlements with deployments Present');
+// 			current.setAbortAction(true);
+
+// 		}
+// 		else{
+			//Deletion of associated Entitlements.
+			var grEntmt = new GlideRecord(appUtil.configuration.table.entitlement);//entitlement
+			grEntmt.addQuery('endpoint', current.sys_id);
+			grEntmt.query();
+			while(grEntmt.next())
+			{
+				grEntmt.deleteMultiple();
+				//grEntmt.update();
+			}
+
+			//Deletion of associated catalog items.
+			var grCatlg = new GlideRecord(appUtil.configuration.table.catalogItem);
+			grCatlg.addQuery('organisation_name', current.sys_id);
+			grCatlg.query();
+			while(grCatlg.next())
+			{
+				grCatlg.deleteMultiple();
+			}
+
+			//changing the status of assoviated deployments to retired.
+			var grDeploy = new GlideRecord(appUtil.configuration.table.deployments);
+			grDeploy.addQuery('u_project.organization', current.sys_id);
+			grDeploy.query();
+			while(grDeploy.next())
+			{
+				grDeploy.operational_status = '6';
+				grDeploy.update();
+			} 
+
+
+			//changing the status of assoviated machines to retired.
+			var grMachine = new GlideRecord(appUtil.configuration.table.machines);
+			grMachine.addQuery('project.organization', current.sys_id);
+			grMachine.query();
+			while(grMachine.next())
+			{
+				grMachine.operational_status = '6';
+				grMachine.update();
+			}
+
+
+			var grActions = new GlideRecord(appUtil.configuration.table.action);//x_vmw_cloudservice_vra_cloud_actions.
+			grActions.addQuery('deployment.u_project.organization', current.sys_id);	//grActions.addEncodedQuery('deployment.u_project.organization='+current.sys_id+'^ORmachine.project.organization'+current.sys_id);//'refresh_key='+current.refresh_key+'^ORname='+current.name
+			grActions.query();
+			while(grActions.next())
+			{
+				grActions.deleteMultiple();
+			}
+
+			var grActionM = new GlideRecord(appUtil.configuration.table.action);
+			grActionM.addQuery('machine.project.organization', current.sys_id);
+			grActionM.query();
+			while(grActionM.next())
+			{
+				grActionM.deleteMultiple();
+			}
+			//new action deletion code.
+
+
+			var sharedGR = new GlideRecord(appUtil.configuration.table.shared_resources);
+			sharedGR.query();
+			while(sharedGR.next())
+			{
+				sharedGR.deleteMultiple();
+			
+
+		}}
+	catch(e)
+	{
+		CASLogger.error("Exception caught inside vRACS_Delete_VRA_Data.Business Rule" + e);
+	}
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-09-02 01:44:00</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>5cf0748fdb2333008d1b9235ca961921</sys_id>
+        <sys_mod_count>27</sys_mod_count>
+        <sys_name>vRACS_Delete_VRA_Data</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_5cf0748fdb2333008d1b9235ca961921</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-05-22 09:13:16</sys_updated_on>
+        <template/>
+        <when>before</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=5cf0748fdb2333008d1b9235ca961921"/>
+</record_update>

@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_macro">
+    <sys_ui_macro action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <category>general</category>
+        <description/>
+        <media_type/>
+        <name>CAS_Multiselect_UI_Macro</name>
+        <scoped_name>x_vmw_cloudservice_CAS_Multiselect_UI_Macro</scoped_name>
+        <sys_class_name>sys_ui_macro</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-09-18 08:38:48</sys_created_on>
+        <sys_id>6e4f19422f979410f1663e0ef699b630</sys_id>
+        <sys_mod_count>41</sys_mod_count>
+        <sys_name>CAS_Multiselect_UI_Macro</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_ui_macro_6e4f19422f979410f1663e0ef699b630</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-09-28 06:16:19</sys_updated_on>
+        <xml><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	
+<style>
+	.dual-list .list-group {
+		margin-top: 8px;
+	}
+
+	.list-left li, .list-right li {
+		cursor: pointer;
+	}
+
+	.list-arrows button {
+	  margin-bottom: 20px;
+	}
+	.cas-dual-list{
+		height:150px;
+	  background-color:#fff;
+	  border-radius:.125rem;
+	  padding-top:2px;
+	  border:1px solid #ccc;
+	}
+
+	.cas-dual-list:hover{
+		background-color:#fff;
+	}
+	
+
+	.cas-duallist-table-container{
+		 padding:0;height:auto
+	}
+
+	.cas-duallist-table{
+		margin-top: 0px;
+	  margin-bottom: 0px;
+	}
+	
+	.cas-btn-container{
+		    max-width: 50px;
+			text-align: center;
+			margin: 0px;
+			padding: 0px;
+	}
+</style>
+	
+<div  style="width:100%">
+	<div>
+		<!--<span id="mandatory-star" style="font-size:20px;font-weight:bold;color:grey">*
+  </span>-->
+		<span id="error-message" style="font-size:15px;font-weight:300;color:#c83c36"> </span>
+	</div>
+  <div class="row" id="multiselect-container" style="margin:0">
+	  <div><!-- class="col-lg-6 col-md-12 col-sm-12 col-xs-12">-->
+		  <select name="from" id="multiselect" class="cas-dual-list form-control" size="8" multiple="multiple" style="width:100%" >
+		  	<option value="1">Loading...</option>
+      	  </select>
+    </div>
+  </div>
+  
+  <div class="row" id="read_only" style="display:none;margin:0">
+		<div  class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="padding:0">
+			<div  class="form-control cas-duallist-table-container" >
+				<table  class="table table-compact cas-duallist-table" >
+					<tbody >
+					</tbody>
+				</table>
+			</div>
+    	</div>
+  </div>
+  <br/>
+</div>
+
+<div style="width:1px;height:1px;overflow:hidden;">
+	<div>
+		<input type="text" id="all_options" value="" />
+		<input type="text" id="default_values" value="" />
+		<input type="text" id="constraints" value="" />
+		<input type="text" id="answer" value="" />
+		<input type="text" id="json" value="" />
+	</div>
+
+	
+	<div>
+		<input id="field_id" value=""/>
+		<script >
+			(function(){
+			//-----------------data strcutre-----------------
+				var data = {
+					all_options:[],
+					default_value:[],
+					constraints:{},
+					selected_options:[],
+					unselected_options:[],
+					field_id:'',
+					dirty:false
+				};
+
+				var field_id="";
+			
+			//-----------------logic flow-----------------
+
+			//getting field id and then calling getDaullistData
+				var scriptTag = document.getElementsByTagName('script');
+				var parentTag = scriptTag[scriptTag.length - 1].parentNode;
+				var fieldIdElement = parentTag.querySelector("#field_id");
+
+				var intervalId=0;
+				clearInterval(intervalId);
+				intervalId = setInterval(function(){
+					if(fieldIdElement.value){
+						field_id = fieldIdElement.value;
+						clearInterval(intervalId);
+						getData();
+					}else return;
+				}, 100);
+			
+
+			//getting duallist data and then calling initializeDuallist
+				function getData(){
+					var getDataInterval=0;
+					clearInterval(getDataInterval);
+					getDataInterval = setInterval(function(){
+						var all_options = $j("#all_options"+field_id).val();	
+						var default_value = $j("#default_values"+field_id).val();
+						var constraints = $j("#constraints"+field_id).val();
+			
+						all_options = all_options?JSON.parse(all_options):[];
+						default_value = default_value?JSON.parse(default_value):'';
+						constraints = constraints?JSON.parse(constraints):'';
+						
+						if(Array.isArray(all_options))if(default_value)if(Array.isArray(default_value))if(constraints){
+							if(typeof all_options[0] == "string"){
+								all_options = all_options.map(function(value){
+									return {value:value, label:value};
+								});
+							}
+							data.all_options = all_options//(JSON.parse(all_options) || []);
+							data.default_value =default_value// (JSON.parse(default_values) || []);
+							data.constraints = constraints//(JSON.parse(constraints) || {});
+							data.field_id=field_id;
+							clearInterval(getDataInterval);
+							initialize();
+						}
+					},500);
+
+				}
+
+			function initialize(){
+				//handelling mandatory--------------------------------------
+				if(!data.constraints.required){
+					$j("#mandatory-star"+data.field_id).css("visibility", "hidden");
+				}else{
+					$j("#mandatory-star"+data.field_id).css("visibility", "true");
+				}
+			
+				$j("#multiselect"+data.field_id).change(function () {
+					var selected_values = $j("#multiselect"+data.field_id).val();
+					if(selected_values)fillData([].concat(selected_values), false);
+				}).change();
+
+				//handelling read only---------------------------------------
+				if(data.constraints.read_only){
+					$j("#multiselect-container"+data.field_id).css("display","none");
+					$j("#read_only"+data.field_id).css("display","block");
+					var selected_options = getOptionsFromValues(data.default_value);
+					data.selected_options = (selected_options ||[]);
+					var tableRows = "";
+					data.selected_options.forEach(function(option){
+						selected_options+="<tr><td>"+option.label+"</td></tr>";
+					})
+
+					$j("#read_only"+data.field_id+" tbody").html(selected_options);
+					updateAnswer([].concat(data.default_value));
+				}
+				else{
+					$j("#multiselect-container"+data.field_id).css("display","block");
+					$j("#read_only"+data.field_id).css("display","none");
+					fillData([].concat(data.default_value), true);
+				}
+			}
+
+
+			//value to option
+			function getOptionFromValue(value){
+				return (data.all_options || []).filter(function(item){
+					return item.value == value;
+				})[0];
+			}
+			function getOptionsFromValues(values){
+				return (values || []).map(function(value){
+					return getOptionFromValue(value);
+				});
+			}
+
+
+			//option to value
+			function getValuesFromOptions(options){
+				return (options || []).map(function(option){
+					return option.value;
+				});
+			}
+
+
+			//option selection and removal
+			function selectOptions(id){
+				var values = $j("#"+ id).val();
+				if(!values)return;
+				var selectedValues = (values.concat(getValuesFromOptions(data.selected_options)) || []);
+				refillDuallist(selectedValues);
+			}
+			function unselectOptions(id){
+				var selectedValues = getValuesFromOptions(data.selected_options);
+				var values = $j("#"+ id).val();
+				if(!values)return;
+				values.forEach(function(value){
+					selectedValues.splice(selectedValues.indexOf(value),1);
+				});
+				refillDuallist(selectedValues);
+			}
+			function selectAllOptions(id){
+				var values = $j("#"+ id +" option").map(function(){
+					return this.value;
+				}).get();
+				if(!values)throw "Something went wrong while selecting all option";
+				var selectedValues = values.concat(getValuesFromOptions(data.selected_options))
+				refillDuallist(selectedValues);
+			}
+			function unselectAllOptions(id){
+				var selectedValues = [];
+				refillDuallist(selectedValues);
+			}
+
+
+			//adds optin to a select element
+			function addOptionsToSelectElement(id,options){
+				(options || []).forEach(function(option){
+					var optionElement = new Option(option.label, option.value);
+					if(option.selected)$j(optionElement).attr('selected', true);
+					else $j(optionElement).attr('selected', false);
+					$j(optionElement).html(option.label);
+					$j("#"+id).append(optionElement);
+				});
+			
+			}
+
+			//refills dual list data
+			function fillData(selectedValues, isDefault){
+				var selected_options = getOptionsFromValues(selectedValues);
+				var unselected_options = (data.all_options || []).filter(function(option, index){
+					return !selectedValues.filter(function(value,index){return option.value==value;}).length;
+				});
+			
+				selected_options.sort(function(a,b){
+					if( b.label >a.label)return -1;
+					if(a.label>b.label)return 1;
+					return 0;
+				});	
+			
+				data.minMaxFulfilled = true;
+				if(data.constraints['max-value']){
+					if(selected_options.length>data.constraints['max-value']){
+						$j("#error-message"+data.field_id).text("Maximum value can be "+ data.constraints["max-value"]);
+						data.minMaxFulfilled = false;
+					}
+					
+				}
+				if(data.constraints['min-value']){
+					if(data.constraints['min-value'] > selected_options.length){
+						$j("#error-message"+data.field_id).text("Minimum value can be "+ data.constraints["min-value"]);
+						data.minMaxFulfilled = false;
+					}
+				}
+			
+				if(data.minMaxFulfilled) $j("#error-message"+data.field_id).text(" ");
+				data.selected_options = selected_options;
+				data.unselected_options = unselected_options;
+			
+				if(isDefault){
+					$j("#multiselect"+ data.field_id).empty();
+					data.selected_options.forEach(function(option){
+						option.selected = true;
+					});
+					data.fill_data = data.selected_options.concat(data.unselected_options);
+					data.fill_data.sort(function(a,b){
+						if( b.label >a.label)return -1;
+						if(a.label>b.label)return 1;
+						return 0;
+					});
+					addOptionsToSelectElement("multiselect"+data.field_id,data.fill_data);
+				}
+			
+				updateAnswer(getValuesFromOptions(data.selected_options));
+			}
+
+			//updates answer to the hidden text field
+			function updateAnswer(answer){
+				if(!answer)return;
+				if(answer.length){
+					$j("#answer"+field_id).val(JSON.stringify(answer));
+					if(data.minMaxFulfilled)
+						$j("#multiselect"+data.field_id).css("border","");
+				}
+				else{
+					$j("#answer"+field_id).val("[]");
+				}
+			}
+
+		})();
+
+		</script>
+	</div>
+</div>
+	
+</j:jelly>]]></xml>
+    </sys_ui_macro>
+</record_update>

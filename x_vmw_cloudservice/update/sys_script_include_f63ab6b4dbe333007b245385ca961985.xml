@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.vRACSClientSciptBridge</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>vRACSClientSciptBridge</name>
+        <script><![CDATA[var vRACSClientSciptBridge = Class.create();
+vRACSClientSciptBridge.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+
+    getVersions: function(catalogSysid) {
+        try {
+            CASLogger.debug('Inside  vRACSClientSciptBridge.getVersions: Getting of versions');
+            catalogSysid = (catalogSysid) ? catalogSysid : this.getParameter('sysparm_sys_id');
+            this.daoUtil = new CASDaoUtil();
+            var versions = this.daoUtil.getCatalogVersion(catalogSysid);
+            return versions;
+        } catch (e) {
+            CASLogger.error("Exception caught Inside vRACSClientSciptBridge.getVersions " + e);
+        }
+
+    },
+	
+
+    getProjects: function(catalogSysid) {
+        try {
+            CASLogger.debug('Inside  vRACSClientSciptBridge.getProjects: Getting of projects');
+            catalogSysid = (catalogSysid) ? catalogSysid : this.getParameter('sysparm_sys_id');
+            this.daoUtil = new CASDaoUtil();
+            var projectsArr = this.daoUtil.getCatalogProjects(catalogSysid);
+            return projectsArr;
+        } catch (e) {
+            CASLogger.error("Exception caught Inside vRACSClientSciptBridge.getProjects " + e);
+        }
+    },
+//
+	
+	dynamicDropDownValues : function(){
+		
+		var parent = '';
+		var uri = this.getParameter('sysparm_url');
+		var datasource = this.getParameter('sysparm_datasource');
+		var parameters = this.getParameter('sysparm_parameter'); 
+		
+		var projectId = this.getParameter('sysparm_projectId');
+		var catalog = this.getParameter('sysparm_sys_id');
+		var gr = new GlideRecord('x_vmw_cloudservice_cas_catalog_items');
+		if(gr.get(catalog)){
+			parent = gr.organisation_name;
+		}
+		
+		//var response = this.externalSourceApiCall(uri, datasource, JSON.parse(parameters), projectId, parent);
+		
+		return this.externalSourceApiCall(uri, datasource, JSON.parse(parameters), projectId, parent);
+		
+		
+		
+	},
+	
+    externalSourceApiCall: function(uri, datasource, parameters, projectId, current) {
+        try {
+			
+            CASLogger.debug('Inside  vRACSClientSciptBridge.externalSourceApiCall: Making externalSource API CALL');
+			this.appUtil= new CASAppUtil();
+			
+            var midserver = '';
+            var endPoint = '';
+            var token = '';
+			
+			var obj= {};
+			
+			obj ={
+				"uri":uri+'',
+				"dataSource":datasource+'',
+				"parameters":parameters
+				
+				};
+			
+			var body= this.appUtil.stringify(obj);
+	
+            if (current.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.api_token.getDecryptedValue();
+                endPoint = current.cas_url + this.appUtil.configuration.api.externalSource + projectId;
+            }
+            if (current.select_automation_service == 'vrealizeAutomationService') {
+				
+				if(current.mid_server == null || current.mid_server == undefined || current.mid_server == ''){
+					var gr = new GlideRecord(this.appUtil.configuration.table.register_cas);
+					gr.addQuery("sys_id", current.sys_id );
+					gr.query();
+					if (gr.next()) {
+						midserver = gr.mid_server.name;
+					}
+				}else{
+					midserver = current.mid_server.name;
+				}
+				
+                endPoint = current.hostname + this.appUtil.configuration.api.externalSource + projectId;	
+                token = current.api_token.getDecryptedValue();
+            }
+			
+		
+			
+
+            var response = this.appUtil.externalSourceMakeApiCall(endPoint, 'post', body, midserver, "application/json", "application/json", 'Bearer ' + token);
+
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportCatalog.externalSourceApiCall: ' + response.getErrorMessage());
+                return "Invalid external source";
+            } else {
+
+                var responseBody = response.getBody();
+				
+				return responseBody;
+
+
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught Inside vRACSClientSciptBridge.externalSourceApiCall " + e);
+        }
+		
+	},
+	externalSourceValuePickerApiCall: function(referenceType, current) {
+        try {
+            CASLogger.debug('Inside  vRACSClientSciptBridge.externalSourceApiCall: Making externalSourceValuePickerApiCall');
+			this.appUtil= new CASAppUtil();
+            var midserver = '';
+            var endPoint = '';
+            var token = '';
+			
+
+			var obj= {};
+			
+			
+			obj ={
+				"filter":"",
+				"valueSource":{"type":"inventory"},
+				"valueType":{"dataType":"reference","referenceType":referenceType}
+				};
+			
+			var body= this.appUtil.stringify(obj);
+			
+            if (current.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.api_token.getDecryptedValue();
+                endPoint = current.cas_url + this.appUtil.configuration.api.externalValuePicker;
+            }
+            if (current.select_automation_service == 'vrealizeAutomationService') {
+				
+				if(current.mid_server == null || current.mid_server == undefined || current.mid_server == ''){
+					var gr = new GlideRecord(this.appUtil.configuration.table.register_cas);
+					gr.addQuery("sys_id", current.sys_id );
+					gr.query();
+					if (gr.next()) {
+						midserver = gr.mid_server.name;
+					}
+				}else{
+					midserver = current.mid_server.name;
+				}
+				
+                endPoint = current.hostname + this.appUtil.configuration.api.externalValuePicker;
+                token = current.api_token.getDecryptedValue();
+            }
+			
+
+            var response = this.appUtil.externalSourceMakeApiCall(endPoint, 'post', body, midserver, "application/json", "application/json", 'Bearer ' + token);
+
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportCatalog.externalSourceValuePickerApiCall: ' + response.getErrorMessage());
+                return "Invalid ValuePicker";
+            } else {
+
+                var responseBody = response.getBody();
+				return responseBody;
+
+
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught Inside vRACSClientSciptBridge.externalSourceValuePickerApiCall " + e);
+        }
+		
+	},
+	
+	getEndpoint: function() {
+        try {
+			this.appUtil = new CASAppUtil();
+			var detials = {};
+            var deployment = this.getParameter('sysparm_deploymentid');
+            var depGR = new GlideRecord(this.appUtil.configuration.table.deployments);
+            if (depGR.get(deployment)) {
+				var endpoint = depGR.u_project.organization+"";
+				var project = depGR.u_project+"";
+                detials = {
+                    "endpoint": endpoint,
+                    "project": project
+                };
+            }
+			return JSON.stringify(detials);
+
+        } catch (e) {
+            CASLogger.error("Exception caught Inside vRACSClientSciptBridge.getEndpoint " + e);
+        }
+    },
+	
+	getSchema : function(){
+		try{
+			var deployment = this.getParameter('sysparm_deploymentid');
+			var catalog = this.getParameter('sysparm_catalogid');
+			var resourceType = this.getParameter('sysparm_type');
+			var query = '';
+			var schema = '';
+			if(resourceType == 'Deployment'){
+				query = 'deployment='+deployment+'^catalog_item='+catalog;
+			}
+			if(resourceType == 'Machine'){
+				query = 'machine='+deployment+'^catalog_item='+catalog;
+			}
+			this.appUtil = new CASAppUtil();
+			var oprGR = new GlideRecord(this.appUtil.configuration.table.action);
+			oprGR.addEncodedQuery(query);
+			oprGR.query();
+			if(oprGR.next()){
+				schema = oprGR.action_schema;
+			}
+			return schema.toString();
+		}catch(e){
+			CASLogger.error("Exception caught Inside vRACSClientSciptBridge.getSchema " + e);
+		}
+	},
+	
+	getAllFields : function(){
+		try{
+			this.appUtil = new CASAppUtil();
+			var catalog = this.getParameter('sysparm_catalogid');
+			var fields = '';
+			var itemGR = new GlideRecord(this.appUtil.configuration.table.variable);
+			itemGR.addQuery('cat_item',catalog);
+			itemGR.query();
+			while(itemGR.next()){
+				fields += itemGR.name+',';
+			}
+			return fields.slice(0,-1);
+		}catch(e){
+			CASLogger.error("Exception caught Inside vRACSClientSciptBridge.getAllFields " + e);
+		}
+	},
+	
+	isOAuthPropertyEnabled : function(){
+		try{
+			this.appUtil = new CASAppUtil();
+			return gs.getProperty(this.appUtil.configuration.properties.enableOAuth);			
+		}catch(e){
+			CASLogger.error("Exception caught Inside vRACSClientSciptBridge.isOAuthPropertyEnabled " + e);
+		}
+	},
+
+    type: 'vRACSClientSciptBridge'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-08-26 11:56:53</sys_created_on>
+        <sys_id>f63ab6b4dbe333007b245385ca961985</sys_id>
+        <sys_mod_count>59</sys_mod_count>
+        <sys_name>vRACSClientSciptBridge</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_f63ab6b4dbe333007b245385ca961985</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-02-18 10:02:55</sys_updated_on>
+    </sys_script_include>
+</record_update>

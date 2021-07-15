@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Day-2 Actions Entitlements" max_length="40" name="x_vmw_cloudservice_day_2_action_request_entitlement" sizeclass="22" type="collection">
+        <element display="true" label="Action" max_length="50" name="action" type="string"/>
+        <element label="Display Name" max_length="1000" name="display_name" type="string"/>
+        <element label="Type" max_length="100" name="type" type="string"/>
+    </element>
+</database>

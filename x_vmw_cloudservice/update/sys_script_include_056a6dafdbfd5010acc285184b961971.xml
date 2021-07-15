@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.getVersionsvRA</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>getVersionsvRA</name>
+        <script><![CDATA[var getVersionsvRA = Class.create();
+getVersionsvRA.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+
+    onChangeVersions: function() {
+        try {
+            CASLogger.debug('Inside the CASDaoUtil.getCatalogProjects');
+            var catalogSysid = this.getParameter('sysparm_sys_id');
+            var newValue = this.getParameter('sysparm_newValue');
+            var grCatItem = new GlideRecord('item_option_new');
+            grCatItem.addQuery('cat_item', catalogSysid);
+            grCatItem.addQuery('x_vmw_cloudservice_versions', '!=', newValue + ',');
+            grCatItem.query();
+            //gs.addErrorMessage('Si count=' + grCatItem.getRowCount());
+            var inputdata = [];
+			if(grCatItem.hasNext())
+			{
+				while (grCatItem.next()) {
+
+					inputdata = inputdata + grCatItem.name + ',';
+				}
+				return inputdata.toString();
+			}
+			else
+			{
+				return 'false';
+			}
+		} catch (e) {
+			CASLogger.error('Exception caught inside the CASDaoUtil.getCatalogProjects ' + e);
+		}
+	},
+	
+	
+	getCatalogProjects: function() {
+		try {
+
+			CASLogger.debug('Inside the CASDaoUtil.getCatalogProjects');
+			var catalogSysid = this.getParameter('sysparm_sys_id');
+			var grCatItem = new GlideRecord('sc_cat_item_category');
+			grCatItem.addQuery('sc_cat_item', catalogSysid);
+			grCatItem.query();
+			var inputdata = [];
+			if(grCatItem.hasNext())
+			{
+				while (grCatItem.next()) {
+					var project = grCatItem["sc_category"]["sys_id"];
+					var user = false,
+						roles = false,
+						groups = false;
+					var gr = new GlideRecord("sc_category_user_criteria_mtom");
+					gr.addQuery('sc_category', project + '');
+					gr.query();
+					if (gr.hasNext()) {
+						while (gr.next()) {
+							var criteria = gr.user_criteria;
+							if (criteria.user) {
+								var users = criteria.user;
+								if (users.contains(gs.getUserID())) {
+									user = true;
+								}
+
+							}
+							if (criteria.group) {
+								var group = criteria.group;
+								group = group.split(",");
+								for (var i in group) {
+									var grp = new GlideRecord('sys_user_grmember');
+									grp.addQuery('user', gs.getUserID());
+									grp.addQuery('group', group[i]);
+									grp.query();
+									if (grp.next()) {
+										groups = true;
+
+									}
+
+								}
+
+							}
+							if (criteria.role) {
+								var role = criteria.role.split(",");
+								for (var j in role) {
+									var hasRole = new GlideRecord('sys_user_has_role');
+									hasRole.addQuery('role', role[j]);
+									hasRole.addQuery('user', gs.getUserID());
+									hasRole.query();
+									if (hasRole.next()) {
+										roles = true;
+									}
+								}
+
+							}
+
+						}
+						if (user == true || roles == true || groups == true) {
+							inputdata.push(grCatItem["sc_category"]["title"] + '');
+							inputdata.push(grCatItem["sc_category"]["project_id"] + '');
+						}
+					} else {
+						inputdata.push(grCatItem["sc_category"]["title"] + '');
+						inputdata.push(grCatItem["sc_category"]["project_id"] + '');
+					}
+
+
+					var noMtomGR = new GlideRecord('sc_category_user_criteria_no_mtom');
+					noMtomGR.addQuery('sc_category', project + '');
+					noMtomGR.query();
+					var noRole = false,
+						noUser = false,
+						noGroup = false;
+					while (noMtomGR.next()) {
+						var criteria = noMtomGR.user_criteria;
+						if (criteria.user) {
+
+							var users = criteria.user;
+							if (users.contains(gs.getUserID())) {
+								noUser = true;
+							}
+
+
+						}
+						if (criteria.group) {
+							var group = criteria.group;
+							group = group.split(",");
+							for (var i in group) {
+								var grp = new GlideRecord('sys_user_grmember');
+								grp.addQuery('user', gs.getUserID());
+								grp.addQuery('group', group[i]);
+								grp.query();
+								if (grp.next()) {
+									noGroup = true;
+
+								}
+
+							}
+
+						}
+						if (criteria.role) {
+							var role = criteria.role.split(",");
+							for (var j in role) {
+								var hasRole = new GlideRecord('sys_user_has_role');
+								hasRole.addQuery('role', role[j]);
+								hasRole.addQuery('user', gs.getUserID());
+								hasRole.query();
+								if (hasRole.next()) {
+									noRole = true;
+								}
+							}
+
+						}
+
+					}
+					if(noUser == true || noGroup == true || noRole == true){
+						inputdata.pop(grCatItem["sc_category"]["title"] + '');
+						inputdata.pop(grCatItem["sc_category"]["project_id"] + '');
+					}
+
+
+				}
+				return inputdata.toString();
+			}
+			else
+			{
+				return 'false';
+			}
+		} catch (e) {
+			CASLogger.error('Exception caught inside the CASDaoUtil.getCatalogProjects ' + e);
+		}
+	},
+	
+	getVersions: function() {
+		try {
+			CASLogger.debug('Inside  getVersionsvRA.getVersions: Getting of versions');
+			var version;
+			var i;
+			var catalogSysid = this.getParameter('sysparm_sys_id');
+			var grCatItem = new GlideRecord('x_vmw_cloudservice_cas_catalog_items');
+			grCatItem.addQuery('sys_id', catalogSysid);
+			grCatItem.query();
+
+			if (grCatItem.next()) {
+				version = grCatItem.versions;
+				return version.toString();
+			}
+			else
+			{
+				return 'false';
+			}
+		} catch (e) {
+			CASLogger.error("Exception caught Inside getVersionsvRA.getVersions " + e);
+		}
+	},
+
+    getFieldProperties: function() {
+        try {
+            this.appUtil = new CASAppUtil();
+            var catalogSysid = this.getParameter('sysparm_sys_id');
+            var readOnlyFields = [];
+            var hiddenFields = [];
+            var variables = new GlideRecord(this.appUtil.configuration.table.variable);
+            variables.addQuery('cat_item', catalogSysid);
+            //variables.addQuery('name','IN',fieldsArray.toString());
+            variables.query();
+            if (variables.hasNext()) {
+                while (variables.next()) {
+                    if (variables.x_vmw_cloudservice_field_readonly == 'true')
+                        readOnlyFields.push(variables.name.toString());
+                    if (variables.x_vmw_cloudservice_field_visibility == 'false') {
+                        hiddenFields.push(variables.name.toString());
+                    }
+                }
+                var result = readOnlyFields.toString() + '||' + hiddenFields.toString();
+                return result;
+            } else {
+                return 'false';
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught Inside getVersionsvRA.getFieldProperties " + e);
+        }
+    },
+
+    getAllFields: function() {
+        try {
+            this.appUtil = new CASAppUtil();
+            var catalogSysid = this.getParameter('sysparm_sys_id');
+            var readOnlyFields = [];
+            var hiddenFields = [];
+            var variableSetSysID = gs.getProperty(this.appUtil.configuration.properties.variableSetSysID);
+            var grCatVar = new GlideRecord(this.appUtil.configuration.table.variable);
+            grCatVar.addQuery('variable_set', variableSetSysID);
+            grCatVar.query();
+            while (grCatVar.next()) {
+                readOnlyFields.push(grCatVar.name.toString());
+                if (grCatVar.x_vmw_cloudservice_field_visibility == 'false') {
+                    hiddenFields.push(grCatVar.name.toString());
+                }
+            }
+            var variables = new GlideRecord(this.appUtil.configuration.table.variable);
+            variables.addQuery('cat_item', catalogSysid);
+            variables.query();
+            while (variables.next()) {
+                readOnlyFields.push(variables.name.toString());
+                if (grCatVar.x_vmw_cloudservice_field_visibility == 'false') {
+                    hiddenFields.push(variables.name.toString());
+                }
+            }
+            var result = readOnlyFields.toString() + '||' + hiddenFields.toString();
+            return result;
+        } catch (e) {
+            CASLogger.error("Exception caught Inside getVersionsvRA.getAllFields " + e);
+        }
+    },
+
+    getVersionsFields: function() {
+        try {
+
+            this.appUtil = new CASAppUtil();
+            var catalogSysid = this.getParameter('sysparm_sys_id');
+            var version = this.getParameter('sysparm_version');
+            var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+            var versionEncrypt = version.replace(rgx, ' ').trim().replaceAll(' ', '_');
+            var fieldsArray = [];
+            var mandatoryFields = [];
+            var hiddenFields = [];
+
+            var variable = new GlideRecord(this.appUtil.configuration.table.variable);
+            variable.addQuery('cat_item', catalogSysid);
+            variable.addQuery('visible_standalone', true);
+            variable.query();
+            while (variable.next()) {
+                if (variable.name.endsWith('__' + versionEncrypt)) {
+                    fieldsArray.push(variable.name.toString());
+                    if (variable.mandatory) {
+                        mandatoryFields.push(variable.name.toString());
+                    }
+                    if (variable.x_vmw_cloudservice_field_visibility == 'false') {
+                        hiddenFields.push(variable.name.toString());
+                    }
+                } else {
+                    hiddenFields.push(variable.name.toString());
+                }
+            }
+            return fieldsArray.toString() + '||' + mandatoryFields.toString() + '||' + hiddenFields.toString();
+
+        } catch (e) {
+            CASLogger.error("Exception caught Inside getVersionsvRA.getVersionsFields " + e);
+            return 'false';
+        }
+    },
+
+    getMacroFields: function() {
+        try {
+            this.appUtil = new CASAppUtil();
+            var catalogSysid = this.getParameter('sysparm_sys_id');
+            var macroFields = [];
+            var variables = new GlideRecord(this.appUtil.configuration.table.variable);
+            variables.addQuery('cat_item', catalogSysid);
+            variables.addQuery('type', '=', 17);
+            variables.query();
+            if (variables.hasNext()) {
+                while (variables.next()) {
+                    macroFields.push(variables.name.toString());
+                }
+                var result = macroFields.toString();
+                return result;
+            } else {
+                return 'false';
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught Inside getVersionsvRA.getMacroFields " + e);
+        }
+    },
+
+    getDatagridFields: function() {
+        try {
+            this.appUtil = new CASAppUtil();
+            var catalogSysid = this.getParameter('sysparm_sys_id');
+            var datagridFields = [];
+            var variables = new GlideRecord(this.appUtil.configuration.table.variable);
+            variables.addQuery('cat_item', catalogSysid);
+            variables.query();
+            if (variables.hasNext()) {
+                while (variables.next()) {
+                    if (variables.x_vmw_cloudservice_datatype == 'DataGrid' || variables.x_vmw_cloudservice_datatype == 'Duallist' || variables.x_vmw_cloudservice_datatype == 'Multiselect') {
+                        datagridFields.push(variables.name.toString());
+                    }
+                }
+                var result = datagridFields.toString();
+                return result;
+            } else {
+                return 'false';
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught Inside getVersionsvRA.getDatagridFields " + e);
+        }
+    },
+	
+	isUserAuthorized: function() {
+		try {
+			this.appUtil = new CASAppUtil();
+            var userSysid = this.getParameter('sysparm_userID');
+            var endpoint = new GlideRecord(this.appUtil.configuration.table.register_cas);
+            endpoint.addQuery('use_oauth', true);
+			endpoint.addQuery('active',true);
+            endpoint.query();
+            if (endpoint.hasNext()) {
+				if (endpoint.next()) {
+					var token = new GlideRecord(this.appUtil.configuration.table.oauthToken);
+					token.addQuery('endpoint',endpoint.sys_id+'');
+					token.addQuery('user',userSysid);
+					token.addQuery('active',true);
+					token.query();
+					if(token.hasNext()){
+						var isActive = this.isTokenActive(userSysid, endpoint.sys_id+'');
+						
+						if(isActive == 'true'){
+							return 'true';
+						}else{			
+							return gs.getProperty('glide.servlet.uri')+"x_vmw_cloudservice_oauth_authorize_vra.do?endpoint="+endpoint.sys_id;
+						}						
+					}else{
+						return gs.getProperty('glide.servlet.uri')+"x_vmw_cloudservice_oauth_authorize_vra.do?endpoint="+endpoint.sys_id;
+					}
+				}
+			}else{
+				return 'true';
+			}
+		} catch (e) {
+			CASLogger.error("Exception caught Inside getVersionsvRA.isUserAuthorized " + e);
+			return 'true';
+		}
+	},
+	
+	isTokenActive : function(user, endpoint){
+		try {
+			CASLogger.debug('Inside the getVersionsvRA.isTokenActive');
+			var oAuthToken = new GlideRecord(this.appUtil.configuration.table.oauthToken);
+			oAuthToken.addQuery('user', user+'');
+			oAuthToken.addQuery('endpoint',endpoint+'');
+			oAuthToken.addQuery('type','refresh_token');
+			oAuthToken.query();
+			if(oAuthToken.next()){										
+				var url ="https://console.cloud.vmware.com"+this.appUtil.configuration.api.validateOauthToken;
+				var body = "token=" + oAuthToken.token_received.getDecryptedValue();
+				var base64Auth = gs.base64Encode(oAuthToken.endpoint.client_id + ':' + oAuthToken.endpoint.client_secret.getDecryptedValue());
+				var response = this.appUtil.makeApiCall(url, 'post', body, '', "application/json", "application/x-www-form-urlencoded", 'Basic ' + base64Auth);
+				
+				if (response.haveError()) {
+					CASLogger.error('REST call error found inside getVersionsvRA.isTokenActive : ' + response.getErrorMessage());
+				} else {
+					var responseBody = response.getBody();
+					var respBody = this.appUtil.parse(responseBody);
+					var isActive = respBody.active;
+					return isActive+'';			
+				}
+			}
+		} catch (e) {
+			CASLogger.error("Exception caught inside getVersionsvRA.isTokenActive " + e);
+		}
+	},
+	
+	getHiddenContainers: function() {
+        try {
+			
+            this.appUtil = new CASAppUtil();
+            var catalogSysid = this.getParameter('sysparm_sys_id');          
+			var containerArr = [];
+			var previous = '';
+			var current = '';
+            var variables = new GlideRecord(this.appUtil.configuration.table.variable);
+            variables.addQuery('cat_item', catalogSysid); 
+			variables.orderBy('order');
+            variables.query();
+            if (variables.hasNext()) {
+                while(variables.next()){
+					current = variables.name;
+
+					if(current == (previous+'_end') && current.split('__')[0] == 'page_general'){
+						containerArr.push(previous);
+					}
+
+					previous = current+'';
+				}
+				return JSON.stringify(containerArr);
+            } else {
+                return 'false';
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught Inside getVersionsvRA.getHiddenContainers " + e);
+        }
+    },
+
+    type: 'getVersionsvRA'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>manish.admin</sys_created_by>
+        <sys_created_on>2020-07-10 11:43:17</sys_created_on>
+        <sys_id>056a6dafdbfd5010acc285184b961971</sys_id>
+        <sys_mod_count>149</sys_mod_count>
+        <sys_name>getVersionsvRA</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_056a6dafdbfd5010acc285184b961971</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-03-03 10:32:27</sys_updated_on>
+    </sys_script_include>
+</record_update>

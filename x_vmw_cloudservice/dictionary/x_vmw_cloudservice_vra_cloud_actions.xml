@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Day-2 Actions" max_length="40" name="x_vmw_cloudservice_vra_cloud_actions" sizeclass="45" type="collection">
+        <element label="Action Id" max_length="70" name="action_id" type="string"/>
+        <element label="Action Schema" max_length="5000" name="action_schema" type="string"/>
+        <element label="Action Type" max_length="20" name="action_type" type="string"/>
+        <element attributes="edge_encryption_enabled=true,encode_utf8=false" label="Catalog Item" max_length="32" name="catalog_item" reference="x_vmw_cloudservice_cas_catalog_items" type="reference"/>
+        <element attributes="edge_encryption_enabled=true" label="Deployment" max_length="32" name="deployment" reference="x_vmw_cloudservice_deployments" type="reference"/>
+        <element label="Description" max_length="1000" name="description" type="string"/>
+        <element label="Display Name" max_length="30" name="display_name" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="Machine" max_length="32" name="machine" reference="x_vmw_cloudservice_machines" type="reference"/>
+        <element label="Name" max_length="50" name="name" type="string"/>
+        <element label="Valid" max_length="10" name="valid" type="string"/>
+        <index name="index">
+            <element name="machine"/>
+        </index>
+        <index name="index2">
+            <element name="catalog_item"/>
+        </index>
+        <index name="index3">
+            <element name="deployment"/>
+        </index>
+    </element>
+</database>

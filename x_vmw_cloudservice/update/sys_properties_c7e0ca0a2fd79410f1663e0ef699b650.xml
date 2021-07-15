@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="INSERT_OR_UPDATE">
+        <choices/>
+        <description>This property contains default sysId of the widget "CAS_Duallist (id : cas_dual_list)"&#13;
+default value = 37cc2a6cdb4350108994fe1b68961941</description>
+        <ignore_cache>false</ignore_cache>
+        <is_private>false</is_private>
+        <name>x_vmw_cloudservice.cas_duallist_widget_sysid</name>
+        <read_roles>admin,x_vmw_cloudservice.vra_catalog_admin</read_roles>
+        <suffix>cas_duallist_widget_sysid</suffix>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-09-18 11:04:47</sys_created_on>
+        <sys_id>c7e0ca0a2fd79410f1663e0ef699b650</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.cas_duallist_widget_sysid</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_properties_c7e0ca0a2fd79410f1663e0ef699b650</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-09-21 10:17:37</sys_updated_on>
+        <type>string</type>
+        <value>37cc2a6cdb4350108994fe1b68961941</value>
+        <write_roles>admin,x_vmw_cloudservice.vra_catalog_admin</write_roles>
+    </sys_properties>
+    <sys_translated_text action="delete_multiple" query="documentkey=c7e0ca0a2fd79410f1663e0ef699b650"/>
+</record_update>

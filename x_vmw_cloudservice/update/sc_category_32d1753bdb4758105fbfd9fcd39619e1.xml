@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sc_category">
+    <sc_category action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <description>Default Category for vRA Resource Actions&#13;
+</description>
+        <entitlement_script/>
+        <header_icon/>
+        <homepage_image/>
+        <homepage_renderer display_value="Category Items">47ebe8aa3742300054b6a3549dbe5dfa</homepage_renderer>
+        <icon/>
+        <image/>
+        <location/>
+        <mobile_hide_description>false</mobile_hide_description>
+        <mobile_picture/>
+        <mobile_subcategory_render_type>list</mobile_subcategory_render_type>
+        <module/>
+        <order>0</order>
+        <parent display_value="vRA Actions">ed71fdf7db4758105fbfd9fcd396198c</parent>
+        <roles/>
+        <sc_catalog display_value="Service Catalog">e0d08b13c3330100c8b837659bba8fb4</sc_catalog>
+        <sys_class_name>sc_category</sys_class_name>
+        <sys_created_by>ajay.gunjal</sys_created_by>
+        <sys_created_on>2020-09-11 10:12:59</sys_created_on>
+        <sys_id>32d1753bdb4758105fbfd9fcd39619e1</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>vRA Resource Actions</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sc_category_32d1753bdb4758105fbfd9fcd39619e1</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-10-08 10:32:14</sys_updated_on>
+        <title>vRA Resource Actions</title>
+    </sc_category>
+    <sys_translated_text action="delete_multiple" query="documentkey=32d1753bdb4758105fbfd9fcd39619e1"/>
+</record_update>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element extends="sys_import_set_row" label="Deployments Import Set" max_length="40" name="x_vmw_cloudservice_vra_deployments_import_set" sizeclass="0" type="collection">
+        <element label="blueprintId" max_length="120" name="blueprintid" type="string"/>
+        <element label="Blueprint Version" max_length="100" name="blueprint_version" type="string"/>
+        <element label="Catalog Item Id" max_length="200" name="catalog_item_id" type="string"/>
+        <element label="Catalog Item Version" max_length="100" name="catalog_item_version" type="string"/>
+        <element label="Deploymebt lastUpdatedBy" max_length="120" name="deploymebt_lastupdatedby" type="string"/>
+        <element label="Deployment createdAt" max_length="120" name="deployment_createdat" type="string"/>
+        <element label="deployment createdBy" max_length="120" name="deployment_createdby" type="string"/>
+        <element label="Deployment Id" max_length="120" name="deployment_id" type="string"/>
+        <element label="Deployment lastUpdatedAt" max_length="120" name="deployment_lastupdatedat" type="string"/>
+        <element label="deployment status" max_length="50" name="deployment_status" type="string"/>
+        <element label="Description " max_length="1024" name="description" type="string"/>
+        <element label="expense" max_length="1020" name="expense" type="string"/>
+        <element label="Expires On" max_length="50" name="expires_on" type="string"/>
+        <element label="inputs" max_length="1020" name="inputs" type="string"/>
+        <element label="Organization" max_length="100" name="organization" type="string"/>
+        <element label="orgId" max_length="120" name="orgid" type="string"/>
+        <element label="projectId" max_length="120" name="projectid" type="string"/>
+        <element label="Name" max_length="120" name="u_name" type="string"/>
+    </element>
+</database>

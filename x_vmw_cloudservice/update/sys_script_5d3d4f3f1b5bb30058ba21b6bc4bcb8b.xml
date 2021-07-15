@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>true</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_cas_catalog_entitlement</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRA DeleteUserCriteria</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+	
+	try
+		{
+			CASLogger.debug('Inside  DeleteUserCriteria.Business Rule: Deletion of user criteria');
+var cat_item_arr=current.select_catalog_items.split(',');
+for(var i=0;i<cat_item_arr.length;i++){
+    var user_criteria_mtomGR = new GlideRecord('sc_cat_item_user_criteria_mtom');		
+    user_criteria_mtomGR.addQuery('sc_cat_item='+cat_item_arr[i]+'^user_criteria.name='+current.sys_id+'_vRACS_entitlement');
+    user_criteria_mtomGR.query();
+    if(user_criteria_mtomGR.next()){
+		
+		
+	
+// 		var item_option=new GlideRecord('item_option_new');
+// 		item_option.addQuery('cat_item',user_criteria_mtomGR.sc_cat_item);
+// 		item_option.query();
+// 		while(item_option.next())
+// 			{
+// 				item_option.active=false;
+// 				item.op tion.update();
+				
+// 			}
+// 		user_criteria_mtomGR.sc_cat_item='';
+// 		user_criteria_mtomGR.update();	
+		var item2 = new sn_sc.CatItem(cat_item_arr[i]);
+		//user_criteria=7029ccb2dbc24010f30e1fc76896191b
+			var uc_arr2=user_criteria_mtomGR.user_criteria.split(',');
+			item2.availableForUserCriteria("delete",uc_arr2);
+			
+        //user_criteria_mtomGR.deleteRecord();
+    }		
+    var user_criteriaGR=new GlideRecord('user_criteria');
+    user_criteriaGR.addQuery('name='+current.sys_id+'_vRACS_entitlement');
+    user_criteriaGR.query();
+    if(user_criteriaGR.next()){
+		var UserCriteria = new sn_uc.UserCriteria(user_criteriaGR.sys_id).deleteRecord();
+    }
+}
+		}
+	catch(e)
+		{
+			CASLogger.error("Exception caught Inside CASDaoUtil.portalCapitalize "+e);
+		}
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-08-23 10:51:03</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>5d3d4f3f1b5bb30058ba21b6bc4bcb8b</sys_id>
+        <sys_mod_count>29</sys_mod_count>
+        <sys_name>vRA DeleteUserCriteria</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_5d3d4f3f1b5bb30058ba21b6bc4bcb8b</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-03-20 11:11:22</sys_updated_on>
+        <template/>
+        <when>before</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=5d3d4f3f1b5bb30058ba21b6bc4bcb8b"/>
+</record_update>

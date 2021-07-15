@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope) {
+	/* widget controller */
+	var c = this;
+	
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>$font-weight-title: 600;
+$font-weight:500;
+$font-weight-text:400;
+$text-color:#454545;
+$heading-size:16px;
+
+
+.main-support {
+  color: $fontColor;
+  margin:10px;
+  margin-top:15px;
+  background : #fff;
+  font-family:$fontStack ;
+  font-weight: $font-weight;
+}
+.row {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.client-name {
+  color: $fontColor;
+}
+.panel-title{
+  font-size:$heading-size;
+  color:$fontColor;
+  font-weight:$font-weight-title;
+}
+h4{
+  font-size:$heading-size;
+  color:$text-color;
+  font-weight:$font-weight;
+}
+.panel {
+  margin-bottom: 0px;
+}
+.panel-heading {
+  border:1px solid $borderColor;
+  border-bottom:0px;
+  padding:15px;
+}
+.important-heading {
+  color : $errorColor;
+}
+.support-body {
+  border: 1px solid $borderColor;
+  height:auto;
+
+}
+thead {
+  font-size: $heading-size;
+  color:$text-color;
+  border: 0px;
+}
+.table-bordered {
+  border-color: $borderColor;
+  color: $fontColor;
+}
+.table-bordered &gt; thead &gt; tr &gt; th, .table-bordered &gt; thead &gt; tr &gt; td ,
+.table-bordered &gt; tbody &gt; tr &gt; td
+{
+  border-color: $borderColor;
+  color: $fontColor;
+  border-left-width:0px ;
+  border-bottom-width: 0px;
+}
+th{
+  font-weight:$font-weight;
+  padding-left:15px !important;
+}
+
+td{
+  font-weight:$font-weight-text;
+  font-size:$text-size;
+  color:$text-color;
+}
+
+.link-content {
+  color: $fontLinkColor;
+  &amp;:hover {
+    color: $fontHoverColor;
+  }
+}
+
+.reset-btn{
+  float: right;
+  position: relative;
+  bottom: 25px;
+}
+
+h2, h3, h4, h5 {
+    margin-bottom: 0;
+    margin-top: 0.5rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_support</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_support</name>
+        <option_schema>[{"name":"title","section":"other","default_value":"Cloud Automation Services","label":"Title","type":"string"},{"name":"support_text","section":"other","default_value":"vRealize Automation ITSM plugin support website","label":"Support Text","type":"string"},{"hint":"Support URL","name":"support_url","section":"other","default_value":"https://www.vmware.com/support/contacts.html","label":"Support URL","type":"string"},{"hint":"Help Text for Admin Users","name":"admin_help_text","section":"other","default_value":"Check the error logs and consult the documentation. If issue is not resolved or not mentioned in the document, contact us by visiting at","label":"Admin Help Text","type":"string"},{"hint":"Help Text for Non Admin Users","name":"non_admin_help_text","section":"other","default_value":"Report to Admin Users","label":"Non Admin Help Text","type":"string"}]</option_schema>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	//fetch the support url from system property , updating if triggered
+	try {
+		var appUtil=new CASAppUtil();
+		CASLogger.debug("Inside the CAS_support widget");
+
+		data.client_name = (options.client_name) ? (options.client_name) : "CAS";
+		data.title = (options.title) ? (options.title) : "Cloud Aomation Services";
+
+		var supportURL = gs.getProperty(appUtil.configuration.properties.supportURL);
+		data.support_url = (options.support_url) ? options.support_url : '';
+		
+		if(options.support_url != supportURL){
+			gs.setProperty(appUtil.configuration.properties.supportURL,options.support_url);
+			CASLogger.debug("Inside the CAS_support widget updating the Support URL");
+		}
+
+
+		data.admin_help_text = (options.admin_help_text) ? (options.admin_help_text) : "Check the error logs and consult the documentation. If issue is not resolved or not mentioned in the document, contact us by visiting at";
+		data.non_admin_help_text = (options.non_admin_help_text) ? (options.non_admin_help_text) : "Report to Admin Users";
+		data.support_text = (options.support_text) ? (options.support_text) : "vRealize Automation ITSM plugin support website.";
+
+
+	} catch(e) {
+		CASLogger.error("Exception caught in the CAS_Support widget"+e);
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-09 09:17:47</sys_created_on>
+        <sys_id>7aa9c715dba2330086f22706ca9619dd</sys_id>
+        <sys_mod_count>170</sys_mod_count>
+        <sys_name>CAS_support</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_7aa9c715dba2330086f22706ca9619dd</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-23 10:12:21</sys_updated_on>
+        <template><![CDATA[<div class="main-support">
+ 
+  <div class="panel-heading">
+    <h2 class="panel-title" style="margin: 0;padding: 0;line-height: initial;">
+      <b> {{c.options.title}}</b>
+    </h2>
+   
+  </div>
+  <div class="container-fluid support-body">
+    <!--Client Information--->
+    <div class="row">
+      
+      <div class="col-md-12 important-heading">
+        <h5>
+          Important &nbsp; : &nbsp; Perform action mentioned against your role. 
+        </h5>
+      </div>
+    </div>
+    <!-- Information for admin users -->
+    <div class="row">
+      <table class="table table-bordered" style="border-right-width: 0px;border-left-width: 0px;">
+        <thead>
+          <tr>
+
+            <th  ><b>Your Role</b></th>
+            <th  style=" border-right-width: 0px;"><b>Actions</b></th>
+
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding-left:15px !important;">Non-Admin Users</td>
+            <td>{{c.options.non_admin_help_text}}</td>
+          </tr>
+          <tr>
+            <td style="padding-left:15px !important;">Admin Users</td>
+            <td>{{c.options.admin_help_text}} &nbsp; <strong><a class="link-content" target="_blank" href="{{c.options.support_url}}">{{c.options.support_text}}</a></strong>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Information for end users -->
+    <div class="row">
+      <div class="col-md-12 important-heading">
+        <h5>
+          Note &nbsp; : &nbsp; Use this option only when required. 
+        </h5>
+      </div>
+    </div>
+  </div>
+
+</div>]]></template>
+    </sp_widget>
+</record_update>

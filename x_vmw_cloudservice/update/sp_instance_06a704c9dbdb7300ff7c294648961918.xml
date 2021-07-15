@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance">
+    <sp_instance action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <class_name/>
+        <color>default</color>
+        <css>.navbar-top-margin {
+  margin-top: 1.5rem;
+}</css>
+        <glyph/>
+        <id/>
+        <order>1</order>
+        <roles/>
+        <short_description/>
+        <size>md</size>
+        <sp_column display_value="2">4dd58089dbdb7300ff7c2946489619c1</sp_column>
+        <sp_widget display_value="CAS_deploymentsCard">2f574089dbdb7300ff7c294648961981</sp_widget>
+        <sys_class_name>sp_instance</sys_class_name>
+        <sys_created_by>navdeep</sys_created_by>
+        <sys_created_on>2019-08-14 07:18:44</sys_created_on>
+        <sys_id>06a704c9dbdb7300ff7c294648961918</sys_id>
+        <sys_mod_count>5</sys_mod_count>
+        <sys_name/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_instance_06a704c9dbdb7300ff7c294648961918</sys_update_name>
+        <sys_updated_by>navdeep</sys_updated_by>
+        <sys_updated_on>2019-10-14 07:22:13</sys_updated_on>
+        <title/>
+        <url/>
+        <widget_parameters><![CDATA[{
+	"page_window_size": {
+		"value": 10,
+		"displayValue": "10"
+	}
+}]]></widget_parameters>
+    </sp_instance>
+    <sys_translated_text action="delete_multiple" query="documentkey=06a704c9dbdb7300ff7c294648961918"/>
+</record_update>

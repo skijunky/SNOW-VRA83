@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope,$location) {
+	/* widget controller . */
+	var c = this;
+//console.log(c.data.projectId);
+	$scope.$on("getPaginationDataEvent", function(evt, jsonObj) { 
+		$scope.catalogItems = jsonObj.itemsArray;
+		$scope.totalRecords = jsonObj.totalRecords;
+	});
+	
+	$scope.filterSearch = function(passedSearch) {
+		var query = 'active=true';
+		//no search text.
+		if(passedSearch != '' ){
+			//admin role - will  see all active cat items
+			if (c.data.hasAdminRole=='true') {
+				query = 
+					'active=true^'+
+					'nameLIKE'+passedSearch+
+					'^ORshort_descriptionLIKE'+passedSearch+
+					'^ORcategory.titleLIKE'+passedSearch;
+			} else{
+				query='user_criteriaLIKE_vracs^sc_cat_item.sc_catalogs=533fe9dfdb2233006adb48703996191b^user_criteria.groupDYNAMICd6435e965f510100a9ad2572f2b47744^ORuser_criteria.userDYNAMIC90d1921e5f510100a9ad2572f2b477fe'+'^sc_cat_item.nameLIKE'+passedSearch+'^ORsc_cat_item.short_descriptionLIKE'+passedSearch+'^ORsc_cat_item.category.titleLIKE'+passedSearch;
+			}	
+		}
+		else{
+			if((c.data.hasAdminRole=='false')){
+				query='user_criteriaLIKE_vracs^sc_cat_item.sc_catalogs=533fe9dfdb2233006adb48703996191b^user_criteria.groupDYNAMICd6435e965f510100a9ad2572f2b47744^ORuser_criteria.userDYNAMIC90d1921e5f510100a9ad2572f2b477fe'+'^sc_cat_item.nameLIKE'+passedSearch+'^ORsc_cat_item.short_descriptionLIKE'+passedSearch+'^ORsc_cat_item.category.titleLIKE'+passedSearch;
+			}
+		}
+		var passingObj={'query':query};
+		$scope.$broadcast('setPaginationDataEvent', passingObj)
+	}
+
+	$scope.redirect=function(action,obj){
+				
+				$location.search({
+					'id':'vra_catalog_form',
+					'showP':'false',
+					'org_id':obj.org_id,
+					'proj_id':c.data.projectId, //obj.parent_id,
+					'cat_id':obj.item_id
+				});	
+	}
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.cas-clr-col-8 &gt; h2 {
+  margin-top: 0;
+  line-height: 1.475rem;
+}
+
+.wdg-badge-count {
+  vertical-align: middle;
+}
+
+.wdg-search {
+  width: calc(100% - 21px);
+}
+
+.col-lg-3, .col-md-4, col-12 {
+  padding: 0px 12px;
+}
+
+.wdg-header {
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+
+.cas-card-header.wdg-header{
+	padding: .3rem .3rem .2rem .6rem;
+}
+.wdg-description {
+  height: 75px;//5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.empty-message-container {
+  height: calc(100vh - 157.4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  span {
+    span {
+      display: inline-flex;
+      margin: auto;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+}
+
+.wdg-card-list {
+  display: flex;
+  justify-content: space-between;
+}
+
+.wdg-project-value {
+  margin-right: 7px;
+  font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-left: 1rem;
+}
+.wdg-footer-wrapper {
+  text-align: center;
+  margin: 1rem;
+}
+.infinite-container {
+  padding-top: 0;
+  height: calc(100vh - 157.4px); //60(Header) + 36(Navbar) + 26.4(1.1rem content padding) + 35(Content Header)
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media(min-width: 1536px){
+.cas-card-header.wdg-header{
+	padding: .5rem .5rem .2rem .6rem;
+}
+.wdg-description {
+  height: 92px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+}
+
+.cas-btn{
+padding:0 !important;
+}
+
+
+/*
+.loader {
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  width: 70px;
+  height: 70px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+      position: relative;
+    top: 8rem;
+    left: 50%;
+}
+
+/* Safari. 
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}*/
+
+.clearSearch{
+  position: relative;
+  right: 15px;
+}
+.custom-ellipses{
+	overflow: hidden;
+  text-overflow: ellipsis;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_parentprojects</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_parentProjects</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populate the 'data' o bje  ct */
+	/* e.g., data.table = $sp.getValue('table'); */
+	try{
+		CASLogger.debug('Inside the widget')
+		data.show=false;
+
+		var appUtil=new CASAppUtil();
+		var daoUtil=new CASDaoUtil();
+		var query = '';
+		var paginationOptionSchema ;
+		var entitledGroups='';
+
+		data.filterText='';
+		data.label= {
+			header: "Catalog Items",
+			badge: ''
+		};
+		data.deploymentBaseLink = '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + appUtil.configuration.page.deploymentCard;
+
+		//fetching id from url
+		data.orgId=($sp.getParameter('org_id'))?$sp.getParameter('org_id'):'NULL';
+		data.projectId=($sp.getParameter('proj_id'))?$sp.getParameter('proj_id'):'NULL'
+
+		data.hasAdminRole=(gs.getUser().hasRole('admin'))?'true':'false';
+		if(data.orgId=='NULL' && data.projectId=='NULL'){
+			query='';
+			data.pageId='All';
+		}else if(data.orgId!='NULL' && data.projectId=='NULL'){
+			query='organisation_name='+data.orgId;
+			data.pageId='organization/'+data.orgId;
+			data.label.badge = 'All (' + $sp.getParameter('org_name') + ')'; 
+			data.badgeLink = '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + appUtil.configuration.page.organizations+'&showP=true';
+		}else{
+			query='organisation_name='+data.orgId+'^category='+data.projectId;
+			data.pageId='project/'+data.orgId+'/'+data.projectId;
+			data.label.badge = $sp.getParameter('proj_name') + ' (' + $sp.getParameter('org_name') + ')';
+			data.badgeLink = '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + appUtil.configuration.page.organizations+'&org_id=' + data.orgId+'&org_name=' + $sp.getParameter('org_name')+'&showP=true';
+		}
+		query += '^active=true';
+		if(data.hasAdminRole=='true'){
+			paginationOptionSchema = {
+				windowSize: 8,
+				table: appUtil.configuration.table.catalogItem,
+				method: 'fetchCatalogItems',
+				query: query,
+				hasAdminRole:'true',
+				pageId:data.pageId+'',
+				infiniteScroll : true
+			}
+		}else if(data.hasAdminRole=='false'){
+			paginationOptionSchema = {
+				windowSize: 8,
+				table:appUtil.configuration.table.user_criteria_mtom,
+				method: 'fetchCatalogItems',
+				query: 'user_criteriaLIKE_vracs^sc_cat_item.sc_catalogs=533fe9dfdb2233006adb48703996191b^user_criteria.groupDYNAMICd6435e965f510100a9ad2572f2b47744^ORuser_criteria.userDYNAMIC90d1921e5f510100a9ad2572f2b477fe',
+				hasAdminRole:'false',
+				pageId : data.pageId+'',
+				infiniteScroll : true			
+			}	
+		}
+		data.widgetScript = $sp.getWidget('cas_pagination', paginationOptionSchema);
+	}catch(e){
+		CASLogger.error("Exception caught inside the CAS_"+e);
+	}
+})();
+]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-21 12:18:35</sys_created_on>
+        <sys_id>c8266111db723300291d61ca0b961969</sys_id>
+        <sys_mod_count>1222</sys_mod_count>
+        <sys_name>CAS_parentProjects</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_c8266111db723300291d61ca0b961969</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-06-05 05:59:46</sys_updated_on>
+        <template><![CDATA[<div class="cas-content-area">
+  <div class="cas-clr-row">
+    <div class="cas-clr-col-8">
+      <h2>
+        <span>{{c.data.label.header}}</span>
+        <span class="cas-label cas-label-info wdg-badge-count">{{catalogItems.length}} <!--{{(cata logItems.llength > 0) ? 'Items' : 'Item'}}-->
+          of {{totalRecords}} {{(totalRecords > 0) ? 'Items' : 'Item'}}</span>
+        <span class="cas-label cas-label-light-blue wdg-badge-count" ng-if="c.data.label.badge != ''">{{c.data.label.badge}}<a href="{{c.data.badgeLink}}"><cas-clr-icon class="wdg-badge-close" shape="close" size="13"></cas-clr-icon></a></span>
+      </h2>
+    </div>
+    <div class="cas-clr-col-4" style="display:flex;">
+      <cas-clr-icon  style="display: inline-block;
+                            margin: 0;
+                            vertical-align: middle;" 
+                    class="icon" size="16" shape="search"></cas-clr-icon>
+      <input type="text" placeholder="Search" 
+             class="wdg-search cas-clr-input"
+             ng-model="c.data.filterText" 
+             ng-model-options="{ debounce: 500 }" 
+             ng-change="filterSearch(c.data.filterText)">
+      <span class="clearSearch" ng-show="c.data.filterText!=''" ng-click="filterSearch('');c.data.filterText='';"><i class="fa fa-times" aria-hidden="true"></i></span>
+    </div>
+  </div>
+  <div class="infinite-container" ng-show="catalogItems.length">
+    <div class="cas-clr-row">
+      <div class="col-lg-3 col-md-4 col-12" ng-repeat="item in catalogItems" >
+        <div class="cas-card">
+          <div class="cas-card-header wdg-header">
+            <div style="float:left; width:auto; margin-right:5px;">
+              <cas-clr-icon shape="vmw-app" size="30" color="#0077b8"></cas-clr-icon>
+            </div>
+            <div style="float:left; width:80%;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        padding-top: 5px;;"
+                 title="{{item.item_name}}"
+                 >{{item.item_name}}</div>
+          </div>
+          <div class="cas-card-block">
+            <div class="cas-card-text wdg-description" 
+                 title="{{item.description}}"  data-toggle="tooltip"
+                         data-placement="bottom">
+              {{item.description}}
+            </div>
+            <div class="cas-card-text">
+              <div class="wdg-card-list">
+                <span class="deployment">Deployments</span>
+                <a href="{{item.deploymentLink}}" class="cas-badge cas-badge-light-blue">{{item.deployment_count}}</a>
+              </div>
+              <div class="wdg-card-list">
+                <span class="wdg-project">Project</span>
+                <span class="wdg-project-value custom-ellipses" 
+                      title="{{item.parent_name}}"  
+                      data-toggle="tooltip"
+                      data-placement="bottom">{{item.parent_name}}</span>
+              </div>
+            </div>
+          </div>
+          <div class="cas-card-footer">
+            <a href="javascript:void(0)" ng-click="redirect('catalog_item_form',item)" class="cas-btn cas-btn-sm cas-btn-link">Request</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cas-clr-row">
+      <div class="cas-clr-col-12">
+        <div class="wdg-footer-wrapper">
+          <sp-widget widget="c.data.widgetScript"></sp-widget>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="empty-message-container" ng-if="!catalogItems.length">
+    <span><cas-clr-icon shape="sad-face" color="#717171" size="30"></cas-clr-icon>
+      <p>No records found</p>
+    </span>
+  </div>
+  
+</div>
+
+  <script>
+    $(document).ready(function(){
+      $('[data-toggle="tooltip"]').tooltip();   
+    });
+  </script>]]></template>
+    </sp_widget>
+</record_update>

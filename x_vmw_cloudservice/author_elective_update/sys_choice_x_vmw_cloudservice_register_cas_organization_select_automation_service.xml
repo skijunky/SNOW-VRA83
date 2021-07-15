@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_choice action="INSERT_OR_UPDATE" field="select_automation_service" table="x_vmw_cloudservice_register_cas_organization" version="3">
+        <sys_choice_set action="INSERT_OR_UPDATE">
+            <element>select_automation_service</element>
+            <name>x_vmw_cloudservice_register_cas_organization</name>
+            <sys_class_name>sys_choice_set</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-07-12 08:33:16</sys_created_on>
+            <sys_id>94d5785a1bcc20103c5186a3cc4bcb97</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>select_automation_service</sys_name>
+            <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_choice_x_vmw_cloudservice_register_cas_organization_select_automation_service</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-07-12 08:33:16</sys_updated_on>
+        </sys_choice_set>
+        <sys_choice action="INSERT_OR_UPDATE">
+            <dependent_value/>
+            <element>select_automation_service</element>
+            <hint/>
+            <inactive>false</inactive>
+            <label>vRealize Automation (vRA)</label>
+            <language>en</language>
+            <name>x_vmw_cloudservice_register_cas_organization</name>
+            <sequence>10</sequence>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-07-12 08:34:19</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>5b4cd65edb6633007b245385ca96191f</sys_id>
+            <sys_mod_count>3</sys_mod_count>
+            <sys_updated_by>spawar</sys_updated_by>
+            <sys_updated_on>2019-09-16 05:45:36</sys_updated_on>
+            <value>vrealizeAutomationService</value>
+        </sys_choice>
+        <sys_choice action="INSERT_OR_UPDATE">
+            <dependent_value/>
+            <element>select_automation_service</element>
+            <hint/>
+            <inactive>false</inactive>
+            <label>vRealize Automation Cloud (vRA Cloud)</label>
+            <language>en</language>
+            <name>x_vmw_cloudservice_register_cas_organization</name>
+            <sequence>20</sequence>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-07-12 08:33:16</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>c01cd65edb6633007b245385ca961970</sys_id>
+            <sys_mod_count>8</sys_mod_count>
+            <sys_updated_by>spawar</sys_updated_by>
+            <sys_updated_on>2019-09-16 05:45:41</sys_updated_on>
+            <value>vRealiseAutomationCloud</value>
+        </sys_choice>
+    </sys_choice>
+</record_update>

@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.CASAppUtil</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description>Common Function Used in VMware vRealize Automation ITSM Application</description>
+        <name>CASAppUtil</name>
+        <script><![CDATA[var CASAppUtil = Class.create();
+CASAppUtil.prototype = {
+	initialize: function() {
+		this.configuration= {			
+			
+			"api" :{
+				"token" : "/iaas/login",
+				"vraToken": "/csp/gateway/am/api/login?access_token",
+				"projects" : "/project-service/api/projects",
+				"expiryDate" : "/csp/gateway/am/api/auth/api-tokens/details",
+				"catalogItem" : "/catalog/api/items",
+				"deployment" :"/deployment/api/deployments/",
+				"machine":"/deployment/api/deployments/",
+				"actionrequest": "/deployment/api/requests/",
+				"customform":"/form-service/api/forms/renderer/model?sourceType=",
+				"externalSource":"/form-service/api/forms/renderer/external-value?projectId=", 
+				"externalValuePicker":"/form-service/api/forms/renderer/external-resources",
+				"validateOauthToken":"/csp/gateway/am/api/auth/introspect"
+				},
+			
+			
+			"table" :{
+				"register_cas": "x_vmw_cloudservice_register_cas_organization",
+				"project": "x_vmw_cloudservice_cas_project",
+				"queue": "x_vmw_cloudservice_cas_queue",
+				"requests" : "sc_req_item",
+				"approvals" : "sysapproval_approver",
+				"theme" : "sp_theme",
+				"catalogItem" : "x_vmw_cloudservice_cas_catalog_items",
+				"variable" : "item_option_new" ,
+				"variableSet" : "io_set_item",
+				"choice" : "question_choice",
+				"entitlement":"x_vmw_cloudservice_cas_catalog_entitlement",
+				"actionRequests": "x_vmw_cloudservice_vra_action_request",
+				"deploymentImport":"x_vmw_cloudservice_vra_deployments_import_set",
+				"machineImport":"x_vmw_cloudservice_vra_machines_import_set",
+				"catalogCategory" : "sc_cat_item_category",
+				"clientScript" : "catalog_script_client",
+				"user_criteria_mtom":"sc_cat_item_user_criteria_mtom",
+				"user_criteria_no_mtom":"sc_cat_item_user_criteria_no_mtom",
+				"uiSection" : "sys_ui_section",
+				"uiElement" : "sys_ui_element",
+				"deployments": "x_vmw_cloudservice_deployments",
+				"machines" : "x_vmw_cloudservice_machines",
+				"relationship": "cmdb_rel_ci",
+				"action": "x_vmw_cloudservice_vra_cloud_actions",
+				"shared_resources":"x_vmw_cloudservice_shared_resources",
+				"users_table":"sys_user",
+				"groups_table":"sys_user_group",
+				"catalogRequestWorkflow" : "x_vmw_cloudservice.catalogRequest",
+				"actionEntitlement" : "x_vmw_cloudservice_day_2_action_request_entitlement",
+				"incident" : "incident",
+				"midserver" : "ecc_agent",
+				"workflowActivity" : "wf_activity",
+				"group_users_member" : "sys_user_grmember",
+				"regex" : "question_regex",
+				"module":"sys_app_module",
+				"oauthToken" : "x_vmw_cloudservice_oauth_tokens"
+			},
+			
+			"properties":{
+				
+				"vraEndUser":"x_vmw_cloudservice.vra_end_user",
+				"vraCatalogAdmin":"x_vmw_cloudservice.vra_catalog_admin",
+				"headerJSON":"x_vmw_cloudservice.CASheaderJSON",
+				"defaultHeaderJSON":"x_vmw_cloudservice.CASdefaultHeaderJSON",
+				"supportURL":"x_vmw_cloudservice.CAS_supportURL",
+				"catalogSysID" : "x_vmw_cloudservice.cas_catalog_sysid",
+				"applicationSysID" :'x_vmw_cloudservice.cas_application_sysid',
+				"variableSetSysID" : "x_vmw_cloudservice.variable_set",
+				"duration" : "x_vmw_cloudservice.vrasn.casqueue.deletion.duration",
+				"relationship":'x_vmw_cloudservice.vRACIRelationshipSys_Id',
+				"catalogRequestWorkflow" : "x_vmw_cloudservice.catalogRequest",
+				"actions": 'x_vmw_cloudservice.VRADay2Actions',
+				"requestStatusTimer": 'x_vmw_cloudservice.vRACSWorkflowTimerToCheckRequestStatus',
+				"version":'x_vmw_cloudservice.vra_itsm_application_version',
+				"assignment_group": 'x_vmw_cloudservice.vRealizeAutomation-ApprovalGroup',
+				"portalPrefix" : 'x_vmw_cloudservice.portalPrefix',
+				"resourceExlusion" : 'x_vmw_cloudservice.resourceExclusionList',
+				"supportGroup" : "x_vmw_cloudservice.vra.supportGroup",
+				"request_approval" : "x_vmw_cloudservice.enable_email_notification_for_request_approval" ,
+				"request_rejection" : "x_vmw_cloudservice.enable_email_notification_for_request_rejection",
+				"request_more_details" : "x_vmw_cloudservice.enable_email_notification_for_more_details",
+				"vRA_Request_completion" : "x_vmw_cloudservice.vRA Request Completion",
+				"vRA_day2_action_completion" : "x_vmw_cloudservice.notification_for_day2_actions",
+				"vRA_incident_for_failure_catalogitems" : "x_vmw_cloudservice.enable_incident_for_failure_catalogitems",
+				"vRA_incident_for_failure_day2actions" :  "x_vmw_cloudservice.enable_incident_for_failure_day2action",
+				"group_notifications" : "x_vmw_cloudservice.sendApprovalRequest",
+				"support_group_new": "x_vmw_cloudservice.support_group_for_ITSM_8.0",
+				"shared_resource_notifications":"x_vmw_cloudservice.shared resource email notification",
+				"vraEndpointEmailNotification" : 'x_vmw_cloudservice.vraEndpointEmailNotification',
+				"vRA_entitlement":"x_vmw_cloudservice.notification_for_entitlement",
+				"timerToReTriggerRequest" : "x_vmw_cloudservice.TimetoRe-TriggerCatalogRequest",
+				"Request_Retrigger"  : "x_vmw_cloudservice.Request re-trigger turnstile activity sys_id",
+				"Request_Iteration" : "x_vmw_cloudservice.Request Iteration turnstile activity sys_id",
+				"ApiVersionDate":'x_vmw_cloudservice.SetApiVersionDate',
+				"sendGroupApprovalRequest": 'x_vmw_cloudservice.sendGroupApprovalRequest',
+				"BaseUrlCheck":'x_vmw_cloudservice.cloud_API_endpoint_URL',
+				"CustomFormFilter":'x_vmw_cloudservice.Custom form filter Enable/Disable',
+				"XaaSWorkflowFilter":'x_vmw_cloudservice.XaaS Vro Workflow Filter Enable/Disable',
+				"parentCategorySysID" : "x_vmw_cloudservice.vra_parent_category",
+				"machineCategory" : "x_vmw_cloudservice.machineCategory",
+				"deploymentCategory" : "x_vmw_cloudservice.deploymentCategory",
+				"cas_datagrid_widget_sysid" : "x_vmw_cloudservice.cas_datagrid_widget_sysid",
+				"cas_datagrid_ui_macro_sysid" : "x_vmw_cloudservice.cas_datagrid_ui_macro_sysid",
+				"cas_duallist_widget_sysid" : "x_vmw_cloudservice.cas_duallist_widget_sysid",
+				"cas_duallist_ui_macro_sysid" : "x_vmw_cloudservice.cas_duallist_ui_macro_sysid",
+				"cas_multiselect_widget_sysid" : "x_vmw_cloudservice.cas_multiselect_widget_sysid",
+				"cas_multiselect_ui_macro_sysid" : "x_vmw_cloudservice.cas_multiselect_ui_macro_sysid",
+				"deploymentVariableSet" : "x_vmw_cloudservice.deploymentVariableSet",
+				"resourceVariableSet" : "x_vmw_cloudservice.resourceVariableSet",
+				"ServicePoratlUISysIds":"x_vmw_cloudservice.ServicePoratlUISysIds",
+				"configurationCheck" : "x_vmw_cloudservice.vra_check_configuration",
+				"runPostUpgradeScript" : "x_vmw_cloudservice.runPostUpgradeScript",
+				"ServicePortalPrefix" : "x_vmw_cloudservice.servicePortalPrefix",
+				"DeploymentWindowSize" : "x_vmw_cloudservice.deploymentWindowSize",
+				"DeploymentLimit" : "x_vmw_cloudservice.DeploymentLimit",
+				"enableOAuth" : "x_vmw_cloudservice.enable_OAuth",
+				"usercriteriaModuleSysid" : "x_vmw_cloudservice.usercriteriaModuleSysid"
+			},
+			"page" : {
+				"home" : "vra_homepage",
+				"organizations" : "vra_organizationspage",
+				"catalogForm" : "vra_catalog_form",
+				"cart" : "vra_cartpage",
+				"activitiesList" : "vra_activitiespagelist",
+				"activitiesCard" : "vra_activitiespage",
+				"activitiesForm" : "vra_activitiesform",
+				"deploymentList" : "vra_deploymentslistpage",
+				"deploymentCard" : "vra_deploymentspage",
+				"deploymentDetail" : "vra_deploymentdetailspage",
+				"sharedResources" : "vra_sharedResources",
+				"sharedResourcesList" : "vra_sharedResourceslist",
+				"sharedResourceForm" : 'vra_sharedResourceForm',
+				"support" : "vra_supportpage",
+				"spCatalogItemPage" : "sc_cat_item",
+				"casSPDeploymentListPage" : "cas_sp_deploymentlistpage",
+				"casSPDeploymentDetailsPage" : "cas_sp_deploymentdetailspage"
+			}
+		};
+	},
+	
+	
+	makeApiCall: function(endpoint, method, body, midserver, accept, contentType, authorization){
+		
+		try{
+			//CASLogger.debug('Inside  CASAppUtil.makeApiCall: Make a api call');
+			//Up
+			var midGR = new GlideRecord(this.configuration.table.midserver);
+			midGR.addQuery('name',midserver);
+			midGR.query();
+			if(midGR.next()){
+				if(midGR.status != 'Up'){
+					CASLogger.error('CASAppUtil.makeApiCall: Mid Server '+midserver+' is down. Correct the Mid Server Status and perform the operation again.');
+					return;
+				}
+				
+			}
+			var API =endpoint;
+			var Date=gs.getProperty(this.configuration.properties.ApiVersionDate);
+			var ApiDate="apiVersion=";
+			var check=API.indexOf('?');
+			var ModifiedAPI='';
+			
+			if(check > -1)
+				{
+					ModifiedAPI=API+"&"+ApiDate+Date;
+					
+				}
+			else
+				{
+					ModifiedAPI=API+"?"+ApiDate+Date;
+				
+				}
+			
+			var request = new sn_ws.RESTMessageV2();
+			request.setEndpoint(ModifiedAPI);
+			request.setHttpMethod(method);
+			if (method === 'post') {
+				request.setRequestBody(body);
+			}
+			if(midserver){
+				request.setMIDServer(midserver);
+			}
+			
+			if(authorization){
+				request.setRequestHeader("Authorization", authorization);
+			}
+			
+			request.setRequestHeader("Accept", accept);
+			request.setRequestHeader("Content-Type", contentType);
+			request.setEccParameter('skip_sensor',true);
+			
+			
+			//var response = request.executeAsync();
+			var response = request.execute();
+			var httpstatus=response.getStatusCode();
+			
+			return response;
+			
+			
+		}catch(e){
+			var error = e.toString().split(":")[0];
+			if(error == 'com.glide.ecc.ECCResponseTimeoutException'){
+				CASLogger.error("CASAppUtil.makeApiCall: API "+API+" request was not executed sucessfully.Re-run the request after verifying the Mid Server.");
+			}else{
+				CASLogger.error("Exception caught inside CASAppUtil.makeApiCall"+e);
+			}
+			
+			
+		}
+	},
+	
+	externalSourceMakeApiCall: function(endpoint, method, body, midserver, accept, contentType, authorization){
+		
+		try{
+			//CASLogger.debug('Inside  CASAppUtil.makeApiCall: Make a api call.');
+			var midGR = new GlideRecord(this.configuration.table.midserver);
+			midGR.addQuery('name',midserver);
+			midGR.query();
+			if(midGR.next()){
+				if(midGR.status != 'Up'){
+					CASLogger.error('CASAppUtil.externalSourceMakeApiCall: Mid Server status is down. Correct the Mid Server Status and perform the operation again.');
+					return;
+				}
+				
+			}
+			var API =endpoint;
+			var Date=gs.getProperty(this.configuration.properties.ApiVersionDate);
+			var ApiDate="apiVersion=";
+			var check=API.indexOf('?');
+			var ModifiedAPI='';
+			
+			if(check > -1)
+				{
+					ModifiedAPI=API+"&"+ApiDate+Date;
+					
+				}
+			else
+				{
+					ModifiedAPI=API+"?"+ApiDate+Date;
+				
+				}
+			
+			var request = new sn_ws.RESTMessageV2();
+			request.setEndpoint(ModifiedAPI);
+			request.setHttpMethod(method);
+			if (method === 'post') {
+				request.setRequestBody(body);
+			}
+			if(midserver){
+				request.setMIDServer(midserver);
+			}
+			
+			if(authorization){
+				request.setRequestHeader("Authorization", authorization);
+			}
+			
+			request.setRequestHeader("Accept", accept);
+			request.setRequestHeader("Content-Type", contentType);
+			request.setEccParameter('skip_sensor',true);
+			
+			
+			//var response = request.executeAsync();
+			var response = request.execute();
+			var httpstatus=response.getStatusCode();
+			
+			return response;
+			
+		}catch(e){
+			
+			var error = e.toString().split(":")[0];
+			if(error == 'com.glide.ecc.ECCResponseTimeoutException'){
+				CASLogger.error("CASAppUtil.externalSourceMakeApiCall: API "+API+" request was not executed sucessfully.Re-run the request after verifying the Mid Server.");
+			}else{
+				CASLogger.error("Exception caught inside CASAppUtil.makeApiCall"+e);
+			}
+		}
+	},
+	
+	parse: function(str){
+		if(str)
+			return JSON.parse(str);
+		return;
+	},
+	
+	stringify: function(str){
+		return global.JSON.stringify(str);
+	},
+	
+	arrToJSON: function(array) {
+		try{
+			CASLogger.debug('Inside  CASAppUtil.arrToJSON');
+			var jsonObj = {};
+				
+				for(var i=0; i <array.length; i=i+2){
+					
+					jsonObj[array[i]] = array[i+1]+'';
+					
+				}
+				var myJsonString = this.stringify(jsonObj);
+				return myJsonString;
+				
+			}
+			catch(e){
+				CASLogger.error('Exception caught inside  CASAppUtil.arrToJSON: '+e);
+				
+			}
+		},
+		
+		dateFormat:function(Anydate)
+		{
+			try{
+				CASLogger.debug('Inside  CASAppUtil.dateFormat');
+				var today = new Date(Anydate);
+				var dd = today.getDate();
+				var mm = today.getMonth() + 1;
+				
+				var yyyy = today.getFullYear();
+				if (dd < 10) {
+					dd = '0' + dd;
+				}
+				if (mm < 10) {
+					mm = '0' + mm;
+				}
+				today = dd + '/' + mm + '/' + yyyy;
+				
+				return today;
+			}
+			catch(e)
+			{
+				CASLogger.error('Exception caught inside  CASAppUtil.dateFormat: '+e);
+			}
+		},
+	
+
+DelayApiCall:function(time)
+{
+	try
+	{
+		CASLogger.debug('Inside  CASAppUtil.DelayApiCall');
+	var t1 = new GlideDateTime().getNumericValue();
+	var t2 = new GlideDateTime().getNumericValue();
+	var duration = t2 - t1;
+	
+	while(duration < time){
+		
+		t2 = new GlideDateTime().getNumericValue();
+		duration = t2 - t1;
+	}
+	return true;
+	
+	}catch(e)
+		{
+			CASLogger.error('Exception caught inside  CASAppUtil.DelayApiCall.: '+e);
+		}
+	
+},
+	
+getGMTDateTime:function(dateTimeString, timeZone){
+	try{
+		CASLogger.debug('Inside  CASAppUtil.getGMTDateTime');
+		if(timeZone == 'GMT'){
+			var t1 = new GlideDateTime(dateTimeString);
+			var t2 = t1.getNumericValue();
+			var t3 = new Date(t2);
+			return t3.toGMTString();
+
+		}else if(timeZone == 'Local' || timeZone == 'local'){
+			var test2 = new Date(dateTimeString);
+			return test2.toGMTString();
+
+		}
+	}catch(e){
+		CASLogger.error('Exception caught inside  CASAppUtil.getGMTDateTime: '+e);
+	}
+},
+	type: 'CASAppUtil'
+	};
+	
+]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-05-07 14:46:44</sys_created_on>
+        <sys_id>41c6b7851b1533000f14986cbc4bcb84</sys_id>
+        <sys_mod_count>162</sys_mod_count>
+        <sys_name>CASAppUtil</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_41c6b7851b1533000f14986cbc4bcb84</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-03-04 06:46:48</sys_updated_on>
+    </sys_script_include>
+</record_update>

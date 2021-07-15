@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sysevent_register">
+    <sysevent_register action="INSERT_OR_UPDATE">
+        <caller_access/>
+        <description>Trigger of Email Notifications when catalog item submitted to approver!!</description>
+        <event_name>x_vmw_cloudservice.approval_requested</event_name>
+        <fired_by>Script : : Business Rule</fired_by>
+        <queue/>
+        <suffix>approval_requested</suffix>
+        <sys_class_name>sysevent_register</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-01-15 12:47:40</sys_created_on>
+        <sys_id>6157d26edb920010e2d4c4ab0b961934</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.approval_requested</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sysevent_register_6157d26edb920010e2d4c4ab0b961934</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-01-15 13:50:35</sys_updated_on>
+        <table>sysapproval_approver</table>
+    </sysevent_register>
+</record_update>

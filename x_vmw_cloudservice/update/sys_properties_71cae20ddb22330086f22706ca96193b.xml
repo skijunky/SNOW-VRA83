@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="INSERT_OR_UPDATE">
+        <choices/>
+        <description>Current json for header footer&#13;
+</description>
+        <ignore_cache>false</ignore_cache>
+        <is_private>false</is_private>
+        <name>x_vmw_cloudservice.CASheaderJSON</name>
+        <read_roles>admin,x_vmw_cloudservice.vra_catalog_admin</read_roles>
+        <suffix>CASheaderJSON</suffix>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-08 12:24:36</sys_created_on>
+        <sys_id>71cae20ddb22330086f22706ca96193b</sys_id>
+        <sys_mod_count>262</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.CASheaderJSON</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_properties_71cae20ddb22330086f22706ca96193b</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-09-23 08:58:32</sys_updated_on>
+        <type>string</type>
+        <value>[{"color":{"background_color":{"color":"#314351","label":"Background Color "},"cart_icon":{"color":"#f4280b","label":"Cart Badge Icon Color "},"text_color":{"color":"#FFFFFF","label":"Text Color "},"label":"Color"},"logo":{"textbanner":{"label":"Banner Text","value":"VMware Cloud Services"},"logo":{"label":"Image","value":"vmwareLogo.svg"},"label":"Logo"},"label":"Header","order":"1"},{"color":{"color1":{"color":"#6DB33F","label":"Gradient (First Color)"},"color2":{"color":"#1e7579","label":"Gradient (Second Color)"},"background_color":{"color":"#314351","label":"Background Color "},"text_color":{"color":"#FFFFFF","label":"Text Color "},"label":"Color","hover_color":{"color":"#F8F8F8","label":"Hover Color "}},"logo":{"logo":{"label":"Image","value":"vmwareLogo.svg"},"label":"Logo"},"weighted_links":{"visible":"true","label":"Weighted Links","fields":[{"name":"Contact Sales","url":"https://www.vmware.com/in/company/contact_sales.html","order":0},{"name":"Get Support","url":"https://www.vmware.com/in/support.html","order":1},{"name":"About VMware","url":"https://www.vmware.com/in/company.html","order":2},{"name":"Careers","url":"https://careers.vmware.com/","order":3},{"name":"Thought Leadership","url":"https://www.vmware.com/radius","order":4}]},"links":{"visible":"true","label":"Links","fields":[{"name":"Terms of Use","url":"https://www.vmware.com/in/help/legal.html","order":1},{"name":"Privacy","url":"https://www.vmware.com/in/help/privacy.html","order":2},{"name":"Accessibility","url":"https://www.vmware.com/in/help/accessibility.html","order":3},{"name":"Site Map","url":"https://www.vmware.com/in/site_index.html","order":4},{"name":"Trademarks","url":"https://www.vmware.com/in/help/trademarks.html","order":5},{"name":"Glossary","url":"https://www.vmware.com/topics/glossary","order":6},{"name":"Help","url":"https://www.vmware.com/in/help.html","order":7}]},"label":"Footer","icon_socialize":{"visible":"true","label":"Social Icons","fields":[{"name":"twitter","url":"https://twitter.com/VMwareIN","order":0},{"name":"facebook","url":"https://www.facebook.com/vmwareindia/","order":1},{"name":"linkedin","url":"https://www.linkedin.com/company/vmware","order":2},{"name":"youtube","url":"https://www.youtube.com/channel/UCkBka9x8KSOa6tXxn8PWGXQ","order":3}]},"order":"2"}]</value>
+        <write_roles>admin,x_vmw_cloudservice.vra_catalog_admin</write_roles>
+    </sys_properties>
+    <sys_translated_text action="delete_multiple" query="documentkey=71cae20ddb22330086f22706ca96193b"/>
+</record_update>

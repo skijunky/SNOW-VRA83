@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="db_image">
+    <db_image action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <category/>
+        <format/>
+        <height/>
+        <image>5acf83bcdb800010ff7c2946489619f7</image>
+        <name>vmwareLogo.svg</name>
+        <size_bytes>2207</size_bytes>
+        <sys_class_name>db_image</sys_class_name>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-20 10:01:13</sys_created_on>
+        <sys_id>744f4f7cdb800010ff7c2946489619a7</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>vmwareLogo.svg</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>db_image_744f4f7cdb800010ff7c2946489619a7</sys_update_name>
+        <sys_updated_by>Gurjot</sys_updated_by>
+        <sys_updated_on>2019-09-20 10:01:44</sys_updated_on>
+        <thumbnail/>
+        <width/>
+    </db_image>
+    <sys_attachment action="INSERT_OR_UPDATE">
+        <average_image_color/>
+        <chunk_size_bytes>734003</chunk_size_bytes>
+        <compressed>true</compressed>
+        <content_type>image/svg+xml</content_type>
+        <file_name>image</file_name>
+        <hash/>
+        <image_height/>
+        <image_width/>
+        <size_bytes>2207</size_bytes>
+        <size_compressed>973</size_compressed>
+        <state/>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-20 10:01:44</sys_created_on>
+        <sys_id>5acf83bcdb800010ff7c2946489619f7</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>Gurjot</sys_updated_by>
+        <sys_updated_on>2019-09-20 10:01:44</sys_updated_on>
+        <table_name>ZZ_YYdb_image</table_name>
+        <table_sys_id>744f4f7cdb800010ff7c2946489619a7</table_sys_id>
+    </sys_attachment>
+    <sys_attachment_doc action="INSERT_OR_UPDATE">
+        <data>H4sIAAAAAAAAAA==</data>
+        <length>16</length>
+        <position>0</position>
+        <sys_attachment display_value="image" sys_id="5acf83bcdb800010ff7c2946489619f7">5acf83bcdb800010ff7c2946489619f7</sys_attachment>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-20 10:01:44</sys_created_on>
+        <sys_id>9acf83bcdb800010ff7c2946489619f7</sys_id>
+    </sys_attachment_doc>
+    <sys_attachment_doc action="INSERT_OR_UPDATE">
+        <data>dVbLbiM3ELwHyD8Qk6tMsR98LSwDiYI9eS/ZU45aadYarCwJI/mxf5/iyGuThjOQ5FFNq1ld7Gr6+vR4Zx778TQc9ouOLHXmceif/jo8LzpnnJGAV2eOY3/qx8f+z9OxX5//WZ2Hw6J7/jJs/sXb3Pf9uTPP97v9adFtz+fjp/n86enJPok9jHdzds7Nsc5LyKfn3bD/8VEg5Zzn09POfD+sH06rb7t+0X1f7U59Z1bjsLraDptND6bn8QHQeCjPh/u77uZ6BDGz3q1O4LDejVfD1XF13l6RuXz5tlr/uBsPD/sNcg+73dXhuFoP558o07K/YIvuj7+nqzPVU5RfxOjMz+nzadict4uuqLLth7vt+XI/IkZAY1543Pz+m3l3XRc2H/DjF37Dft+PX7erI8raLLov0QbJmiSGGYlNMbA6NstohTl4YS0wuxxdYhOslxwTeZ4R2+ySJ8nG2+Qyi1OeYqGuqFl662KM5FQKikyMRYyWWGTNfkZqhZyETMiAPBH7FwuaY8iOyNwmLBzZZ68zJitRFcuYZbIh5YjwOGMGnDSKN9lSTooQKmh2Ep2qIWfBNhE36JLQgUiQvW+CyQYKCfiUGOyCiEGlLicJGhoWH8OgH3GLJDPydqKmVNDkyOeoE8plFY8UgDnhayhwwBVlSpEJAqVUUE1BOAWDW0IoxL2g0AUbsiz3hB25rKfZOY0lNoA7Z73k9VHlPQqFU/Bsbiu41BGKiDIlfoUZmwq1QS2g5pjxw0a2aJ1Ad9FW44idpKROmuBkNSYffZO3At843FYwVk45eO8KtQZ2IimiZQkNAHnYT+VpVFYMFXYWUwE0pEaXgBNSKDcw1tYg0ZdgJPascMM79BeL2wqudavh1/oAZs8uwSGVFLhNKblCotaNYUOY0LW6MdwijAahOm8FVrpVcK1bC//SjYvhvPPaSgFTe0H7cqtbsFEcftYGY1qgo1OkRrcGfdPtDW50q+C3+iJ845mkcS8ni4Wp7TbONmDccGt/gf0TplujWg1WqlUw+HJMMjmshtUqiteUCodAqeQr081lGMVDiEqeN7QIn9QzU2iCpViTnAvTKNTovfwfWpoCJbG/DNMyKbKUBipTjPWFRGSGo9HbGNYoqkGXxR9BvW9QeBRFZG1X+xgthoYSxEo1CWhFBCeFNrG3OBEwSrUlgd4OFIOkJpjL0MSYmg6QAGOXQYHiCH7OUweSOExKnAnVQEdFPjjMvmxuPzzGOjPgiPtcTmF9PXk/T1c5Qcu5iD/4j+HmP7UIQK6fCAAA</data>
+        <length>1284</length>
+        <position>1</position>
+        <sys_attachment display_value="image" sys_id="5acf83bcdb800010ff7c2946489619f7">5acf83bcdb800010ff7c2946489619f7</sys_attachment>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-20 10:01:44</sys_created_on>
+        <sys_id>1ecf83bcdb800010ff7c2946489619f7</sys_id>
+    </sys_attachment_doc>
+</record_update>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_policy_action">
+    <sys_ui_policy_action action="INSERT_OR_UPDATE">
+        <cleared>false</cleared>
+        <disabled>ignore</disabled>
+        <field>cas_url</field>
+        <mandatory>ignore</mandatory>
+        <sys_class_name>sys_ui_policy_action</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-04-20 13:34:10</sys_created_on>
+        <sys_id>580bf4e52f909010b0f8d2172799b684</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>cas_url</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_ui_policy_action_580bf4e52f909010b0f8d2172799b684</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-04-20 19:21:34</sys_updated_on>
+        <table>x_vmw_cloudservice_register_cas_organization</table>
+        <ui_policy display_value="Make Base Url field visible.">5d52557c2f581010086e3f96f699b623</ui_policy>
+        <visible>true</visible>
+    </sys_ui_policy_action>
+</record_update>

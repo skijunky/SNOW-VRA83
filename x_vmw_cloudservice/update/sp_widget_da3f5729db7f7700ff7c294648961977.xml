@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope) {
+  /* widget controller */
+  var c = this;
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.no-margin {
+    margin: 0;
+}
+.cas-card-block {
+    text-align: center;
+}
+.cas-card-block, .cas-card-header {
+    border-bottom: 1px solid #eee;
+}
+.cas-card-block.with-row {
+    padding: 0;
+}
+.chart{
+  border: 1px solid red; 
+  width:auto; 
+  height:200px; 
+  position: relative;
+}
+
+.cas-card-block &gt; div.cas-card-row:not(:last-child) {
+    border-bottom: 1px solid #eee;
+}
+.cas-card-block &gt; div.cas-card-row {
+    text-align: left;
+    padding: 6px 18px;
+    cursor: pointer;
+}
+span.details, time {
+    color: #919FA8;
+    font-size: 12px;
+}
+/*span.details:before, time:before {
+    content: "• ";
+}*/
+.cas-label.cas-label-success, .cas-label.cas-label-info {
+    background-color: #fff;
+}
+.cas-card-footer span {
+    float: right;
+}
+.cas-card .cas-btn-link {
+    min-width: 0;
+    padding: 0;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_reports</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_reports</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+	
+	
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>sagar</sys_created_by>
+        <sys_created_on>2019-09-10 08:48:55</sys_created_on>
+        <sys_id>da3f5729db7f7700ff7c294648961977</sys_id>
+        <sys_mod_count>36</sys_mod_count>
+        <sys_name>CAS_reports</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_da3f5729db7f7700ff7c294648961977</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-23 10:12:21</sys_updated_on>
+        <template><![CDATA[
+<div style="margin:10px;">
+  <div class="cas-card no-margin">
+    <div class="cas-card-header">
+      Deployments Summary
+    </div>
+    <div class="cas-card-block">
+      <div id="chart" class="chart">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.8/c3.css">
+      </div>
+    </div>
+    <div class="cas-card-block with-row">
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        Tier 1 Web App
+        <span class="details">• </span>
+        <time>20 mi ago</time>
+        <span class="cas-label cas-label-success">Available</span>
+      </div>
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        Tier 2 Web App
+        <span class="details">• </span>
+        <time>30 mi ago</time>
+        <span class="cas-label cas-label-success">Available</span>
+      </div>
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        Tier 3 Web App
+        <span class="details">• </span>
+        <time>1 h ago</time>
+        <span class="cas-label cas-label-warning">Powered Off</span>
+      </div>
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        AppDefence App
+        <span class="details">• </span>
+        <time>2 h ago</time>
+        <span class="cas-label cas-label-success">Available</span>
+      </div>
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        vSphere Setup
+        <span class="details">• </span>
+        <time>3 h ago</time>
+        <span class="cas-label cas-label-danger">Expired</span>
+      </div>
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        vSphere Setup 2
+        <span class="details">• </span>
+        <time>4 h ago</time>
+        <span class="cas-label cas-label-success">Available</span>
+      </div>
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        vSphere Setup 3
+        <span class="details">• </span>
+        <time>5 h ago</time>
+        <span class="cas-label cas-label-success">Available</span>
+      </div>
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        vSphere Setup 4
+        <span class="details">• </span>
+        <time>1 d ago</time>
+        <span class="cas-label cas-label-danger">Expired</span>
+      </div>
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        vSphere Setup 5
+        <span class="details">• </span>
+        <time>4 d ago</time>
+        <span class="cas-label cas-label-success">Available</span>
+      </div>
+      <div class="cas-card-row" onclick="window.location.href='/page/deployment-details'">
+        vSphere Setup 6
+        <span class="details">• </span>
+        <time>5 d ago</time>
+        <span class="cas-label cas-label-success">Available</span>
+      </div>
+    </div>
+    <div class="cas-card-footer">
+      <a href="/page/deployments" class="cas-btn cas-btn-sm cas-btn-link">View All</a>
+      <span>10 of 19 deployments</span>
+    </div>
+  </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element extends="cmdb_ci_vm_instance" label="Resources" max_length="40" name="x_vmw_cloudservice_machines" sizeclass="44" type="collection">
+        <element label="account" max_length="50" name="account" type="string"/>
+        <element label="Account/Region" max_length="40" name="account_region" type="string"/>
+        <element attributes="edge_encryption_enabled=true" default="true" label="Active" max_length="100" name="active" type="boolean"/>
+        <element label="Address" max_length="20" name="address" type="string"/>
+        <element label="attached Disks" max_length="101" name="attached_disks" type="string"/>
+        <element label="Attachment status" max_length="30" name="attachment_status" type="string"/>
+        <element label="Capacity (GB)" max_length="20" name="capacity_gb" type="string"/>
+        <element label="Completed on" max_length="1000" name="completed_on" type="string"/>
+        <element label="computeHostRef" max_length="101" name="computehostref" type="string"/>
+        <element label="computeHostType" max_length="101" name="computehosttype" type="string"/>
+        <element label="Count" max_length="21" name="count" type="string"/>
+        <element label="countIndex" max_length="21" name="countindex" type="string"/>
+        <element label="cpuCount" max_length="21" name="cpucount" type="string"/>
+        <element label="CreatedAt" max_length="50" name="createdat" type="string"/>
+        <element label="Custom Properties Schema" max_length="9000000" name="custom_properties_schema" type="string"/>
+        <element label="DeploymentId" max_length="100" name="deploymentid" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="Deployment Sys" max_length="32" name="deployment_sys" reference="x_vmw_cloudservice_deployments" type="reference"/>
+        <element label="Encrypted" max_length="150" name="encrypted" type="string"/>
+        <element label="endpointType" max_length="50" name="endpointtype" type="string"/>
+        <element attributes="edge_encryption_enabled=true,no_sort=true,slushbucket_ref_no_expand=true" label="Entitled Groups" max_length="4000" name="entitled_groups" reference="sys_user_group" type="glide_list"/>
+        <element attributes="edge_encryption_enabled=true,no_sort=true,slushbucket_ref_no_expand=true" label="Entitled Users" max_length="4000" name="entitled_users" reference="sys_user" type="glide_list"/>
+        <element label="externalLink" max_length="10000" name="externallink" type="url"/>
+        <element label="Flavor" max_length="25" name="flavor" type="string"/>
+        <element label="flavorRef" max_length="101" name="flavorref" type="string"/>
+        <element label="hasSnapshots" max_length="21" name="hassnapshots" type="string"/>
+        <element label="Host Schema" max_length="90000" name="host_schema" type="string"/>
+        <element label="Id" max_length="100" name="id" type="string"/>
+        <element label="Image" max_length="21" name="image" type="string"/>
+        <element label="Inputs" max_length="500000" name="inputs" type="string"/>
+        <element label="Instance port" max_length="20" name="instance_port" type="string"/>
+        <element label="Instance protocol" max_length="20" name="instance_protocol" type="string"/>
+        <element label="Internet facing" max_length="20" name="internet_facing" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="iRE Properties" max_length="4000" name="ire_properties" type="string"/>
+        <element label="Resource Id" max_length="100" name="machine_id" type="string"/>
+        <element label="Resource Name" max_length="100" name="machine_name" type="string"/>
+        <element label="memoryGB" max_length="21" name="memorygb" type="string"/>
+        <element label="Network" max_length="20" name="network" type="string"/>
+        <element label="networkType" max_length="100" name="networktype" type="string"/>
+        <element label="Network Schema" max_length="2000" name="network_schema" type="string"/>
+        <element label="Network Type" max_length="100" name="network_type" type="string"/>
+        <element label="Node UUID" max_length="100" name="node_uuid" type="string"/>
+        <element label="os Type" max_length="21" name="os_type" type="string"/>
+        <element label="Outputs" max_length="500000" name="outputs" type="string"/>
+        <element label="Port" max_length="20" name="port" type="string"/>
+        <element label="primaryMAC" max_length="51" name="primarymac" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="Project" max_length="32" name="project" reference="x_vmw_cloudservice_cas_project" type="reference"/>
+        <element label="Protocol" max_length="20" name="protocol" type="string"/>
+        <element label="region" max_length="50" name="region" type="string"/>
+        <element label="resourcePool" max_length="101" name="resourcepool" type="string"/>
+        <element label="Resources" max_length="1000000" name="resources" type="string"/>
+        <element label="Cloud Template Resource Name" max_length="100" name="resource_name" type="string"/>
+        <element label="Role" max_length="100" name="role" type="string"/>
+        <element label="Routes Schema" max_length="1000000" name="routes_schema" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="ServiceNow Owner" max_length="32" name="servicenow_owner" reference="sys_user" type="reference"/>
+        <element label="softwareName" max_length="51" name="softwarename" type="string"/>
+        <element label="Stack Name" max_length="300" name="stack_name" type="string"/>
+        <element label="Started on" max_length="1000" name="started_on" type="string"/>
+        <element label="Status" max_length="21" name="status" type="string"/>
+        <element label="Storage Schema" max_length="2000" name="storage" type="string"/>
+        <element label="SyncStatus" max_length="50" name="syncstatus" type="string"/>
+        <element label="Type" max_length="100" name="type" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="Catalog Item" max_length="32" name="u_catalog_item" reference="x_vmw_cloudservice_cas_catalog_items" type="reference"/>
+        <element label="Type" max_length="100" name="u_type" type="string"/>
+        <element label="volumeType" max_length="100" name="volumetype" type="string"/>
+        <element attributes="edge_encryption_enabled=true,no_sort=true,slushbucket_ref_no_expand=true" label="vRA Owner" max_length="4000" name="vra_owner" reference="sys_user" type="glide_list"/>
+        <element label="Workflow ID" max_length="100" name="workflow_id" type="string"/>
+        <element label="Workflow name" max_length="100" name="workflow_name" type="string"/>
+        <element label="Workflow run ID" max_length="100" name="workflow_run_id" type="string"/>
+        <element label="Availability Zone" max_length="50" name="zone" type="string"/>
+    </element>
+</database>

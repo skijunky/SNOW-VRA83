@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope, $window) {
+	/* widget controller. */
+	var c = this;
+	c.data.selectedTab = c.data.mainJSON.detailSection[0].id;
+	
+	 $scope.encryptPassword = function(value) {
+			var condition = value.startsWith("$$");
+			if(condition){			
+				var encr = value.replace(/./g, '*');
+				return encr;	
+			}else{
+				return value;
+			}
+    };
+
+	$scope.selectTab = function(tab) {
+		c.data.selectedTab = tab.id;
+	};
+	
+	$scope.goBack = function () {
+		$window.history.back();
+	}
+	
+	$scope.$on('statusUpdated', function() {
+		c.server.update();
+	});
+
+	
+	$scope.$on('sp_loading_indicator', function(e, value) {
+			c.data.loaderShow=value;
+   });
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* width */&#13;
+.cas-nav::-webkit-scrollbar {&#13;
+  width: 3px;&#13;
+  height: 5px;&#13;
+}&#13;
+&#13;
+/* Track */&#13;
+.cas-nav::-webkit-scrollbar-track {&#13;
+  width: 10px;&#13;
+}&#13;
+&#13;
+/* Handle */&#13;
+.cas-nav::-webkit-scrollbar-thumb {&#13;
+  background: #c1c1c1; &#13;
+  border-radius: 3px;&#13;
+}&#13;
+&#13;
+/* Handle on hover */&#13;
+.cas-nav::-webkit-scrollbar-thumb:hover {&#13;
+  background: #ababab; &#13;
+}&#13;
+h2 {&#13;
+  margin-top: 0;&#13;
+  line-height: 1.475rem;&#13;
+  display: inline-block;&#13;
+}&#13;
+.cas-nav {&#13;
+  overflow-y: hidden;&#13;
+  overflow-x: auto;&#13;
+}&#13;
+.cas-clr-col-12 {&#13;
+  position: relative;&#13;
+}&#13;
+.wdg-card-header {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  a {&#13;
+    font-size: 28px;&#13;
+    font-weight: 300;&#13;
+  }&#13;
+&#13;
+}&#13;
+.wdg-app-icon {&#13;
+  margin-right: 7px&#13;
+}&#13;
+.cas-badge-count {&#13;
+  margin: auto 8px;&#13;
+  font-weight: 200;&#13;
+  font-size: 12px;&#13;
+}&#13;
+.wdg-long-card {&#13;
+  margin: -1.1rem !important;&#13;
+  margin-bottom: 1rem !important;&#13;
+  padding: .75rem 1rem;&#13;
+  position: relative;&#13;
+  background-color: #fafafa;&#13;
+}&#13;
+&#13;
+.wdg-desc {&#13;
+  font-weight: 300;&#13;
+  font-size: 12px;&#13;
+  margin-left: 45px;&#13;
+  line-height: 1rem;&#13;
+}&#13;
+.wdg-details {&#13;
+  border-top: 1px solid #cccccc;&#13;
+  margin-right: -1.1rem;&#13;
+  margin-left: -1.1rem;&#13;
+}&#13;
+.cas-details-header {&#13;
+  padding: 12px 12px 12px 16px;&#13;
+  border-bottom: 1px solid #ccc;&#13;
+  font-size: 16px;&#13;
+  background-color: #fff;&#13;
+  font-weight: 500;&#13;
+  position: relative;&#13;
+}&#13;
+.cas-left-panel {&#13;
+  border-right: 1px solid #dddddd;&#13;
+  height: calc(100vh - 315px);&#13;
+}&#13;
+.cas-left-panel .cas-list {&#13;
+  overflow-y: auto;&#13;
+  height: calc(100vh - 365px);&#13;
+  margin: 0 -.5rem;&#13;
+}&#13;
+.cas-left-panel .cas-details-header {&#13;
+  margin: 0 -.5rem;&#13;
+  padding: .5rem 1rem;&#13;
+}&#13;
+&#13;
+.wdg-machine-search {&#13;
+  float: right;&#13;
+}&#13;
+&#13;
+.cas-right-panel {&#13;
+  padding: 0;&#13;
+  height: calc(100vh - 315px);&#13;
+}&#13;
+.cas-deployment-panel {&#13;
+  overflow: auto;&#13;
+  height: calc(100vh - 400px);&#13;
+}&#13;
+#deploymentTabs {&#13;
+  padding-left: 14px;&#13;
+}&#13;
+.cas-clr-row.bottom {&#13;
+  border-top: 1px solid #ddd;&#13;
+  margin: 0 -1.1rem;&#13;
+  padding: 12px 16px;&#13;
+}&#13;
+.wdg-section {&#13;
+  display: none;&#13;
+}&#13;
+.wdg-section-open {&#13;
+  display: block;&#13;
+}&#13;
+.value {&#13;
+  font-weight: 500;&#13;
+}&#13;
+&#13;
+.empty-message-container {&#13;
+      height: calc(100vh - 338px);&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  span {&#13;
+    span {&#13;
+      display: inline-flex;&#13;
+      margin: auto;&#13;
+      position: relative;&#13;
+      left: 50%;&#13;
+      transform: translateX(-50%);&#13;
+    }&#13;
+  }&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_activitiesform</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_activitiesForm</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	try {
+		CASLogger.debug('Inside CAS_deploymentsDetails widget')
+		var daoUtil = new CASDaoUtil();
+		var appUtil = new CASAppUtil();
+		var urlTable = $sp.getParameter('table') || appUtil.configuration.table.requests;
+		var urlFilter = $sp.getParameter('filter') || '';
+		var urlOrder = $sp.getParameter('order') || ((urlTable == appUtil.configuration.table.approvals)? 10 : 6);
+		var urlPage = $sp.getParameter('id') || '';
+		var urlMyFlag = ($sp.getParameter('myFlag') != '' && $sp.getParameter('myFlag') != null && $sp.getParameter('myFlag')) ?  $sp.getParameter('myFlag') : true + '';
+		
+		data.loaderShow=false;
+		if ($sp.getParameter('table') == appUtil.configuration.table.requests) {
+			data.mainJSON = daoUtil.fetchPortalRequestDetails({sysId: $sp.getParameter('sysId')}); 
+			data.mainJSON.type = 'request';
+		} else {
+			data.mainJSON = daoUtil.fetchPortalApprovalDetails({sysId: $sp.getParameter('sysId'), table: 'approval'}); 
+			data.mainJSON.type = 'approval'
+		}
+		var showList = $sp.getParameter('layout');
+		
+		data.previousLink = '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+((showList == 'list') ? appUtil.configuration.page.activitiesList: appUtil.configuration.page.activitiesCard)+'&order=' + urlOrder + '&filter=' + urlFilter + '&myFlag=' + urlMyFlag + '&layout=card';
+ 
+		var ticketConversationOptions = {
+			requestStatus : data.mainJSON.state,
+			sys_id: $sp.getParameter('sysId'),
+			table: $sp.getParameter('table'),
+			title: gs.getMessage("Activity Stream"),
+			placeholder: gs.getMessage("Type your message here..."),
+			placeholderNoEntries: gs.getMessage("Start a conversation..."),
+			btnLabel: gs.getMessage("Send")
+		};
+
+		data.ticketConversation = $sp.getWidget('cas_ticketconversations', ticketConversationOptions);
+
+	}catch (e) {
+		CASLogger.error('Exception caught inside CAS_deploymentsDetails widget: '+e);
+	}	
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>navdeep</sys_created_by>
+        <sys_created_on>2019-09-11 10:25:12</sys_created_on>
+        <sys_id>dedefccadbb33300ff7c2946489619f4</sys_id>
+        <sys_mod_count>109</sys_mod_count>
+        <sys_name>CAS_activitiesForm</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_dedefccadbb33300ff7c2946489619f4</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-10-22 07:45:41</sys_updated_on>
+        <template><![CDATA[<div class="cas-content-area">
+  <div class="wdg-long-card">
+    <div class="cas-clr-row">
+      <div class="cas-clr-col-12">
+        <div class="wdg-card-header">
+          <h2>{{c.data.mainJSON.item}}</h2>
+          <span class="cas-label cas-badge-count"
+                ng-class="{
+                          'cas-label-danger': c.data.mainJSON.stage == 'Closed Incomplete' || c.data.mainJSON.state == 'Rejected',
+                          'cas-label-warning': c.data.mainJSON.stage == 'Waiting for Approval' || c.data.mainJSON.state == 'Requested',
+                          'cas-label-success': c.data.mainJSON.stage == 'Closed Complete' || c.data.mainJSON.state == 'Approved',
+                          'cas-label-info': c.data.mainJSON.stage == 'In Progress'
+                          }">{{(c.data.mainJSON.type == 'request') ? c.data.mainJSON.stage : c.data.mainJSON.state}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="cas-clr-row wdg-summary">
+      <div class="cas-clr-col-4">
+        <div ng-if="c.data.mainJSON.type == 'request'">Request Id: <span class="value">{{c.data.mainJSON.request}}</span></div>
+        <div>Request Number: <span class="value">{{c.data.mainJSON.number}}</span></div>
+       <!-- <div>Quantity: <span cass="value">Not Mapped</span></div>-->
+      <!--  <div ng-if="c.data.mainJSON.type == 'approval'">-</div> -->
+      </div>
+      <div class="cas-clr-col-4">
+        <div>Request State: <span class="value">{{c.data.mainJSON.state}}</span></div>
+        <div>Request Date: <span class="value">{{c.data.mainJSON.created  | date:"mm/dd/yyyy"}}</span></div>
+      <!--  <div ng-if="c.data.mainJSON.type == 'request'">Estimated Delivery: <span class="value">Not Mapped</span></div>-->
+      </div>
+      <div class="cas-clr-col-4">
+        <div>Requested By: <span class="value">{{c.data.mainJSON.created_by}}</span></div>
+        <div ng-if="c.data.mainJSON.type == 'request'">Requested For: <span class="value">{{c.data.mainJSON.requested_for}}</span></div>
+        <div ng-if="c.data.mainJSON.type == 'approval'">Approver: <span class="value">{{c.data.mainJSON.approver}}</span></div>
+      <!--  <div ng-if="c.data.mainJSON.type == 'request'">Configuration Item: <span class="value">Not Mapped</span></div>-->
+      </div>
+    </div>
+  </div>
+  <div class="cas-clr-row wdg-details">
+    <div class="cas-clr-col-6 cas-left-panel">
+      <div class="cas-details-header">
+        <span>Activity</span>
+      </div>
+      <div class="cas-list">
+        <div class="cas-mini-card"> <!--| filter: {name: resourceSearch}">-->
+         <!-- <div ng-if="!c.data.loaderShow">
+            <sp-widget widget="data.ticketConversation" />
+          </div>
+          <div ng-if="c.data.loaderShow">
+            Gurjot
+          </div>-->
+          <sp-widget widget="data.ticketConversation" />
+        </div>
+      </div>
+    </div>
+    <div class="cas-clr-col-6 cas-right-panel">
+      <div class="cas-details-header">
+        <span>Additional Details</span>
+      </div>
+      <div ng-if="c.data.mainJSON.detailSection.length">
+        <ul id="deploymentTabs" class="cas-nav" role="tablist">
+          <li role="presentation" class="cas-nav-item" ng-click="selectTab(tab)" ng-repeat="tab in c.data.mainJSON.detailSection" ng-if="(tab.tabVisibility == 'true')">
+            <button id="tab1" class="cas-btn cas-btn-link cas-nav-link" ng-class="{'cas-active': c.data.selectedTab === tab.id}" aria-controls="panel1" aria-selected="true" type="button">{{tab.label}}</button>
+          </li>
+        </ul>
+        <section id="deploymentPanel1" class="cas-deployment-panel wdg-section" ng-class="{'wdg-section-open': c.data.selectedTab === section.id}" role="tabpanel" aria-labelledby="tab1" ng-repeat="section in c.data.mainJSON.detailSection">
+          <form class="cas-clr-form cas-clr-form-compact cas-clr-form-horizontal">
+            <div class="cas-clr-form-control" ng-if="!(sectionValue.label == 'Version' && sectionValue.facets.requestValue == '') && sectionValue.id.split('_')[0]!=='macro'" ng-repeat="sectionValue in section.values">
+              <label class="cas-clr-control-label cas-clr-col-md-4">{{sectionValue.label}}</label>
+              <div class="cas-form-value">{{encryptPassword(sectionValue.facets.requestValue)}}</div>
+            </div>
+          </form>
+        </section>
+      </div>
+      <div ng-if="!c.data.mainJSON.detailSection.length" class="empty-message-container">
+        <span><cas-clr-icon shape="sad-face" color="#717171" size="30"></cas-clr-icon>
+          <p>No Record Found</p>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="cas-clr-row bottom">
+    <div class="cas-clr-col">
+      <a ng-click="goBack()" class="cas-btn cas-btn-primary">Back</a>
+    </div>
+  </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>

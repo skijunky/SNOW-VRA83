@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope,$location) {
+	/* widget controller */
+	var c = this;
+	
+	$scope.redirect=function(url){
+	//	alert(url)
+		$location.url(url);
+	}
+	
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.no-margin {
+    margin: 0;
+}
+.cas-card-block {
+    text-align: center;
+  
+}
+.cas-card-block, .cas-card-header {
+    border-bottom: 1px solid #eee;
+}
+.cas-card-block.with-row {
+    padding: 0;
+}
+.item{
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.chart{
+  border: 1px solid red; 
+  width:auto; 
+  height:200px; 
+  position: relative;
+}
+
+.cas-card-block &gt; div.cas-card-row:not(:last-child) {
+    border-bottom: 1px solid #eee;
+}
+.cas-card-block &gt; div.cas-card-row {
+    text-align: left;
+    padding: 6px 18px;
+    cursor: pointer;
+}
+span.details, time {
+    color: #919FA8;
+    font-size: 12px;
+	margin:0px 4px;
+
+}
+.cas-label.cas-label-success, .cas-label.cas-label-info {
+    background-color: #fff;
+}
+
+.cas-card-block &gt; .value {
+  	font-family: sans-serif;
+    font-size: 2rem;
+    margin: 25px 0;
+    display: block;
+}
+.cas-card .cas-btn-link {
+    min-width: 0;
+    padding: 0;
+}
+
+.fix-height-admin{
+ height: calc(80vh - 175px);//50vh;	
+}
+.fix-height-user{
+   height: 80vh;
+}
+.fix-height-header{
+	height: 50px;//7vh;
+}
+.fix-height-block-admin{
+	height: calc(50vh - 100px);
+  overflow: auto;
+  height:calc(80vh - 273px)
+}
+.fix-height-block-user{
+	height: calc(80vh-100px);
+  overflow: auto;
+  height:calc(80vh - 100px)
+}
+.cas-card-row{
+display:flex;
+}
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_deployments_expiring_report</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_deployments_expiring_report</name>
+        <option_schema>[{"name":"record_limit","section":"other","label":"Record Limit","type":"integer"},{"name":"view_all_link","section":"other","label":"View All Link","type":"string"}]</option_schema>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populating the 'data' objects.*/
+	/* e.g., data.table = $sp.getValue('table'); */
+	var daoUtil= new CASDaoUtil()
+	var appUtil=new CASAppUtil();
+	
+	var filter=(gs.hasRole('admin'))?'expires_onISNOTEMPTY^expired=false^expires_on!=0^operational_status!=6':'expires_onISNOTEMPTY^expired=false^expires_on!=0^operational_status!=6^servicenow_ownerDYNAMIC90d1921e5f510100a9ad2572f2b477fe^ORvra_ownerDYNAMIC90d1921e5f510100a9ad2572f2b477fe^ORshared_groupsDYNAMICd6435e965f510100a9ad2572f2b47744^ORentitled_usersDYNAMIC90d1921e5f510100a9ad2572f2b477fe';
+
+	data.arr=daoUtil.fetchExpiredDeploymentReportList(appUtil.configuration.table.deployments,options.record_limit,filter);
+	
+	var assignment_group=gs.getProperty(appUtil.configuration.properties.assignment_group);
+		
+	data.isMember=gs.hasRole('admin');
+	
+	if(data.isMember==false){
+		var groups_arr=[];
+		groups_arr=assignment_group.split(',');
+		if(groups_arr.length != 0){
+			
+			for(var i=0;i<groups_arr.length;i++){
+				data.isMember=gs.getUser().isMemberOf(groups_arr[i]);
+				if(data.isMember==true){break;}
+			}
+		}
+	}
+	
+	data.total_records=daoUtil.getTotalRecordCount(appUtil.configuration.table.deployments,filter);
+	
+	data.view_all_link=options.view_all_link;
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-18 11:09:20</sys_created_on>
+        <sys_id>191c4990db8c4010ff7c29464896192c</sys_id>
+        <sys_mod_count>112</sys_mod_count>
+        <sys_name>CAS_deployments_expiring_report</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_191c4990db8c4010ff7c29464896192c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-05-18 12:38:29</sys_updated_on>
+        <template><![CDATA[
+<div>
+  <div class="cas-card no-margin" ng-class="c.data.isMember ? 'fix-height-admin' :'fix-height-user' " >
+    <div class="cas-card-header">
+      Deployments Expiring Soon	
+    </div>
+
+    <!--<div class="cas-ard-block">
+<link rel="stylesheet" href"htps://cdnjs.cloudflare.com/ajax/libs/c3/0..8/c3.css">
+<!--<div class="vlue">{{c .data.total_record}}</div>
+<a href="{{c.data.view_all_link}}" class="value">{{c.data.total_records}}</a>
+</div>
+-->
+    <div   class="cas-card-block with-row" ng-class="c.data.isMember ? 'fix-height-block-admin' :'fix-height-block-user' " >
+      
+      <div ng-click="redirect(item.link)" class="cas-card-row" ng-repeat="item in data.arr">
+        <div class="item">{{item.name}}</div>
+        <span class="details">• </span>
+        <div class="item">{{item.project}}</div>
+        <span class="details">• </span>
+        <time>{{item.createdAt | date:"dd/MM/yyyy"}}</time>
+      </div>
+
+    </div>
+
+    <div class="cas-card-footer">
+      <a href="{{c.data.view_all_link}}" class="cas-btn cas-btn-sm cas-btn-link">View All</a>
+      <span style="float:right;">
+        <span ng-if="c.options.record_limit>=c.data.total_records">{{c.data.total_records}}</span>
+        <span ng-if="c.options.record_limit<c.data.total_records">{{c.options.record_limit}}</span>
+        of {{c.data.total_records}} deployments
+      </span>
+    </div>
+  </div>]]></template>
+    </sp_widget>
+</record_update>

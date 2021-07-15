@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_vra_cloud_actions</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>checkForCatalog</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+	try{
+	if(!current.action_schema.changes() && current.valid == 'true'){
+		var resource = '';
+		var category = '';
+		var query = '';
+		var action = current.display_name;
+		var description='';
+		var appUtil = new CASAppUtil();
+		if(current.deployment){
+			query = 'name='+action+'^category='+gs.getProperty(appUtil.configuration.properties.deploymentCategory);
+			category = gs.getProperty(appUtil.configuration.properties.deploymentCategory);
+			resource = 'Deployment';
+			description="Deployment Action-"+action; 
+			
+			
+		}
+		if(current.machine){
+			query = 'name='+action+'^category='+gs.getProperty(appUtil.configuration.properties.machineCategory);
+			category = gs.getProperty(appUtil.configuration.properties.machineCategory);
+			resource = 'Machine';
+			description="Resource Action-"+action; 
+		}
+		var addTopic=new CASDaoUtil();
+		var catalogId = '';
+		
+		var catGR = new GlideRecord('x_vmw_cloudservice_cas_catalog_items');
+		catGR.addEncodedQuery(query);
+		catGR.query();
+		if(!catGR.next()){
+			catGR.initialize();
+			catGR.name = action;
+			catGR.short_description=description;
+			catGR.no_quantity = 'true';
+			catGR.sys_scope = gs.getProperty(appUtil.configuration.properties.applicationSysID);
+			catGR.no_quantity_v2 = 'true';
+			catGR.no_wishlist_v2 = 'true';
+			catGR.no_delivery_time_v2 = 'true';
+			catGR.workflow = gs.getProperty(appUtil.configuration.properties.catalogRequestWorkflow);
+			catGR.category = category;
+			catalogId =  catGR.insert();
+			new x_vmw_cloudservice.vRAImportStart().createdefaultActionVariables(catalogId,current.deplyment?current.deployment:current.machine,resource);
+			//new x_vmw_cloudservice.CASDaoUtil().createDefaultClientScript(catalogId,resource);
+			
+			
+		}else{
+			catGR.short_description=description;
+			catalogId = catGR.sys_id;
+			catGR.update();
+		}
+		var schema =new x_vmw_cloudservice.vRAImportStart().insertActionVariables(current,catalogId);
+		current.action_schema = schema;
+		current.catalog_item = catalogId;
+		current.setWorkflow(false);
+		current.update();
+		
+	}
+}catch(e){
+	CASLogger.error("Exception caught inside BR:checkForCatalog "+e);
+}
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-08-31 11:37:01</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>3e8bd554db871010ca597b386896194a</sys_id>
+        <sys_mod_count>38</sys_mod_count>
+        <sys_name>checkForCatalog</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_3e8bd554db871010ca597b386896194a</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-02-11 12:07:45</sys_updated_on>
+        <template/>
+        <when>async</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=3e8bd554db871010ca597b386896194a"/>
+</record_update>

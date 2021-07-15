@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_vra_action_request</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition table="x_vmw_cloudservice_vra_action_request">statusINFAILED,ABORTED^EQ<item endquery="false" field="status" goto="false" newquery="false" operator="IN" or="false" value="FAILED,ABORTED"/>
+            <item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/>
+        </filter_condition>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRA Incident for failure of day2 action</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/ ) {
+
+	var appUtil = new CASAppUtil();
+
+	try
+	{
+		CASLogger.debug('Inside  vRA Incident for failure of day2 action :Business Rule');
+		var groups = gs.getProperty(appUtil.configuration.properties.support_group_new);
+		var value = gs.getProperty(appUtil.configuration.properties.vRA_incident_for_failure_day2actions);
+
+		if(value=='true')
+		{
+
+			var user= new GlideRecordSecure(appUtil.configuration.table.users_table);
+			user.addQuery('user_name',current.sys_created_by);
+			user.query();
+			if(user.next())
+			{
+
+				var id=user.sys_id;
+
+			}
+
+			var inc = new GlideRecordSecure(appUtil.configuration.table.incident);
+
+			inc.initialize();
+			inc.caller_id = id;
+			inc.category = 'inquiry';
+			var grp=new GlideRecordSecure(appUtil.configuration.table.groups_table);
+			grp.addEncodedQuery('name='+groups);
+			grp.query();
+			while(grp.next())
+			{
+				var grp_sysid=grp.sys_id;
+			}
+			inc.assignment_group=grp_sysid;			
+
+			inc.description = current.comment;
+
+			if (current.action.machine == "")
+			{
+				inc.short_description = current.action_name + " " + 'request has been failed for deployment' + " " + current.action.deployment.getDisplayValue();
+			} 
+
+			else 
+			{
+				var gr = new GlideRecordSecure(appUtil.configuration.table.relationship);
+				gr.addQuery('child', current.action.machine);
+				gr.query();
+				if (gr.next()) {
+					inc.short_description = current.action_name + " " + 'request has been failed for machine' + " " + current.action.machine.getDisplayValue() + " " + "of deployment" + " " + gr.parent.getDisplayValue();
+				}
+
+			}
+
+			if (current.action.machine == "") 
+			{
+				inc.cmdb_ci = current.action.deployment;
+			} 
+			else
+			{
+				inc.cmdb_ci = current.action.machine;
+			}
+			inc.insert();
+
+		}
+	}
+	catch(e)
+	{
+		CASLogger.error("Exception caught Inside vRA Incident for failure of day2 action:Business Rule "+e);
+	}
+
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-01-21 15:11:28</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>8581fd6cdb6a8010e2d4c4ab0b9619d8</sys_id>
+        <sys_mod_count>45</sys_mod_count>
+        <sys_name>vRA Incident for failure of day2 action</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_8581fd6cdb6a8010e2d4c4ab0b9619d8</sys_update_name>
+        <sys_updated_by>prateek</sys_updated_by>
+        <sys_updated_on>2020-05-22 08:47:41</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=8581fd6cdb6a8010e2d4c4ab0b9619d8"/>
+</record_update>

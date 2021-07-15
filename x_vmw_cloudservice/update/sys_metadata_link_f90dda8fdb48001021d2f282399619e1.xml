@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_metadata_link">
+    <sys_metadata_link action="INSERT_OR_UPDATE">
+        <directory>update</directory>
+        <documentkey>075d0a321bcc0010e61b21b6bc4bcb4d</documentkey>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="x_vmw_cloudservice_day_2_action_request_entitlement">
+    <x_vmw_cloudservice_day_2_action_request_entitlement action="INSERT_OR_UPDATE">
+        <action>Compute.Relocate</action>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-09-26 10:19:25</sys_created_on>
+        <sys_id>075d0a321bcc0010e61b21b6bc4bcb4d</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-09-27 06:01:45</sys_updated_on>
+        <type>Resource</type>
+    </x_vmw_cloudservice_day_2_action_request_entitlement>
+</record_update>
+]]></payload>
+        <sys_class_name>sys_metadata_link</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-09-27 06:06:18</sys_created_on>
+        <sys_id>f90dda8fdb48001021d2f282399619e1</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_metadata_link_f90dda8fdb48001021d2f282399619e1</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-09-27 06:06:18</sys_updated_on>
+        <tablename>x_vmw_cloudservice_day_2_action_request_</tablename>
+    </sys_metadata_link>
+</record_update>

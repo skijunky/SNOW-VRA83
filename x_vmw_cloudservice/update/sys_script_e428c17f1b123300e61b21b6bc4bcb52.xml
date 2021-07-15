@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_cas_queue</collection>
+        <condition>current.state=='Ready'</condition>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRA Queue Data Load</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+	
+	try
+	{
+		//QUEUE TABLE
+		
+		var topic= current.topic+'';
+		
+		current.state="Processing";
+		current.update();
+		
+		
+		var callScriptInclude="";
+		var callFunction="";
+		
+		switch(topic)
+		{
+			
+			case 'StartImportProject':
+			callScriptInclude=new vRARegistervRA();
+			callFunction=callScriptInclude.getProjectDetails(current);
+			current.state = "Completed";
+			break;
+			
+			
+			case 'StartedImportProject': callScriptInclude=new vRARegistervRA();
+			callFunction=callScriptInclude.parseProject(current);
+			current.state = "Completed";
+			break;
+			
+			case 'ParseProject':   callScriptInclude=new CASDaoUtil();
+			callFunction=callScriptInclude.createProject(current);
+			current.state = "Completed";
+			break;
+			
+			case 'ReconcileImportProject': callScriptInclude=new vRARegistervRA();
+			callFunction=callScriptInclude.reconcileProject(current);
+			current.state = "Completed";
+			break;
+			
+			case 'StartImportCatalog': callScriptInclude=new vRAImportCatalog();
+			callFunction=callScriptInclude.preImportCatalog(current);
+			current.state = "Completed";
+			break;
+				
+			case 'ScheduledImportCatalog':callScriptInclude=new vRAImportCatalog();
+			callFunction=callScriptInclude.preImportCatalogSchedule(current);
+			current.state = "Completed";
+			break;
+			
+			
+			case 'PreImportCatalog': callScriptInclude=new vRAImportCatalog();
+			callFunction=callScriptInclude.importCatalog(current);
+			current.state = "Completed";
+			break;
+			
+			case 'processCatalogCustomFormSchema': callScriptInclude=new vRAImportCatalog();
+			//callFunction=callScriptInclude.processCatalogCustomFormSchema(current);
+			current.state = "Completed";
+			break;
+			
+			case 'ImportCatalog': callScriptInclude=new vRAImportCatalog();
+			callFunction=callScriptInclude.processCASCatalog(current);
+			if(callFunction == "update") {
+				callScriptInclude.updateCatalog(current);
+			}
+			else if(callFunction == "create") {
+				callScriptInclude.createCatalog(current);
+			}
+			else {
+				
+			}
+			current.state = "Completed";
+			break;
+			
+			case 'ReconcileImportCatalog': callScriptInclude=new vRAImportCatalog();
+			callFunction=callScriptInclude.reconcileCatalogItem(current);
+			current.state = "Completed";
+			break;
+			
+			
+			case 'StartImportCMDB': callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.StartImportCMDB(current);
+			current.state = "Completed";
+			break;
+			
+			
+			case 'IndivImportCMDB': callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.parseIndivCMDB(current);
+			current.state = "Completed";
+			break;
+			
+			
+			//createCMDB
+			case 'createCMDB': callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.insertCMDB(current);
+			current.state = "Completed";
+			break;
+			
+			
+			case 'preImportResource': callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.preImportResource(current);
+			current.state = "Completed";
+			break;
+			
+			case 'parseResource': callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.parseResource(current);
+			current.state = "Completed";
+			break;
+			
+			case 'createResource': callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.insertResource(current);
+			current.state = "Completed";
+			break;
+				
+			case 'reconcileCMDB': callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.reconcileCMDB(current);
+			current.state = "Completed";
+			break;
+				
+			case 'startImportActionForDeployment': callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.startImportActionForDeployment(current);
+			current.state = "Completed";
+			break;
+				
+			case 'parseActionForDeployment':callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.parseActionForDeployment(current);
+			current.state = "Completed";
+			break;
+				
+			case 'parseActionSchemaForDeployment':callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.createItemOptionNew(current);
+			current.state = "Completed";
+			break;
+			
+				
+			case 'startImportActionForResource' : callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.startImportActionForResource(current);
+			current.state = "Completed";
+			break;
+				
+			case 'parseActionForResource' : callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.parseActionForResource(current);
+			current.state = "Completed";
+			break;
+				
+			case 'parseActionSchemaForResource':callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.createItemOptionNew(current);
+			current.state = "Completed";
+			break;
+				
+			case 'actionSchema':callScriptInclude=new vRAImportStart();
+			callFunction=callScriptInclude.parseActionSchema(current);
+			current.state = "Completed";
+			break;
+		}
+		current.update();
+	}
+	catch(e)
+	{
+		CASLogger.error("Exception caught inside vRA Queue Data Load Business rule"+e);
+	}
+	
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-04 08:10:18</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>e428c17f1b123300e61b21b6bc4bcb52</sys_id>
+        <sys_mod_count>74</sys_mod_count>
+        <sys_name>vRA Queue Data Load</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_e428c17f1b123300e61b21b6bc4bcb52</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-10-12 12:33:14</sys_updated_on>
+        <template/>
+        <when>async</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=e428c17f1b123300e61b21b6bc4bcb52"/>
+</record_update>

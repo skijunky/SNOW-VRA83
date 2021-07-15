@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sysevent_email_action">
+    <sysevent_email_action action="INSERT_OR_UPDATE">
+        <action_insert>true</action_insert>
+        <action_update>false</action_update>
+        <active>true</active>
+        <advanced_condition/>
+        <affected_field_on_event/>
+        <category display_value="Service Catalog" name="Service Catalog">be9d02137f232200ee2e108c3ffa9155</category>
+        <collection>sc_req_item</collection>
+        <condition table="sc_req_item">cat_item.sc_catalogsLIKE533fe9dfdb2233006adb48703996191b^EQ<item endquery="false" field="cat_item.sc_catalogs" goto="false" newquery="false" operator="LIKE" or="false" value="533fe9dfdb2233006adb48703996191b"/>
+            <item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/>
+        </condition>
+        <content_type>text/html</content_type>
+        <default_interval/>
+        <description/>
+        <digest_from/>
+        <digest_html/>
+        <digest_reply_to/>
+        <digest_separator_html><![CDATA[<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>]]></digest_separator_html>
+        <digest_separator_text><![CDATA[\n--------------------------------------------------------------------------------\n]]></digest_separator_text>
+        <digest_subject/>
+        <digest_template/>
+        <digest_text/>
+        <digestable>false</digestable>
+        <event_name>alm_transfer_order_line_subtask.escalati</event_name>
+        <event_parm_1>false</event_parm_1>
+        <event_parm_2>false</event_parm_2>
+        <exclude_delegates>false</exclude_delegates>
+        <force_delivery>false</force_delivery>
+        <from/>
+        <generation_type>engine</generation_type>
+        <importance/>
+        <include_attachments>false</include_attachments>
+        <item>event.parm1</item>
+        <item_table/>
+        <mandatory>false</mandatory>
+        <message/>
+        <message_html><![CDATA[<div style="height: inherit; width: 100%; padding: 4px; text-align: center; background-color: #ffffbf; margin: 10px 0px 20px 0px; font-family: arial; font-weight: 400; font-size: 19px;"><strong>Deployment Request ${number} Details</strong></div>
+<div style="margin: 10px 0px 10px 0px; font-family: arial; font-size: 14.5px;">
+<p>Hi ${opened_by},</p>
+<p>The Deployment request ${number} for catalog item ${cat_item} has been Initiated.</p>
+</div>
+<p>&nbsp;</p>
+<table style="font-family: arial; border-collapse: collapse; width: 100%; margin-top: -30px;">
+<tbody>
+<tr style="background-color: #dddddd;">
+<td style="border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;">Requested Item Number</td>
+<td style="border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;"><strong>${number}</strong></td>
+</tr>
+<tr style="background-color: #ffffff;">
+<td style="border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;">Catalog Item Name</td>
+<td style="border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;"><strong>${cat_item}</strong></td>
+</tr>
+<tr style="background-color: #dddddd;">
+<td style="border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;">Request Item State</td>
+<td style="border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;"><strong>${state}</strong></td>
+</tr>
+<tr style="background-color: #ffffff;">
+<td style="border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;">Requested By</td>
+<td style="border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;"><strong>${opened_by}</strong></td>
+</tr>
+<tr style="background-color: #dddddd;">
+<td style="border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;">Requested For</td>
+<td style="border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;"><strong>${request.requested_for}</strong></td>
+</tr>
+<tr style="background-color: #ffffff;">
+<td style="border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;">Created On</td>
+<td style="border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;"><strong>${mail_script:Request_Created_On}</strong></td>
+</tr>
+</tbody>
+</table>]]></message_html>
+        <message_list/>
+        <message_text/>
+        <name>vRA Catalog Item Submission</name>
+        <omit_watermark>false</omit_watermark>
+        <order>100</order>
+        <push_message_only>false</push_message_only>
+        <recipient_fields>sys_created_by,opened_by,request.requested_for</recipient_fields>
+        <recipient_groups/>
+        <recipient_users/>
+        <reply_to/>
+        <send_self>true</send_self>
+        <sms_alternate/>
+        <style/>
+        <subject>vRealize Automation - Deployment request ${number} for ${cat_item} has been Submitted.</subject>
+        <subscribable>false</subscribable>
+        <sys_class_name>sysevent_email_action</sys_class_name>
+        <sys_created_by>ayush.aman</sys_created_by>
+        <sys_created_on>2020-01-14 12:15:44</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>e1960d56dbde8010e2d4c4ab0b9619d0</sys_id>
+        <sys_mod_count>26</sys_mod_count>
+        <sys_name>vRA Catalog Item Submission</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sysevent_email_action_e1960d56dbde8010e2d4c4ab0b9619d0</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-04-30 10:51:34</sys_updated_on>
+        <sys_version>2</sys_version>
+        <template/>
+        <type>email</type>
+        <weight>0</weight>
+    </sysevent_email_action>
+</record_update>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>true</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_shared_resources</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRA ResSharing Delete Email Notification</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+
+	try{
+		
+		var appUtil = new CASAppUtil();
+		var value = gs.getProperty(appUtil.configuration.properties.shared_resource_notifications);
+		
+		if(value == 'true'){
+			
+			CASLogger.debug("Inside BR Resource Sharing Email Notification for Deletion Operation.");
+
+			//getting the Created By User's Email ID.
+			var CreatedBy = new GlideRecordSecure(appUtil.configuration.table.users_table);
+			CreatedBy.addEncodedQuery('user_name='+current.sys_created_by);
+			CreatedBy.query();
+
+			//getting the Updates By User's Email ID.
+			//var UpdatedBy = new GlideRecordSecure(appUtil.configuration.table.users_table);
+			//UpdatedBy.addEncodedQuery('user_name='+current.sys_updated_by);
+			//UpdatedBy.query();
+
+			if(CreatedBy.next()) var Creator_email = CreatedBy.email;
+			//if(UpdatedBy.next()) var Updator_email = UpdatedBy.email;
+			
+			var reciever = '';
+			
+			if(current.users != ''){
+				var userRecievers = current.users.toString().split(',');
+
+				var user = new GlideRecordSecure(appUtil.configuration.table.users_table);
+				user.addQuery("sys_id", userRecievers);
+				user.addQuery("email", "!=", "");
+				user.addQuery("active=true");
+				user.addQuery("user_name", "!=", current.sys_created_by);
+				user.query();
+
+				if(user.next()){
+					reciever = user.email;
+				}
+
+				if(reciever == '' && current.groups != ''){
+					var groupRecievers = current.groups.toString().split(',');
+					reciever = getRecieverEmail(groupRecievers);
+				}
+			
+			}else if(current.groups != ''){
+				var groupRecievers = current.groups.toString().split(',');
+				reciever = getRecieverEmail(groupRecievers);
+			}
+
+			//creating the Clone of current Glide Object.
+			var currentClone = {};
+			currentClone.name = current.getDisplayValue('name');
+			currentClone.description = current.getDisplayValue('description');
+			currentClone.deployments = current.getDisplayValue('deployments');
+			currentClone.users = current.getValue('users');
+			currentClone.groups = current.getValue('groups');
+			currentClone.sys_created_by = current.getDisplayValue('sys_created_by');
+			currentClone.sys_created_on = current.getDisplayValue('sys_created_on');
+			currentClone.sys_updated_by = gs.getUserName();
+			currentClone.sys_updated_on = current.getDisplayValue('sys_updated_on');
+			currentClone.reciever = reciever.toString();
+
+			//creating the email reciever array
+			//var updatorReceivers = [Creator_email,Updator_email];
+
+
+			if(current.operation() == 'delete'){
+
+				//triggering the email notification event.
+				gs.eventQueue('x_vmw_cloudservice.shared_res_delete', null, Creator_email, JSON.stringify(currentClone));
+				gs.eventQueue('x_vmw_cloudservice.shared_res_delete_u&g', null, reciever, JSON.stringify(currentClone));
+				
+				//if(Creator_email == Updator_email) gs.eventQueue('x_vmw_cloudservice.shared_res_delete', null, Creator_email, JSON.stringify(currentClone));
+				//else gs.eventQueue('x_vmw_cloudservice.shared_res_delete', null, updatorReceivers, JSON.stringify(currentClone));
+
+			}
+		}
+		
+		function getRecieverEmail(recieversArr){
+
+			var group = new GlideRecordSecure(appUtil.configuration.table.group_users_member);
+			group.addQuery("group", recieversArr);
+			group.query();
+
+			var preGroup = '';
+
+			while (group.next()) {
+				//email trigger for Group Email ID.
+				if(group.group.active == true){
+					if (preGroup != group.group.name) {
+						if (group.group.email != '') {
+							var reciever = group.group.email;
+							return reciever;
+						}
+						preGroup = group.group.name;
+					}
+
+					//email trigger for Group's Members Email ID
+					if (group.user.email != '' && group.user.active == true){
+						var reciever = group.user.email;
+						return reciever;
+					} 
+				}	
+			}
+		}
+	}catch(e){
+		CASLogger.error("Exception caught inside BR: Resource Sharing Delete Email Notification "+e);
+	}
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>prateek</sys_created_by>
+        <sys_created_on>2020-02-18 12:10:04</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>8ed49929db470010a9870d53ca96192b</sys_id>
+        <sys_mod_count>27</sys_mod_count>
+        <sys_name>vRA ResSharing Delete Email Notification</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_8ed49929db470010a9870d53ca96192b</sys_update_name>
+        <sys_updated_by>prateek</sys_updated_by>
+        <sys_updated_on>2020-04-09 10:37:19</sys_updated_on>
+        <template/>
+        <when>before</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=8ed49929db470010a9870d53ca96192b"/>
+</record_update>

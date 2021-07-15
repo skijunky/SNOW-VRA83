@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Manage Endpoints" max_length="40" name="x_vmw_cloudservice_register_cas_organization" sizeclass="1" type="collection">
+        <element attributes="edge_encryption_enabled=true" default="true" label="Active" max_length="40" name="active" type="boolean"/>
+        <element attributes="edge_encryption_enabled=true,no_data_replicate=true" label="API Token" max_length="1000" name="api_token" type="password2"/>
+        <element default="https://console.cloud.vmware.com/csp/gateway/discovery" label="Authorization URL" max_length="500" name="authorization_url" type="url"/>
+        <element attributes="edge_encryption_enabled=true" choice="3" default="https://api.mgmt.cloud.vmware.com" label="Base Url" max_length="100" name="cas_url" type="choice">
+            <choice/>
+        </element>
+        <element active="false" label="Client ID" max_length="200" name="client_id" type="string"/>
+        <element active="false" attributes="edge_encryption_enabled=true,no_data_replicate=true" label="Client Secret" max_length="500" name="client_secret" type="password2"/>
+        <element attributes="edge_encryption_enabled=true" label="Refresh Key Expiry Date" max_length="40" name="expiry_date" read_only="true" type="glide_date"/>
+        <element label="Host Url" max_length="250" name="hostname" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="Mid server" max_length="32" name="mid_server" reference="ecc_agent" reference_qual="status=Up^EQ" reference_qual_condition="status=Up^EQ" type="reference"/>
+        <element label="Name" mandatory="true" max_length="50" name="name" type="string"/>
+        <element active="false" label="Organization ID" max_length="100" name="organization_id" type="string"/>
+        <element attributes="edge_encryption_enabled=true,no_data_replicate=true" label="Password" max_length="255" name="password" type="password2"/>
+        <element calculation="(function calculatedFieldValue(current) {&#10;&#9;return gs.getProperty('glide.servlet.uri')+&quot;x_vmw_cloudservice_oauth_redirect.do&quot;;  // return the calculated value&#10;&#10;})(current);" label="Redirect URL" max_length="500" name="redirect_url" type="url" virtual="true"/>
+        <element attributes="edge_encryption_enabled=true,no_data_replicate=true" label="Refresh Key" max_length="1000" name="refresh_key" type="password2"/>
+        <element attributes="edge_encryption_enabled=true" choice="3" default="vrealizeAutomationService" label="Endpoint Type" mandatory="true" max_length="40" name="select_automation_service" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="vRealize Automation (vRA)" sequence="10" value="vrealizeAutomationService"/>
+                <element inactive_on_update="false" label="vRealize Automation Cloud (vRA Cloud)" sequence="20" value="vRealiseAutomationCloud"/>
+            </choice>
+        </element>
+        <element default="https://console.cloud.vmware.com/csp/gateway/am/api/auth/token" label="Token URL" max_length="500" name="token_url" type="url"/>
+        <element label="UserName" max_length="100" name="username" type="string"/>
+        <element active="false" attributes="edge_encryption_enabled=true" label="Use OAuth" max_length="40" name="use_oauth" type="boolean"/>
+        <element label="Organization Id" max_length="120" name="u_organization_id" type="string"/>
+        <element label="Organization Name" max_length="120" name="u_organization_name" type="string"/>
+        <index name="index">
+            <element name="mid_server"/>
+        </index>
+    </element>
+</database>

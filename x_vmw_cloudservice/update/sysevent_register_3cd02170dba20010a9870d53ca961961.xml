@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sysevent_register">
+    <sysevent_register action="INSERT_OR_UPDATE">
+        <caller_access/>
+        <description/>
+        <event_name>x_vmw_cloudservice.email_for_endpoint_re</event_name>
+        <fired_by>Business Rule : Endpoint Email Notification</fired_by>
+        <queue/>
+        <suffix>email_for_endpoint_registration</suffix>
+        <sys_class_name>sysevent_register</sys_class_name>
+        <sys_created_by>prateek</sys_created_by>
+        <sys_created_on>2020-01-22 08:35:13</sys_created_on>
+        <sys_id>3cd02170dba20010a9870d53ca961961</sys_id>
+        <sys_mod_count>4</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.email_for_endpoint_re</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sysevent_register_3cd02170dba20010a9870d53ca961961</sys_update_name>
+        <sys_updated_by>prateek</sys_updated_by>
+        <sys_updated_on>2020-03-04 08:45:06</sys_updated_on>
+        <table>x_vmw_cloudservice_register_cas_organization</table>
+    </sysevent_register>
+</record_update>

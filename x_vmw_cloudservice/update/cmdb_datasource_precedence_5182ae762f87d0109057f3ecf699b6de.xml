@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="cmdb_datasource_precedence">
+    <cmdb_datasource_precedence action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <applies_to>x_vmw_cloudservice_machines</applies_to>
+        <discovery_source>ImportSet</discovery_source>
+        <fall_back>true</fall_back>
+        <name>Resources precedence by ImportSet</name>
+        <order>100</order>
+        <sys_class_name>cmdb_datasource_precedence</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-09-08 11:11:29</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>5182ae762f87d0109057f3ecf699b6de</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>Resources precedence by ImportSet</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>cmdb_datasource_precedence_5182ae762f87d0109057f3ecf699b6de</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-09-09 13:50:46</sys_updated_on>
+    </cmdb_datasource_precedence>
+</record_update>

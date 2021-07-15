@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_ui_form_sections form_id="2a632dd31b937300e61b21b6bc4bcb3e" sys_domain="global" table="x_vmw_cloudservice_deployments" version="3">
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>0</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-08-21 13:45:58</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>62632dd31b937300e61b21b6bc4bcb42</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="x_vmw_cloudservice_deployments" name="x_vmw_cloudservice_deployments" sys_domain="global" view="Default view">2a632dd31b937300e61b21b6bc4bcb3e</sys_ui_form>
+            <sys_ui_section caption="NULL" display_value="" name="x_vmw_cloudservice_deployments" sys_domain="global" view="Default view">ca266aaddb933300da86f26b68961977</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-08-21 13:45:58</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>1</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-08-21 13:45:58</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>66632dd31b937300e61b21b6bc4bcb48</sys_id>
+            <sys_mod_count>1</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="x_vmw_cloudservice_deployments" name="x_vmw_cloudservice_deployments" sys_domain="global" view="Default view">2a632dd31b937300e61b21b6bc4bcb3e</sys_ui_form>
+            <sys_ui_section caption="Expense" display_value="Expense" name="x_vmw_cloudservice_deployments" sys_domain="global" view="Default view">6263a9d31b937300e61b21b6bc4bcb96</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-08-29 07:59:38</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>2</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-08-21 13:45:58</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>62632dd31b937300e61b21b6bc4bcb4d</sys_id>
+            <sys_mod_count>1</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="x_vmw_cloudservice_deployments" name="x_vmw_cloudservice_deployments" sys_domain="global" view="Default view">2a632dd31b937300e61b21b6bc4bcb3e</sys_ui_form>
+            <sys_ui_section caption="Owner" display_value="Owner" name="x_vmw_cloudservice_deployments" sys_domain="global" view="Default view">2a63a9d31b937300e61b21b6bc4bcb96</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-08-29 07:59:38</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>3</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-08-21 13:45:58</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>36632dd31b937300e61b21b6bc4bcb52</sys_id>
+            <sys_mod_count>1</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="x_vmw_cloudservice_deployments" name="x_vmw_cloudservice_deployments" sys_domain="global" view="Default view">2a632dd31b937300e61b21b6bc4bcb3e</sys_ui_form>
+            <sys_ui_section caption="Relationship" display_value="Relationship" name="x_vmw_cloudservice_deployments" sys_domain="global" view="Default view">6e632dd31b937300e61b21b6bc4bcb3d</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-08-29 07:59:38</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form action="INSERT_OR_UPDATE">
+            <name>x_vmw_cloudservice_deployments</name>
+            <roles/>
+            <sys_class_name>sys_ui_form</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-08-21 13:45:58</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>2a632dd31b937300e61b21b6bc4bcb3e</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>x_vmw_cloudservice_deployments</sys_name>
+            <sys_overrides/>
+            <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_ui_form_sections_2a632dd31b937300e61b21b6bc4bcb3e</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-08-21 13:45:58</sys_updated_on>
+            <sys_user/>
+            <view display_value="Default view" name="NULL">Default view</view>
+            <view_name/>
+        </sys_ui_form>
+    </sys_ui_form_sections>
+</record_update>

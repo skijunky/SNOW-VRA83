@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope,$rootScope) {
+  /* widget controller */
+  var c = this;
+	
+	$('#multiselect').multiselect();
+	//console.log(c.data.leftList);
+	/*$scope.check = function(){
+		var R_Array = [];
+		var L_Array = [];
+		$("#multiselect option").each(function(index, val) { L_Array.push(val.text) });
+		$("#multiselect_to option").each(function(index, val) { R_Array.push(val.text) });
+		console.log(L_Array);
+		console.log(R_Array);
+	}
+	*/
+	$scope.changeItems = function(){
+		var R_Array = [];
+		$("#multiselect_to option").each(function(index, val) { R_Array.push(val.text) });
+		var answer = {
+			field_value : R_Array,
+			field_id  : c.data.leftList.fieldId
+		};
+		//console.log("broadcast "+answer+"aarr "+R_Array);
+		$rootScope.$broadcast('getRightList',answer);
+	}
+	
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.dual-list .list-group {
+    margin-top: 8px;
+}
+
+.list-left li, .list-right li {
+    cursor: pointer;
+}
+
+.list-arrows {
+    padding-top: 100px;
+}
+
+.list-arrows button {
+  margin-bottom: 20px;
+}
+.cas-dual-list{
+	height:150px;
+  background-color:#fff;
+  border-radius:.125rem;
+  padding-top:2px;
+  border:1px solid #ccc;
+}
+
+.cas-dual-list:hover{
+	background-color:#fff;
+}
+.btn{
+	line-height:1;
+  background-color: transparent;
+  margin:.25rem .5rem .25rem 0;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_duallist</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_dualList</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+
+	data.leftList = options.field;
+	//data.list1 = ['C#','C++','SQL','Python','Lisp','JavaScript','Java','Go','Perl','PHP'];
+	//gs.addInfoMessage(JSON.stringify(options));
+	
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>prateek</sys_created_by>
+        <sys_created_on>2020-06-10 09:15:01</sys_created_on>
+        <sys_id>53772e711b55501011c04196bc4bcb0d</sys_id>
+        <sys_mod_count>20</sys_mod_count>
+        <sys_name>CAS_dualList</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_53772e711b55501011c04196bc4bcb0d</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-08-20 07:11:38</sys_updated_on>
+        <template><![CDATA[<div>
+  <div class="row">  
+    
+    <div class="col-xs-5">
+      <select name="from" id="multiselect" class="cas-dual-list form-control" size="8" multiple="multiple" ng-disabled="c.data.leftList.read_only" ng-change="changeItems();" ng-model="data.leftList.selected">
+        <option ng-repeat="item in c.data.leftList.arr" value="item.value">{{item.value}}</option>      
+      </select>
+    </div>
+
+    <div class="col-xs-2">
+      <button type="button" id="multiselect_rightSelected" ng-disabled="c.data.leftList.read_only" class="btn btn-block"><cas-clr-icon shape="angle" size="16" dir="right" ></cas-clr-icon></button>
+      <button type="button" id="multiselect_leftSelected" ng-disabled="c.data.leftList.read_only" class="btn btn-block"><cas-clr-icon shape="angle" size="16" dir="left" ></cas-clr-icon></button>
+      <button type="button" id="multiselect_rightAll" ng-disabled="c.data.leftList.read_only" class="btn btn-block"><cas-clr-icon shape="angle-double" size="16" dir="right" ></cas-clr-icon></button>
+      <button type="button" id="multiselect_leftAll" ng-disabled="c.data.leftList.read_only" class="btn btn-block"><cas-clr-icon shape="angle-double" size="16" dir="left" ></cas-clr-icon></button>
+    </div>
+
+    <div class="col-xs-5">
+      <select name="to" id="multiselect_to" class="cas-dual-list form-control" size="8" multiple="multiple" ng-disabled="c.data.leftList.read_only" ng-change="changeItems();" ng-model="data.leftList.selected">
+      </select>
+    </div>
+    
+  </div>
+  <br>
+ <!-- <button ng-click="check();">Click here</button> -->
+</div>]]></template>
+    </sp_widget>
+</record_update>

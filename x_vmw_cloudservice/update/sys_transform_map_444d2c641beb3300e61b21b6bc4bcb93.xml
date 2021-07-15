@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_transform_map">
+    <sys_transform_map action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <copy_empty_fields>false</copy_empty_fields>
+        <create_new_record_on_empty_coalesce_fields>false</create_new_record_on_empty_coalesce_fields>
+        <enforce_mandatory_fields>No</enforce_mandatory_fields>
+        <name>vRA Machines Transform map</name>
+        <order>100</order>
+        <run_business_rules>true</run_business_rules>
+        <run_script>true</run_script>
+        <script><![CDATA[(function transformRow(source, target, map, log, isUpdate) {
+	/*Transform map for fetching details */
+	
+	this.appUtil=new CASAppUtil();
+	target.operational_status='1';
+	target.install_status='1';
+	var get=new CASDaoUtil().getProjectId(source.deploymentid);
+	target.project=get;
+	target.createdat=source.createdat;	
+	
+	var obj= this.appUtil.parse(source.properties);
+	
+	if(obj.type!=null)
+		{
+		target.u_type=obj.type;
+	}
+	if(obj.resourceName!=null)
+		{
+		target.resource_name=obj.resourceName;
+	}
+	if(obj.name!=null)
+		{
+		target.machine_name=obj.name;
+	}
+	if(obj.capacityGb!=null)
+		{
+		target.capacity_gb=obj.capacityGb;
+	}
+	if(obj.host!=null)
+		{
+			target.host_schema=this.appUtil.stringify(obj.host);
+		}
+	if(obj.encrypted!=null)
+		{
+		target.encrypted=obj.encrypted;
+	}
+	if(obj.status!=null)
+		{
+		target.attachment_status=obj.status;
+	}
+	if(obj.region!=null)
+		{
+		target.region=obj.region;
+	}
+	if(obj.account!=null)
+		{
+		target.account=obj.account;
+	}
+	
+	if(obj.account!=null && obj.region!=null)
+		{
+		target.account_region=obj.account+'/'+obj.region;
+	}
+	if(obj.zone!=null)
+		{
+		target.zone=obj.zone;
+	}
+	if(obj.endpointType!=null)
+		{
+		target.endpointtype=obj.endpointType;
+	}
+	if(obj.powerState!=null)
+		{
+		target.status=obj.powerState;
+	}
+	
+	
+	
+	if(obj.storage!=null)
+		{
+		target.storage=this.appUtil.stringify(obj.storage);
+	}
+	if(obj.networks!=null)
+		{
+		target.network_schema=this.appUtil.stringify(obj.networks);
+	}
+	if(obj.address!=null)
+		{
+		target.address=obj.address;
+	}
+	if(obj.volumeType!=null)
+		{
+		target.volumetype=obj.volumeType;
+	}
+	if(obj.externalLink!=null)
+		{
+		target.externallink=obj.externalLink;
+	}
+	if(obj.nodeUUID!=null)
+		{
+		target.node_uuid=obj.nodeUUID;
+	}
+	if(obj.environment!=null)
+		{
+		target.environment=obj.environment;
+	}
+	if(obj.role!=null)
+		{
+		target.role=obj.role;
+	}
+	if(obj.networkType!=null)
+		{
+		target.network_type=obj.networkType;
+	}
+	if(obj.workflowName!=null)
+		{
+		target.workflow_name=obj.workflowName;
+	}
+	if(obj.workflowId!=null)
+		{
+		target.workflow_id=obj.workflowId;
+	}
+	if(obj.stackGeneratedName)
+		{
+			target.stack_name=obj.stackGeneratedName;
+		}
+	if(obj.inputs)
+			{
+			target.inputs=this.appUtil.stringify(obj.inputs);
+		}
+		if(obj.outputs!=null)
+			{
+			target.outputs=this.appUtil.stringify(obj.outputs);
+		}
+	if(obj.resources!=null)
+		{
+			target.resources=this.appUtil.stringify(obj.resources);
+		}
+	
+	if(obj.id!=null && source.type=='vro.workflow')
+		{
+			if(obj.id!=null)
+				{
+		target.workflow_run_id=obj.id;
+				}
+	
+		
+		if(obj.startedOn!=null)
+			{
+			
+			var startDate=obj.startedOn;
+			var IntDate=parseInt(startDate);
+			var actualDate=new Date(IntDate);
+			var date=actualDate.toISOString();
+			var actualdate=new Date(date);
+				target.started_on=actualdate.toString();
+		}
+		
+		if(obj.completedOn!=null)
+			{
+				var CompleteDate=obj.completedOn;
+				var IntComDate=parseInt(CompleteDate);
+				var actualComDate=new Date(IntComDate);
+				var date=actualComDate.toISOString();
+				var actualdate=new Date(date);
+				target.completed_on=actualdate.toString();
+			}
+		
+	}
+	
+	if(source.type=='aws.cft')
+		{
+			if(obj.status!=null)
+		{
+		target.status=obj.status;
+		}
+			target.attachment_status='';
+		}
+
+	if(source.type=='abx.action'||source.type=='Cloud.vSphere.Machine'||source.type=='Cloud.AWS.EC2.Instance')
+		{
+			if(obj.id!=null)
+				{
+					target.id=obj.id;
+				}
+		}
+	
+	if(source.type=='Cloud.LoadBalancer' || source.type=='Cloud.NSX.LoadBalancer')
+		{
+		
+		if(obj.address!=null)
+		{
+			target.address=obj.address;
+		}
+			
+		if(obj.routes!=null)
+		{
+			target.routes_schema=this.appUtil.stringify(obj.routes);
+		}
+			
+		
+	}
+	
+	var PropertiesImport=this.appUtil.parse(source.properties);
+	var objectProp= {"properties":PropertiesImport};
+		var stringProp=JSON.stringify(objectProp);
+		var objCustom= this.appUtil.parse(stringProp);
+		
+		var key;
+		
+		var resourceList=gs.getProperty(this.appUtil.configuration.properties.resourceExlusion);
+		
+		var prop=objCustom.properties;
+		
+		for(key in prop)
+			{
+			var check= resourceList.indexOf(key);
+			
+			if(check >-1)
+				{
+				delete prop[key];
+			}
+			
+		}
+		
+		target.custom_properties_schema=this.appUtil.stringify(prop);	
+	
+	
+})(source, target, map, log, action==="update");]]></script>
+        <source_table>x_vmw_cloudservice_vra_machines_import_set</source_table>
+        <sys_class_name>sys_transform_map</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-08-25 07:03:07</sys_created_on>
+        <sys_id>444d2c641beb3300e61b21b6bc4bcb93</sys_id>
+        <sys_mod_count>88</sys_mod_count>
+        <sys_name>vRA Machines Transform map</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_transform_map_444d2c641beb3300e61b21b6bc4bcb93</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-09-17 11:38:24</sys_updated_on>
+        <target_table>x_vmw_cloudservice_machines</target_table>
+    </sys_transform_map>
+</record_update>

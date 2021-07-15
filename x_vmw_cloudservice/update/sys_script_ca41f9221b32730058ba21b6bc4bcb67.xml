@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>false</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_cas_resource_sharing</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>updateCMDBEntitlements</name>
+        <order>200</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+
+		try {
+			CASLogger.debug('Inside  updateCMDBEntitlements BR');
+		var appUtil  = new CASAppUtil();
+
+		//Removing the entitlement from Machines
+		var previousMachinesLength = (previous.entitled_machines)? previous.entitled_machines.getDisplayValue().length : 0;
+		var currentMachinesLength = (current.entitled_machines)? current.entitled_machines.getDisplayValue().length : 0;
+		if (previousMachinesLength > currentMachinesLength) {
+			var previousMachines = previous.entitled_machines.split(',');
+			for (var i = 0; i < previousMachines.length; i++) {
+				if (!current.entitled_machines.includes(previousMachines[i])) {
+					//var deleteMachineGR = new GlideRecord(appUtil.configuration.table.resources);
+					deleteMachineGR.get(previousMachines[i]);
+					deleteMachineGR.entitled_users = '';
+					deleteMachineGR.entitled_groups = '';
+					deleteMachineGR.update();
+				}
+			}
+		}
+
+		//Removing the entitlement from Deployments
+		var previousDeploymentsLength = (previous.entitled_deployments)? previous.entitled_deployments.getDisplayValue().length : 0;
+		var currentDeploymentsLength = (current.entitled_deployments)? current.entitled_deployments.getDisplayValue().length : 0;
+		if (previousDeploymentsLength > currentDeploymentsLength) {
+			var previousDeployments = previous.entitled_deployments.split(',');
+			for (var i = 0; i < previousDeployments.length; i++) {
+				if (!current.entitled_deployments.includes(previousDeployments[i])) {
+					var deleteDeploymentGR = new GlideRecord(appUtil.configuration.table.deployments);
+					deleteDeploymentGR.get(previousDeployments[i]);
+					deleteDeploymentGR.entitled_users = '';
+					deleteDeploymentGR.entitled_groups = '';
+					deleteDeploymentGR.update();
+				}
+			}
+		}
+
+		
+	
+			if (current.entitled_machines) {
+			try{
+				CASLogger.debug('Inside  updateCMDBEntitlements BR');
+				var machineGR = new GlideRecord(appUtil.configuration.table.resources);
+				machineGR.addEncodedQuery('sys_idIN'+ current.entitled_machines);
+				machineGR.query();
+				while(machineGR.next()) {
+					machineGR.entitled_users = current.entitled_users;
+					machineGR.entitled_groups = current.entitled_groups;
+					machineGR.update();
+				}
+			} 
+			catch(e) {
+				CASLogger.error('Exception caught inside updateCMDBEntitlements BR : if(current.entitled_machines)'+e);
+			}
+
+		}
+
+		if (current.entitled_deployments) {
+			try{
+				CASLogger.debug('Inside  updateCMDBEntitlements BR');
+				var deploymentGR = new GlideRecord(appUtil.configuration.table.deployments);
+				deploymentGR.addEncodedQuery('sys_idIN'+ current.entitled_deployments);
+				deploymentGR.query();
+				while(deploymentGR.next()) {
+					deploymentGR.entitled_users = current.entitled_users;
+					deploymentGR.entitled_groups = current.entitled_groups;
+					deploymentGR.update();
+				}
+			} 
+			catch(e) {
+				CASLogger.error('Exception caught inside updateCMDBEntitlements BR : if(current.entitled_deployments)'+e);
+			}
+
+		}
+
+			
+		
+		
+		if(current.active==false)
+		{
+		
+			try{
+				CASLogger.debug('Inside  updateCMDBEntitlements BR');
+				var RemoveUserGroup = new GlideRecord(appUtil.configuration.table.resources);
+				RemoveUserGroup.addQuery("sys_idIN"+current.entitled_machines);
+				RemoveUserGroup.query();
+				while (RemoveUserGroup.next()) {
+					RemoveUserGroup.entitled_users = '';
+					RemoveUserGroup.entitled_groups ='';
+					RemoveUserGroup.update();	
+						}
+				
+				var RemoveUserDeployment = new GlideRecord(appUtil.configuration.table.deployments);
+				RemoveUserDeployment.addQuery("sys_idIN"+current.entitled_deployments);
+				RemoveUserDeployment.query();
+				while (RemoveUserDeployment.next()) {
+	
+					RemoveUserDeployment.entitled_users = '';
+					RemoveUserDeployment.entitled_groups ='';
+					RemoveUserDeployment.update();
+					
+			}
+		}
+			
+			
+		catch(e)
+			{
+				CASLogger.error('Exception caught inside updateCMDBEntitlements BR : if(current.active==false)'+e);
+			}
+		}
+		
+
+	}
+	catch(e){
+		VRASNLogger.error('Exception caught inside updateCMDBEntitlements BR'+e);
+	}
+	// Add your code here
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-25 10:23:11</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>ca41f9221b32730058ba21b6bc4bcb67</sys_id>
+        <sys_mod_count>5</sys_mod_count>
+        <sys_name>updateCMDBEntitlements</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_ca41f9221b32730058ba21b6bc4bcb67</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-06-04 09:11:41</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=ca41f9221b32730058ba21b6bc4bcb67"/>
+</record_update>

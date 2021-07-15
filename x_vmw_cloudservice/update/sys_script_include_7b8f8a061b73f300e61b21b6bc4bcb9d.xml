@@ -1,0 +1,617 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.vRAActionRequestUtil</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>vRAActionRequestUtil</name>
+        <script><![CDATA[var vRAActionRequestUtil = Class.create();
+vRAActionRequestUtil.prototype = {
+    initialize: function() {
+        this.appUtil = new CASAppUtil();
+        this.daoUtil = new CASDaoUtil();
+
+    },
+
+    requestDay2Action: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAActionRequestUtil.requestDay2Action: Day2 Action body for request');
+            var token = '';
+            var body = '';
+            var endPoint = '';
+            var midserver = '';
+            var actionId = '';
+            var resource = '';
+            var resourceId = '';
+            var deployment = current.variables.deployment;
+            var deploymentId = current.variables.deployment.deployment_id;
+            if (current.variables.resource != undefined) {
+
+                resource = current.variables.resource;
+
+                resourceId = current.variables.resource.machine_id;
+            }
+            var organization = current.variables.endpoint;
+
+            var getActionId = new GlideRecord(this.appUtil.configuration.table.action);
+            getActionId.addQuery("display_name", current.cat_item.name);
+            if (resource != '') {
+
+                getActionId.addQuery("machine", resource);
+            } else {
+                getActionId.addQuery("deployment", deployment);
+            }
+            getActionId.query();
+            if (getActionId.next()) {
+
+                actionId = getActionId.action_id;
+
+            }
+
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = organization.api_token.getDecryptedValue().toString();
+                endPoint = organization.cas_url + this.appUtil.configuration.api.deployment + deploymentId + "/actions/" + actionId;
+
+                if (resource != '') {
+                    endPoint = organization.cas_url + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + resourceId + "/actions/" + actionId;
+                }
+            }
+
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+                midserver = organization.mid_server.name;
+                token = organization.api_token.getDecryptedValue();
+                endPoint = organization.hostname + this.appUtil.configuration.api.deployment + deploymentId + "/actions/" + actionId;
+
+                if (resource != '') {
+                    endPoint = organization.hostname + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + resourceId + "/actions/" + actionId;
+
+                }
+            }
+
+			var result = {
+                "state": "",
+				"comments":""                
+            };
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+                CASLogger.error("Error occured while Requesting schema of " + current.cat_item.name + " Day2 Action Request inside vRAActionRequestUtil.requestDay2ActionSubmission.");
+                //current.state = '4';
+                //current.comments = "Error occured while Requesting schema of " + current.cat_item.name + " Day2 Action Request\nError:" + response.getBody() + "\nDescription: " + response.getErrorMessage();
+                //current.update();
+				result.state = '4';
+				result.comments ='Error occured while Requesting schema of ' + current.cat_item.name + ' Day2 Action Request\nError:' + response.getBody() + '\nDescription: ' + response.getErrorMessage();
+				return result;
+				
+            } else {
+
+                var responseBody = response.getBody();
+                var obj = this.appUtil.parse(responseBody);
+
+                var customArray = [];
+                var customJson = '';
+
+                if (obj.schema == null || obj.schema.properties == null || Object.keys(obj.schema.properties).length == 0) {
+
+                    var formLessBody = '{"actionId": "","reason": ""}';
+                    var custombody = this.appUtil.parse(formLessBody);
+                    custombody.actionId = actionId + '';
+                    if (current.variables.reason) {
+                        custombody.reason = current.variables.reason + '';
+                    }
+                    var customFormLessbodyPostCall = this.appUtil.stringify(custombody);
+
+                    var resp = this.requestDay2ActionSubmission(current, customFormLessbodyPostCall);
+					result.state = resp.state;
+					result.comments =resp.comments;
+					return result;	
+					
+                } else {
+                    for (var key in obj.schema.properties) {
+                        customArray.push(key);
+                        customArray.push("");
+                    }
+                    customJson = this.appUtil.arrToJSON(customArray);
+                    var customJsonInput = this.appUtil.parse(customJson);
+
+                    var customBody = '{"actionId": "","inputs": "","reason": ""}';
+
+                    var customBodyObject = this.appUtil.parse(customBody);
+
+                    customBodyObject.inputs = customJsonInput;
+                    customBodyObject.actionId = actionId + '';
+                    if (current.variables.reason) {
+                        customBodyObject.reason = current.variables.reason;
+                    }
+
+                    for (var inputs in customBodyObject.inputs) {
+
+                        var variable = '';
+                        var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+                        variable = inputs.replace(rgx, ' ').trim().replaceAll(' ', '_');
+
+                        var getVariables = new GlideRecord(this.appUtil.configuration.table.variable);
+                        getVariables.addQuery('cat_item', current.cat_item);
+                        getVariables.addQuery('name', variable);
+                        getVariables.query();
+                        if (getVariables.next()) {
+                            var casName = getVariables.x_vmw_cloudservice_cas_name;
+                            if (casName.startsWith("STR_")) {
+                                customBodyObject.inputs[inputs] = current.variables[variable] + '';
+                            } else if (casName.startsWith("Date_")) {
+
+                                var dt = new GlideDateTime(current.variables[variable] + '');
+                                var cc = dt.getNumericValue();
+                                var adate = new Date(cc);
+                                var finalDate = adate.toISOString();
+
+                                customBodyObject.inputs[inputs] = finalDate;
+                            } else if (casName.startsWith("BOOL_")) {
+                                if (current.variables[variable] + '' == "true") {
+                                    customBodyObject.inputs[inputs] = true;
+                                }
+                                if (current.variables[variable] + '' == "false" || current.variables[variable] + '' == '') {
+                                    customBodyObject.inputs[inputs] = false;
+                                }
+                            } else if (casName.startsWith("INT_")) {
+
+
+                                customBodyObject.inputs[inputs] = parseInt(current.variables[variable] + '');
+
+                            } else {
+                                customBodyObject.inputs[inputs] = current.variables[variable] + '';
+                            }
+
+                        }
+
+                    }
+
+                    var custombodyPostCall = this.appUtil.stringify(customBodyObject);
+					var resp = this.requestDay2ActionSubmission(current, custombodyPostCall);					
+					result.state = resp.state;
+					result.comments =resp.comments;
+					return result;	
+                }
+            }
+        } catch (e) {
+			//current.state = '4';
+			//current.comments = "Error occured while submitting " + current.cat_item.name + " Day2 Action Request\nError:" + response.getBody();
+			//current.update();
+			CASLogger.error("Exception caught inside vRAActionRequestUtil.requestDay2Action  " + e);
+			result.state = "4";
+			result.comments ="Error occured while submitting " + current.cat_item.name + " Day2 Action Request\nError:" + e;
+			return result;			
+		}
+    },
+
+    requestDay2ActionSubmission: function(current, custombodyPostCall) {
+        try {
+            CASLogger.debug('Inside  vRAActionRequestUtil.requestDay2ActionSubmission: Day2 Action catalog request Submission');
+            var token = '';
+            var endPoint = '';
+            var midserver = '';
+            var actionId = '';
+            var resource = '';
+            var resourceId = '';
+            var deployment = current.variables.deployment;
+            var deploymentId = current.variables.deployment.deployment_id;
+            if (current.variables.resource != undefined) {
+                resource = current.variables.resource;
+                resourceId = current.variables.resource.machine_id;
+            }
+            var organization = current.variables.endpoint;
+            var body = custombodyPostCall;
+
+            if (current.variables.endpoint.select_automation_service == 'vRealiseAutomationCloud') {
+
+                if (current.variables.endpoint.use_oauth) { // Get OAuth Access Token if endpoint is using OAuth 
+                    token = this.getOAuthAccessToken(current.opened_by, current.variables.endpoint);
+                } else {
+                    token = organization.api_token.getDecryptedValue().toString();
+                }
+
+                endPoint = organization.cas_url + this.appUtil.configuration.api.deployment + deploymentId + "/requests";
+
+                if (resource != '') {
+                    endPoint = organization.cas_url + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + resourceId + "/requests";
+                }
+
+            }
+
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+                midserver = organization.mid_server.name;
+                token = organization.api_token.getDecryptedValue();
+                endPoint = organization.hostname + this.appUtil.configuration.api.deployment + deploymentId + "/requests";
+
+                if (resource != '') {
+
+                    endPoint = organization.hostname + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + resourceId + "/requests";
+                }
+            }
+			
+			var result = {
+                "state": "",
+				"comments":""                
+            };
+
+            var response = this.appUtil.makeApiCall(endPoint, 'post', body, midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+                CASLogger.error("Error occured while submitting " + current.cat_item.name + " Day2 Action Request inside vRAActionRequestUtil.requestDay2ActionSubmission.");
+                //current.state = '4';
+                //current.comments = "Error occured while submitting " + current.cat_item.name + " Day2 Action Request\nError:" + response.getBody();
+                //current.update();
+				result.state = '4';
+				result.comments ="Error occured while submitting " + current.cat_item.name + " Day2 Action Request\nError:" + response.getBody();
+				return result;				
+            } else {
+                var responseBody = response.getBody();
+                var parsedResponse = this.appUtil.parse(responseBody);
+                current.x_vmw_cloudservice_deployment_id = parsedResponse.id;
+                //current.comments = "Day2 Action  Request Submitted Sucessfully.\nAction Name:" + parsedResponse.name + "\nRequest ID:" + parsedResponse.id;
+                current.update();
+                this.daoUtil.activeDeactiveCMDB(deploymentId, false, "", "");
+				result.state = '2';
+				result.comments ='Day2 Action  Request Submitted Sucessfully.\nAction Name:' + parsedResponse.name + '\nRequest ID:' + parsedResponse.id;
+				return result;
+            }
+        } catch (e) {
+            //current.state = '4';
+            //current.comments = "Error occured while submitting " + current.cat_item.name + " Day2 Action Request\nError:" + response.getBody();
+            //current.update();
+            CASLogger.error("Exception caught inside vRAActionRequestUtil.requestDay2ActionSubmission  " + e);
+			result.state = '4';
+			result.comments ="Error occured while submitting " + current.cat_item.name + " Day2 Action Request\nError:" + e;
+			return result;
+        }
+    },
+
+
+    Day2ActionRequestStatus: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAActionRequestUtil.Day2ActionRequestStatus: Day2 Action catalog request status check');
+
+            var token = '';
+            var endPoint = '';
+            var midserver = '';
+            var resourceId = '';
+            var organization = current.variables.endpoint;
+            var requestId = current.x_vmw_cloudservice_deployment_id;
+            var deploymentId = current.variables.deployment.deployment_id;
+            if (current.variables.resource != undefined) {
+                resourceId = current.variables.resource.machine_id;
+            }
+
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = organization.api_token.getDecryptedValue().toString();
+                endPoint = organization.cas_url + this.appUtil.configuration.api.actionrequest + requestId;
+            }
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + this.appUtil.configuration.api.actionrequest + requestId;
+                midserver = organization.mid_server.name;
+                token = organization.api_token.getDecryptedValue();
+            }
+			
+			var result = {
+                "state": '',
+				"comments":''                
+            };
+
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+            if (response.haveError()) {
+                CASLogger.error("Error occured While Requesting Resource Action inside vRAActionRequestUtil.actionRequestStatus." + response.getErrorMessage());
+				result.state = '-1';
+				result.comments = "Error occured While Requesting Resource Action inside vRAActionRequestUtil.actionRequestStatus." + response.getErrorMessage();
+				return result;
+            } else {
+                var responseBody = response.getBody();
+                var statusObj = this.appUtil.parse(responseBody);
+                var status = statusObj.status;
+				var DeploymentDay2Action = gs.getProperty(this.appUtil.configuration.properties.deploymentCategory);
+
+                if (status == "SUCCESSFUL" || status == "COMPLETION") {
+                    //current.state = '3';
+                    //current.update();
+                    this.daoUtil.activeDeactiveCMDB(deploymentId, true, resourceId, current.cat_item.name);
+                    if (!(current.cat_item.name == "Delete" && current.cat_item.category == DeploymentDay2Action)) {
+
+						this.ImportDeploymentResouceSchema(current);
+					}
+					result.state = '3';
+					result.comments = 'The Day2Action request is successfuly completed!';
+					return result;
+                } else if (status == 'PENDING' || status == 'INPROGRESS' || status == 'CHECKING_APPROVAL' || status == 'APPROVAL_PENDING' || status == 'INITIALIZATION') {
+                    //current.state = '2';
+                    //current.update();
+					result.state = '2';
+					result.comments = '';
+					return result;
+                } else if (status == 'FAILED' || status == 'ABORTED') {
+                    //current.state = '4';
+                    //current.comments = statusObj.details;
+                    //current.update();
+                    this.daoUtil.activeDeactiveCMDB(deploymentId, true, '', '');
+                    this.ImportDeploymentResouceSchema(current);
+					result.state = '4';
+					result.comments = statusObj.details;
+					return result;
+                }
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAActionRequestUtil.Day2ActionRequestStatus  " + e);
+			result.state = '-1';
+			result.comments = "Exception caught inside vRAActionRequestUtil.Day2ActionRequestStatus  " + e;
+			return result;
+        }
+    },
+
+    ImportDeploymentResouceSchema: function(current) {
+        try {
+
+            CASLogger.debug('Inside  vRAActionRequestUtil.ImportDeploymentResouceSchema: Day2 Action catalog request Sucess/Fail Import');
+            var token = '';
+            var endPoint = '';
+            var midserver = '';
+            var resourceId = '';
+            var organization = current.variables.endpoint;
+            var requestId = current.x_vmw_cloudservice_deployment_id;
+            var deploymentId = current.variables.deployment.deployment_id;
+            if (current.variables.resource != undefined) {
+                resourceId = current.variables.resource.machine_id;
+            }
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                endPoint = organization.cas_url + this.appUtil.configuration.api.deployment + deploymentId;
+                token = organization.api_token.getDecryptedValue().toString();
+            }
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + this.appUtil.configuration.api.deployment + deploymentId;
+                midserver = organization.mid_server.name;
+                token = organization.api_token.getDecryptedValue();
+            }
+            var requestResponse = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+            var responsestatus = requestResponse.getStatusCode();
+            if (requestResponse.haveError()) {
+                CASLogger.error("Error occured While fetching day2 action schema Inside vRAActionRequestUtil.Day2ActionRequestStatus" + requestResponse.getErrorMessage());
+            } else {
+                var requestResponseBody = requestResponse.getBody();
+
+                this.daoUtil.insert("createCMDB", requestResponseBody, endPoint, organization);
+                this.daoUtil.insert("reconcileCMDB", " ", " ", organization);
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAActionRequestUtil.ImportDeploymentResourceSchema  " + e);
+        }
+    },
+
+
+
+    actionRequestTemplate: function(actionId, reason, ActionBody) {
+        try {
+            CASLogger.debug('Inside  vRAActionRequestUtil.actionRequestTemplate: action Request Util');
+            var inputObj = this.appUtil.parse(ActionBody);
+
+            var obj = {};
+
+
+
+            obj = {
+
+                "actionId": actionId + '',
+                "inputs": inputObj,
+                "reason": reason + ''
+            };
+
+            var body = this.appUtil.stringify(obj);
+
+            return body;
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAActionRequestUtil.actionTemplate  " + e);
+        }
+    },
+
+
+    deploymentActionRequest: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAActionRequestUtil.deploymentActionRequest: deployment action Request');
+            var actionId = current.action.action_id;
+            var deployment = current.action.deployment;
+            var deploymentId = current.action.deployment.deployment_id;
+            var reason = current.reason;
+            var organization = current.action.deployment.u_project.organization;
+            //var casHost=this.appUtil.configuration.api.hostname;
+            var token = '';
+            var body = '';
+            var endPoint = '';
+            var midserver = '';
+            var ActionBody = current.body;
+            body = this.actionRequestTemplate(actionId, reason, ActionBody);
+
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+
+                if (current.action.deployment.u_project.organization.use_oauth) { // Get OAuth Access Token if endpoint is using OAuth 
+                    var user = '';
+                    var userGR = new GlideRecord('sys_user');
+                    userGR.addQuery('user_name', current.sys_created_by);
+                    userGR.query();
+                    if (userGR.next()) {
+                        user = userGR.sys_id;
+                    }
+                    token = this.getOAuthAccessToken(user, current.action.deployment.u_project.organization);
+                } else {
+                    token = organization.api_token.getDecryptedValue().toString();
+                }
+
+
+                endPoint = organization.cas_url + this.appUtil.configuration.api.deployment + deploymentId + "/requests";
+
+            }
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + this.appUtil.configuration.api.deployment + deploymentId + "/requests";
+                midserver = organization.mid_server.name;
+                token = organization.api_token.getDecryptedValue();
+            }
+
+            var response = this.appUtil.makeApiCall(endPoint, 'post', body, midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+
+                CASLogger.error("Error occured While Requesting Deployment Action inside vRAActionRequestUtil.deploymentActionRequest." + response.getErrorMessage());
+            } else {
+
+                var responseBody = response.getBody();
+                var updated = this.daoUtil.updateActionRequest(current, responseBody);
+
+
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAActionRequestUtil.deploymentActionRequest  " + e);
+        }
+    },
+
+
+    resourceActionRequest: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAActionRequestUtil.resourceActionRequest: resource action Request');
+            var actionId = current.action.action_id;
+            var resource = current.action.machine;
+            var resourceId = current.action.machine.machine_id;
+            var deploymentId = current.action.machine.deploymentid;
+            var reason = current.reason;
+            var organization = current.action.machine.project.organization;
+            //var casHost=this.appUtil.configuration.api.hostname;  //old method
+            var token = '';
+            var body = '';
+            var endPoint = '';
+            var midserver = '';
+            var ActionBody = current.body;
+            body = this.actionRequestTemplate(actionId, reason, ActionBody);
+
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                if (current.action.machine.project.organization.use_oauth) { // Get OAuth Access Token if endpoint is using OAuth
+                    var user = '';
+                    var userGR = new GlideRecord('sys_user');
+                    userGR.addQuery('user_name', current.sys_created_by);
+                    userGR.query();
+                    if (userGR.next()) {
+                        user = userGR.sys_id;
+                    }
+                    token = this.getOAuthAccessToken(user, current.action.machine.project.organization);
+                } else {
+                    token = organization.api_token.getDecryptedValue().toString();
+                }
+                endPoint = organization.cas_url + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + resourceId + "/requests";
+            }
+
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + this.appUtil.configuration.api.machine + deploymentId + "/resources/" + resourceId + "/requests";
+                midserver = organization.mid_server.name;
+                token = organization.api_token.getDecryptedValue();
+            }
+            var response = this.appUtil.makeApiCall(endPoint, 'post', body, midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+                CASLogger.error("Error occured While Requesting Resource Action inside vRAActionRequestUtil.resourceActionRequest." + response.getErrorMessage());
+            } else {
+                var responseBody = response.getBody();
+
+                var updated = this.daoUtil.updateActionRequest(current, responseBody);
+
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAActionRequestUtil.resourceActionRequest  " + e);
+        }
+    },
+
+    actionRequestStatus: function(current) {
+        try {
+            CASLogger.debug("Exception caught inside vRAActionRequestUtil.actionRequestStatus");
+            var organization = '';
+            organization = current.action.machine.project.organization;
+            if (current.action.deployment.u_project.organization != '') {
+
+                organization = current.action.deployment.u_project.organization;
+            }
+            //var casHost=this.appUtil.configuration.api.hostname;   //old method
+            var token = '';
+            var endPoint = '';
+            var midserver = '';
+            var requestId = current.request_id;
+
+
+            if (organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = organization.api_token.getDecryptedValue().toString();
+                endPoint = organization.cas_url + this.appUtil.configuration.api.actionrequest + requestId;
+            }
+            if (organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = organization.hostname + this.appUtil.configuration.api.actionrequest + requestId;
+                midserver = organization.mid_server.name;
+                token = organization.api_token.getDecryptedValue();
+
+            }
+            var DelayApi = this.appUtil.DelayApiCall(40000);
+            if (DelayApi == true) {
+                var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+                if (response.haveError()) {
+                    CASLogger.error("Error occured While Requesting Resource Action inside vRAActionRequestUtil.actionRequestStatus." + response.getErrorMessage());
+                } else {
+                    var responseBody = response.getBody();
+                    var updated = this.daoUtil.updateActionRequest(current, responseBody);
+                }
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAActionRequestUtil.actionRequestStatus " + e);
+        }
+    },
+
+    getOAuthAccessToken: function(user, endpoint) {
+        try {
+            CASLogger.debug('Inside the vRAActionRequestUtil.getOAuthAccessToken');
+            var oAuthToken = new GlideRecord(this.appUtil.configuration.table.oauthToken);
+            oAuthToken.addQuery('user', user + '');
+            oAuthToken.addQuery('endpoint', endpoint + '');
+            oAuthToken.addQuery('type', 'refresh_token');
+            oAuthToken.query();
+            if (oAuthToken.next()) {
+                var refresh_token = oAuthToken.token_received.getDecryptedValue();
+                var token_url = oAuthToken.endpoint.token_url;
+                var body = "grant_type=refresh_token&refresh_token=" + refresh_token;
+                var base64Auth = gs.base64Encode(oAuthToken.endpoint.client_id + ':' + oAuthToken.endpoint.client_secret.getDecryptedValue());
+
+                var response = this.appUtil.makeApiCall(token_url, 'post', body, '', "application/json", "application/x-www-form-urlencoded", 'Basic ' + base64Auth);
+
+                if (response.haveError()) {
+                    CASLogger.error('REST call error found inside vRAActionRequestUtil.getOAuthAccessToken : ' + response.getErrorMessage());
+                } else {
+                    var responseBody = response.getBody();
+                    var respBody = this.appUtil.parse(responseBody);
+                    var accessToken = respBody.access_token;
+                    return accessToken;
+                }
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAActionRequestUtil.getOAuthAccessToken " + e);
+        }
+    },
+
+    type: 'vRAActionRequestUtil'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-09-11 16:18:52</sys_created_on>
+        <sys_id>7b8f8a061b73f300e61b21b6bc4bcb9d</sys_id>
+        <sys_mod_count>181</sys_mod_count>
+        <sys_name>vRAActionRequestUtil</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_7b8f8a061b73f300e61b21b6bc4bcb9d</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-02-18 14:28:01</sys_updated_on>
+    </sys_script_include>
+</record_update>

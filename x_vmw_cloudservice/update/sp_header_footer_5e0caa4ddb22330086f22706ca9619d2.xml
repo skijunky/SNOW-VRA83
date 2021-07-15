@@ -1,0 +1,893 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_header_footer">
+    <sp_header_footer action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function ($rootScope, $scope, snRecordWatcher, spUtil, $location, $uibModal, cabrillo, $timeout, $window) {
+
+
+	var c=this;
+
+
+	$scope.collapse = function() {
+		$rootScope.$emit('sp-navbar-collapse');
+	}
+
+	$scope.loadingIndicator = $rootScope.loadingIndicator;
+	$scope.$on('sp_loading_indicator', function(e, value) {
+		$scope.loadingIndicator = value;
+	});
+
+	//check if json has changed on client side
+	$scope.updateJSON=function(){
+		//alert(JSON.stringify(value))
+		c.data.showInfo='true';
+	}
+	
+	$rootScope.$on('updateCart', function() {
+		c.server.update().then(function(response) {
+			$scope.cartNumber = response.cartNumber;
+		});
+	});
+
+
+
+	$scope.redirectCart=function(){
+		alert('redirect to cart page')
+	}
+
+	//if cancel is pressed reset json
+	$scope.resetColor=function(){
+		if(c.data.showInfo=='true' && confirm('Are you sure to cancel the changes ?'))
+		{
+			c.data.json=c.data.initialJSON;
+			c.data.showInfo='false';
+			//c.data.action='save';
+			/*c.server.update().then(function(){
+				c.data.action='';
+			});*/
+			$('#editModal').modal('hide');
+			
+		}
+	}
+
+	//save new json to update sys property
+	$scope.SaveChanges=function(){
+		//alert("here")
+		c.data.action='save';
+		c.server.update().then(function(){
+			$rootScope.$emit('updatedJSONFooter', c.data.json);
+
+			$rootScope.$emit('updatedJSONnavbar', c.data.json);
+		});
+	}
+
+	//select colors or logo
+	$scope.selectCategory=function(category){
+		c.data.selectedCategory=category;
+	}
+	$scope.selectedHeader=function(header){
+		//alert(header)
+		c.data.selectedHeader=header;
+		c.data.selectedCategory="Color"
+	}
+
+	$scope.resetToDefault=function(){
+		
+		if(confirm("Are you sure to reset all the changes to default ? ")){
+			c.data.json=c.data.defaultJSON;
+			$scope.SaveChanges();
+			
+			$('#editModal').modal('hide');
+		}
+	}
+
+	$scope.deleteField=function(arr,field){
+		//alert(index)
+		//arr.splice(index,1);
+		var index = arr.indexOf(field);
+		arr.splice(index, 1);     
+	}
+
+	$scope.weighted_link_length=c.data.initialJSON[1].weighted_links.fields.length;
+	$scope.links_length=c.data.initialJSON[1].links.fields.length;
+	$scope.	icon_socialize_length=c.data.initialJSON[1].icon_socialize.fields.length;
+	
+	
+	
+	$scope.addField=function(obj){
+		var arr_length;
+		var arr=[];
+		if(obj.label=='Links'){
+			arr=c.data.json[1].links.fields;
+			arr_length=arr[arr.length-1].order;
+		}else if(obj.label=='Weighted Links'){
+			arr=c.data.json[1].weighted_links.fields;
+			arr_length=arr[arr.length-1].order;
+		}else if(obj.label=='Social Icons'){
+			arr=c.data.json[1].icon_socialize.fields;
+			arr_length=arr[arr.length-1].order;
+		}
+		obj.fields.push({
+			"order":arr_length+1,
+			"name":"",
+			"link":""});
+	}
+	
+	
+	$scope.avatarProfile = {
+		userID: $scope.user.sys_id,
+		name: $scope.user.name,
+		initials: $window.NOW.user_initials
+	};
+
+	if ($window.NOW.user_avatar) {
+		$scope.avatarProfile.userImage = $window.NOW.user_avatar;
+	}
+
+	if (cabrillo.isNative()) {
+		if ($window.innerWidth < 767) {
+			$scope.isViewNative = true;
+		} else {
+			$scope.isViewNativeTablet = true;
+		}
+	}
+
+
+	$scope.openPopUp = function() {
+		var url = "$chat_support.do?queueID=" + $scope.data.connect_support_queue_id;
+		var popup = window.open (url, "popup", "width=900, height=600");
+	};
+
+	$scope.openLogin = function () {
+		$scope.modalInstance = $uibModal.open({
+			templateUrl: 'modalLogin',
+			scope: $scope
+		});
+	};
+
+	var xsScreenSize = isXSScreenSize();
+	$scope.showXSAvatar = isXSScreenSize();
+	$scope.showAvatar = !isXSScreenSize();
+
+	angular.element($window).on('resize', function () {
+		if(xsScreenSize !== isXSScreenSize() && (!$scope.showXSAvatar || !$scope.showAvatar)){
+			$scope.showXSAvatar = true;
+			$scope.showAvatar = true;
+		}
+	});
+
+
+	function isXSScreenSize() {
+		return $window.matchMedia('(max-width: 767px)').matches;
+	}
+
+	$rootScope.$on('sp.avatar_changed', function() {
+		$scope.userID = "";
+		$timeout(function(){
+			$scope.userID = $scope.user.sys_id;
+		});
+	});
+
+	$scope.isHomepage = function() {
+		if (!$scope.page.id)
+			return true;
+
+		if ($scope.page.id == $scope.portal.homepage_dv)
+			return true;
+
+		return false;
+	};
+
+
+}
+]]></client_script>
+        <controller_as>c</controller_as>
+        <css>$font-weight: 500;
+$modalHeight: 545px;
+$inner-body-height:400px;
+
+@mixin font-margin($fontsize, $margin) {
+  font-size:$fontsize;
+  margin:$margin;
+}
+
+@mixin gridParameters($columns,$gap){
+  grid-template-columns:$columns;
+  grid-gap:$gap;
+}
+
+.wdg-customize-header {
+  margin-left: 4px;
+  padding-top: 7px;
+
+}
+
+.cas-header .cas-header-actions .cas-nav-link, 
+.cas-header .cas-settings .cas-nav-link, 
+header .cas-header-actions .cas-nav-link, 
+header .cas-settings .cas-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: #fafafa;
+  opacity: .65;
+  &amp;:hover {
+    opacity: 1;
+  }
+}
+
+.wdg-icon {
+  svg {
+    height: 24px;
+    width: 24px;
+  }
+  &amp;:hover {
+    cursor: pointer;
+  }
+}
+
+.wdg-user {
+  display: flex;
+  align-items: center;
+  opacity: .65;
+  &amp;:hover {
+    cursor: pointer;
+    opacity: 1;
+  }
+}
+.cas-open {
+  opacity: 1;
+}
+.wdg-cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -15px;
+  opacity: 0.75;
+}
+}
+.wdg-user-dropdown-menu {
+  right: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+  top: 27px !important;
+}
+
+
+
+.wdg-cart {
+  position: relative;
+  margin: auto .6rem 11px 0rem;
+  svg {
+    fill: #fafafa;
+    opacity: .65;
+  }
+  &amp;:hover {
+    svg {
+      fill: #fafafa;
+      opacity: 1;
+    }
+    span {
+      opacity: 1;
+    }
+  }
+}
+
+.cas-header-actions {
+  display: inline-flex;
+  align-items: center;
+}
+
+.cas-nav-text {
+  padding: 0 1rem 0 .4rem !important;
+}
+
+/* --------------------- Out of Box -------------------*/
+//main container
+.main-container {
+  font-family: $fontStack;
+}
+
+//navbar
+.navbar {
+  transition: 250ms opacity ease-in-out;
+  -webkit-transition: 250ms opacity ease-in-out;
+  border: 0;
+  // border-bottom: 4px solid $sp-navbar-divider-color;
+}
+
+.navbar-brand {
+  max-height: 60px;
+  padding: 0;
+  padding-bottom: 0.5rem;
+}
+
+
+.navbar-brand img, .navbar-brand span {
+  margin-left: $sp-logo-margin-x;
+  margin-right: $sp-logo-margin-x;
+  margin-top: $sp-logo-margin-y;
+  margin-bottom: $sp-logo-margin-y;
+  display: block;
+  max-height: $sp-logo-max-height;
+  max-width: $sp-logo-max-width;
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+// for mobile app 
+.navbar-inverse.is-native {
+  background-color: #405060;
+}
+
+nav {
+  margin-bottom: 0px;
+  border-radius: 0px;
+
+  .toggle-dropdown {
+    height: 60px;
+  }
+
+}
+
+.navbar-right {
+  padding-right: 0px;
+  padding-left: 7px;
+}
+
+.navbar-nav {
+  margin: 0px;
+}
+
+// PRB711244: Dropdown menu is scrollable when too many items
+.scrollable-dropdown {
+  max-height: 80vh;
+  overflow: auto;
+  height: auto;
+}
+
+.is-native {
+  .scrollable-dropdown {
+    max-height: 100vh;
+    overflow: scroll;
+    height: auto;
+  }
+}
+
+/* PRB923910: Fix for Service Portal - Header Poorly Aligned in Safari */
+@media screen and (min-width: 768px) {
+  .navbar-right {
+    display: flex !important;
+  }
+}
+
+
+/* -------------------------------- Custom CSS -------------------------------------*/
+//custom header pencil icon
+.edit-header-pencil{
+  color: $fontColor;
+  @include font-margin(18px,22px 0px 0px 0px);
+}
+
+//trash icon css
+.trash-icon{
+  @include font-margin(22px,0);
+}
+
+//customization to modal body class
+.modal-body{
+  padding:0;
+  min-height:$modalHeight;
+}
+
+/* ------------------form css ----------------------------*/
+//header footer
+.form-category {
+  padding: 8px 0px;
+  border-bottom: 1px solid $borderColor;
+}
+
+/* form-category-list */
+.form-category-list {
+  display: inline;
+  padding: 10px;
+  color: inherit;
+  font-weight: 400;
+  @include font-margin(14px,0);
+}
+
+.form-category-list:hover {
+  color: $fontHoverColor;
+  cursor: pointer;
+}
+
+//selected tab
+.form-category-selected{
+  color: #131313;
+  border-bottom:3px solid #0094d2;
+}
+
+//custom form body
+.form-body{
+  padding:0;
+}
+
+//each list item
+.form-body-list-item{
+  list-style-type:none;
+}
+
+//div class in each list item
+.form-body-list-row{
+  display:grid;
+  padding: 10px;
+  border-bottom:0.3px solid $borderColor;
+  @include gridParameters(2fr 1fr 1fr 1fr, 5px);
+}
+
+.form-body-list-item-label{
+  padding:5px;
+  // text-align:right;
+}
+
+.form-body-list-item-color{
+  padding:0;
+  border:0;
+}
+
+//info message to save json
+.infoMessage{
+  position:relative;
+  color:$errorColor;
+  padding-left:10px;
+}
+
+//list item logo
+.form-body-list-logo{
+  padding:10px;
+}
+
+//cart icon
+.cart-icon{
+  @include font-margin(22px ,20px 0px 0px 0px);
+}
+
+.form-header{
+  padding:0;
+  width:100%;
+  margin:0;
+  text-align:center;
+  display:flex;
+  border-bottom:3px solid #0094d2;
+}
+
+.form-header-list{
+  width:50%;
+  padding: 15px 10px 15px 10px;
+  color: inherit;
+  font-weight: $font-weight;
+  list-style-type:none;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  &amp;:hover{
+    color: $fontHoverColor;
+    background-color: #fafafa;
+  }
+  @include font-margin(15px,0);
+}
+
+.form-header-list-selected{
+  background-color: #0094d2;
+  color: $selectedFontColor;
+  //prevent hover on already selected
+  &amp;:hover{
+    color: $selectedFontColor;
+    background-color: #0094d2;
+    cursor:pointer;
+  }
+}
+
+input {
+  background-color: $cardBgColor;
+  color: $cardFontColor;
+  border-color: $borderColor;
+}
+
+.link-row{
+  padding:5px;
+  margin:7px 5px 5px 5px;
+  display:grid;
+  @include gridParameters(2fr 3fr 5fr 0.5fr,5px)
+
+}
+.title{
+  padding: 20px 10px;
+}
+.form-inner-body{
+  padding:5px;
+  overflow-y:auto;
+  height:$inner-body-height;
+}
+.sp-loading-indicator{
+  width: 26px;
+  height: 8px;
+  margin-top: 28px;
+  margin-right: 18px;
+}
+.footercheckbox{
+  position: relative;
+  left: 5px;
+  top: 2px;
+}
+.cart-icon-desktop{
+  display:block;
+}
+.modal-content {
+  background-color: #0094d2;
+  box-shadow: 0px 0px 5px $shadowPrimaryColor, 0px 0px 3px $shadowSecondaryColor;
+}
+.modal-header, .modal-footer {
+  border-color: $borderColor;
+}
+.modal-header {
+  button {
+    color: $fontWeightedColor;
+    text-transform: uppercase;
+    border: none;
+    font-weight: 600;
+    background-color: #0094d2;
+  }
+}
+.custom-button{
+  color: $fontLinkColor;
+  font-weight: 600;
+  letter-spacing: 1px;
+  font-size: 1.4rem;
+  &amp;:hover{
+    color:$fontHoverColor;
+  }
+}
+.banner-text{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: $fontColor;
+  float: left;
+  line-height: 1em;
+  padding: 7px 0 5px;
+  position: relative;
+  top: 13px;
+  margin: 10px;
+}
+.btn-link{
+  color:$fontLinkColor !important;
+  &amp;:hover{
+    color:$fontHoverColor;
+  }
+}
+.cas-modal {
+  color: #737373;
+}
+.cas-modal-content {
+  padding: 10px 0px !important;
+}
+.cas-modal-header {
+  padding: .5rem 0 .5rem .5rem;
+}
+.cas-modal-body{
+  padding: 0;
+  max-height: inherit;
+  overflow-y: hidden;
+}
+.cas-modal-footer {
+  padding: 24px 24px 9px 24px;
+}
+.header-loader{
+  position:relative;
+  bottom:18px;
+}
+.wdg-dropdown {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 0px;
+  opacity: .6;
+  margin-bottom: -3px;
+  &amp;:hover {
+    opacity: 1;
+  }
+}
+.dropdown-menu {
+  padding: .5rem 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: .125rem;
+  box-shadow: 0 1px 0.125rem rgba(115,115,115,.25);
+}
+.cas-dropdown-item {
+  a {
+    color: #575757;
+  }
+  padding: .125rem 1rem;
+  &amp;:hover {
+    background-color: #ededed;
+    color: #575757;
+    text-decoration: none;
+  }
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>CAS_header</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_header</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	// Defines thee support queue ID that will be linked to by the Live Chat link in header..
+	try{
+		var appUtil=new CASAppUtil();
+		CASLogger.debug("Inside the CAS_header widget");
+		data.connect_support_queue_id = $sp.getValue('sp_chat_queue');
+		data.login_page = $sp.getValue('login_page');
+		data.profileBtnMsg = gs.getMessage("User options");
+		data.showEditButton=gs.hasRole('admin');
+		data.cartPage = '/cas?id='+appUtil.configuration.page.cart;
+
+		data.link = {
+			base : "/"+gs.getProperty(appUtil.configuration.properties.portalPrefix),
+			cart : "/"+gs.getProperty(appUtil.configuration.properties.portalPrefix)+"?id="+appUtil.configuration.page.cart
+		}
+		var getCartNumber = function (cartDetails) {
+			var items = (cartDetails.cart_items && cartDetails.cart_items.none)? cartDetails.cart_items.none.items : [];
+			return items.length;
+		}
+
+		data.showCart = false;
+		data.cartNumber = 0;
+		var cart = new sn_sc.CartJS();
+		var twoStep = gs.getProperty("glide.sc.checkout.twostep", "true") == 'true';
+		if (twoStep == 'true' ||  twoStep == true) {
+			data.showCart = true;
+			if (gs.getProperty('com.glide.embedded_help.version') == 'Jakarta') {
+				var cartItems = cart.getCartItems(); 
+				var cartCount = 0;
+				while(cartItems.next()) {
+					cartCount++;
+				}
+				data.cartNumber = cartCount;
+
+			} else {
+				var cartDetails = cart.getCartDetails(true);
+				data.cartNumber = getCartNumber(cartDetails);
+			}
+
+		}
+
+		data.logo='false';
+		data.showInfo='false';
+		data.loginWidget = $sp.getWidgetFromInstance('login-modal');
+
+		if(!input){
+			try{
+				data.defaultJSON=JSON.parse(gs.getProperty(appUtil.configuration.properties.defaultHeaderJSON));
+				data.json=JSON.parse(gs.getProperty(appUtil.configuration.properties.headerJSON));
+				data.initialJSON=data.json;
+			}catch(e1){
+				CASLogger.error("Exception caught inside the CAS_header widget 1"+e1);
+			}
+		}
+		data.selectedCategory='Color';
+		data.selectedHeader='Header';
+
+		if(input){
+try{
+		
+	if(input.action=='save'){
+		data.json=input.json;
+				data.initialJSON=data.json;
+		var json = JSON.stringify(data.json);
+		
+				gs.setProperty(appUtil.configuration.properties.headerJSON,json);
+	}
+	else if(input.action=='reset'){
+				data.json=input.json;
+				data.initialJSON=data.json;
+		var json1 = JSON.stringify(data.json);
+				gs.setProperty(appUtil.configuration.properties.headerJSON,json1);
+			}
+	
+	var app_scope=gs.getProperty(appUtil.configuration.properties.applicationSysID);
+	if(gs.getCurrentApplicationId()!=app_scope){
+		
+			gs.addErrorMessage('Current Application Scope is different from VMware vRealize Automation ITSM Application 8.0');		
+		}else{
+			gs.addInfoMessage('Properties Updated.')
+		}
+}catch(e2){
+			CASLogger.error("Exception caught inside the CAS_header widget 2"+e2);
+
+}
+			
+		}
+	}catch(e){
+		CASLogger.error("Exception caught inside the CAS_header widget"+e);
+	}
+})();
+]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_header_footer</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-08 12:30:34</sys_created_on>
+        <sys_id>5e0caa4ddb22330086f22706ca9619d2</sys_id>
+        <sys_mod_count>884</sys_mod_count>
+        <sys_name>CAS_header</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>protected</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_header_footer_5e0caa4ddb22330086f22706ca9619d2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-06-04 08:39:45</sys_updated_on>
+        <template><![CDATA[<header class="cas-header-6" style="background-color:{{c.data.json[0].color.background_color.color}}">
+  <div class="cas-branding">
+    <a href="{{c.data.link.base}}">
+      <img src="{{c.data.json[0].logo.logo.value}}"  height="40">
+    </a>
+    <div class="title" style="color:{{c.data.json[0].color.text_color.color}}">{{c.data.json[0].logo.textbanner.value}}</div>
+  </div>
+  <div class="cas-header-actions">
+    <div class="header-loader" ng-show="loadingIndicator">
+      <div class="hidden-xs sp-loading-indicator la-sm">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+    <span class="wdg-icon wdg-cart"  onclick="$('.header-modal, .header-modal-backdrop').show()" ng-if="c.data.showEditButton">
+      <svg version="1.1" width="36" height="36"  viewBox="0 0 36 36" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>cog-line</title><path class="clr-i-outline clr-i-outline-path-1" d="M18.1,11c-3.9,0-7,3.1-7,7s3.1,7,7,7c3.9,0,7-3.1,7-7S22,11,18.1,11z M18.1,23c-2.8,0-5-2.2-5-5s2.2-5,5-5c2.8,0,5,2.2,5,5S20.9,23,18.1,23z"></path><path class="clr-i-outline clr-i-outline-path-2" d="M32.8,14.7L30,13.8l-0.6-1.5l1.4-2.6c0.3-0.6,0.2-1.4-0.3-1.9l-2.4-2.4c-0.5-0.5-1.3-0.6-1.9-0.3l-2.6,1.4l-1.5-0.6l-0.9-2.8C21,2.5,20.4,2,19.7,2h-3.4c-0.7,0-1.3,0.5-1.4,1.2L14,6c-0.6,0.1-1.1,0.3-1.6,0.6L9.8,5.2C9.2,4.9,8.4,5,7.9,5.5L5.5,7.9C5,8.4,4.9,9.2,5.2,9.8l1.3,2.5c-0.2,0.5-0.4,1.1-0.6,1.6l-2.8,0.9C2.5,15,2,15.6,2,16.3v3.4c0,0.7,0.5,1.3,1.2,1.5L6,22.1l0.6,1.5l-1.4,2.6c-0.3,0.6-0.2,1.4,0.3,1.9l2.4,2.4c0.5,0.5,1.3,0.6,1.9,0.3l2.6-1.4l1.5,0.6l0.9,2.9c0.2,0.6,0.8,1.1,1.5,1.1h3.4c0.7,0,1.3-0.5,1.5-1.1l0.9-2.9l1.5-0.6l2.6,1.4c0.6,0.3,1.4,0.2,1.9-0.3l2.4-2.4c0.5-0.5,0.6-1.3,0.3-1.9l-1.4-2.6l0.6-1.5l2.9-0.9c0.6-0.2,1.1-0.8,1.1-1.5v-3.4C34,15.6,33.5,14.9,32.8,14.7z M32,19.4l-3.6,1.1L28.3,21c-0.3,0.7-0.6,1.4-0.9,2.1l-0.3,0.5l1.8,3.3l-2,2l-3.3-1.8l-0.5,0.3c-0.7,0.4-1.4,0.7-2.1,0.9l-0.5,0.1L19.4,32h-2.8l-1.1-3.6L15,28.3c-0.7-0.3-1.4-0.6-2.1-0.9l-0.5-0.3l-3.3,1.8l-2-2l1.8-3.3l-0.3-0.5c-0.4-0.7-0.7-1.4-0.9-2.1l-0.1-0.5L4,19.4v-2.8l3.4-1l0.2-0.5c0.2-0.8,0.5-1.5,0.9-2.2l0.3-0.5L7.1,9.1l2-2l3.2,1.8l0.5-0.3c0.7-0.4,1.4-0.7,2.2-0.9l0.5-0.2L16.6,4h2.8l1.1,3.5L21,7.7c0.7,0.2,1.4,0.5,2.1,0.9l0.5,0.3l3.3-1.8l2,2l-1.8,3.3l0.3,0.5c0.4,0.7,0.7,1.4,0.9,2.1l0.1,0.5l3.6,1.1V19.4z"></path><rect x="0" y="0" width="36" height="36" fill-opacity="0"/></svg>
+    </span>
+    <span class="wdg-icon wdg-cart" ng-if="c.data.showCart">
+      <a  href="{{c.data.link.cart}}">
+        <svg fill="#fafafa" version="1.1"  width="36" height="36"  viewBox="0 0 36 36" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>shopping-cart-line</title><circle cx="13.33" cy="29.75" r="2.25" class="clr-i-outline clr-i-outline-path-1"></circle><circle cx="27" cy="29.75" r="2.25" class="clr-i-outline clr-i-outline-path-2"></circle><path d="M33.08,5.37A1,1,0,0,0,32.31,5H11.49l.65,2H31L28.33,19h-15L8.76,4.53a1,1,0,0,0-.66-.65L4,2.62a1,1,0,1,0-.59,1.92L7,5.64l4.59,14.5L9.95,21.48l-.13.13A2.66,2.66,0,0,0,9.74,25,2.75,2.75,0,0,0,12,26H28.69a1,1,0,0,0,0-2H11.84a.67.67,0,0,1-.56-1l2.41-2H29.13a1,1,0,0,0,1-.78l3.17-14A1,1,0,0,0,33.08,5.37Z" class="clr-i-outline clr-i-outline-path-3"></path><rect x="0" y="0" width="36" height="36" fill-opacity="0"/></svg>
+        <span class="cas-badge cas-badge-danger wdg-cart-badge" style="background:{{c.data.json[0].color.cart_icon.color}};color:{{c.data.json[0].color.text_color.color}}">{{c.data.cartNumber}}</span>
+      </a>
+    </span>
+    <!-- dropdown -->
+    <!--
+<div class="cas-dropdown wdg-header-cas-dropdown cas-bottom-right wdg-user" onclick="toggleAction(this)">
+<span class="wdg-icon">
+<svg fill="#fafafa" version="1.1" width="36" height="36"  viewBox="0 0 36 36" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>user-line</title><path d="M18,17a7,7,0,1,0-7-7A7,7,0,0,0,18,17ZM18,5a5,5,0,1,1-5,5A5,5,0,0,1,18,5Z" class="clr-i-outline clr-i-outline-path-1"></path><path d="M30.47,24.37a17.16,17.16,0,0,0-24.93,0A2,2,0,0,0,5,25.74V31a2,2,0,0,0,2,2H29a2,2,0,0,0,2-2V25.74A2,2,0,0,0,30.47,24.37ZM29,31H7V25.73a15.17,15.17,0,0,1,22,0h0Z" class="clr-i-outline clr-i-outline-path-2"></path><rect x="0" y="0" width="36" height="36" fill-opacity="0"/></svg>
+</span>
+<span class="cas-nav-text" style="color:{{c.data.json[0].color.text_color.color}}">{{::user.name}}</span>
+<div class="cas-dropdown-menu wdg-user-dropdown-menu">
+<a class="cas-dropdown-item" href="{{::portal.logoutUrl}}">Logout</a>
+</div>
+</div>-->
+    <div class="dropdown">
+      <button class="dropdown-toggle wdg-dropdown" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span class="wdg-icon">
+          <svg fill="#fafafa" version="1.1" width="36" height="36"  viewBox="0 0 36 36" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>user-line</title><path d="M18,17a7,7,0,1,0-7-7A7,7,0,0,0,18,17ZM18,5a5,5,0,1,1-5,5A5,5,0,0,1,18,5Z" class="clr-i-outline clr-i-outline-path-1"></path><path d="M30.47,24.37a17.16,17.16,0,0,0-24.93,0A2,2,0,0,0,5,25.74V31a2,2,0,0,0,2,2H29a2,2,0,0,0,2-2V25.74A2,2,0,0,0,30.47,24.37ZM29,31H7V25.73a15.17,15.17,0,0,1,22,0h0Z" class="clr-i-outline clr-i-outline-path-2"></path><rect x="0" y="0" width="36" height="36" fill-opacity="0"/></svg>
+        </span>
+        <span class="cas-nav-text" style="color:{{c.data.json[0].color.text_color.color}}">{{::user.name}}</span>
+      </button>
+      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <div class="cas-dropdown-item">
+          <a href="{{::portal.logoutUrl}}">Logout</a>
+        </div>
+      </div>
+    </div>
+    <!-- ./dropdown -->
+  </div>
+</header>
+
+<!-----------------modal--------------------------->
+<div class="cas-modal header-modal" style="display: none">
+  <div class="cas-modal-dialog" role="dialog" aria-hidden="true">
+    <div class="cas-modal-content">
+      <div class="cas-modal-header">
+        <button aria-label="Close" ng-click="resetColor()" class="cas-close" type="button" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">
+          <cas-clr-icon aria-hidden="true" shape="close" color="#565656" size="25" role="none"></cas-clr-icon>
+        </button>
+        <h4 class="modal-title">Customize</h4>
+      </div>
+      <div class="cas-modal-body">
+
+        <form>
+          <ul class="form-header">
+
+            <li ng-repeat="(key,value) in c.data.json"  class="form-header-list" ng-class="{'form-header-list-selected':c.data.selectedHeader==value.label}" ng-click="selectedHeader(value.label)" >
+              {{value.label}}
+            </li>
+          </ul>
+
+          <div ng-repeat="selectedJSON in c.data.json" ng-if="c.data.selectedHeader==selectedJSON.label" >
+            <ul class="form-category">
+              <li ng-repeat="(key,value) in selectedJSON" class="form-category-list" ng-if="key!='label' && key!='order' "  ng-click="selectCategory(value.label)" ng-class="{'form-category-selected':c.data.selectedCategory==value.label}">
+
+                {{value.label}}
+              </li>
+            </ul>
+            <div class="form-inner-body" >
+              <ul ng-if="c.data.selectedCategory=='Color'" class="form-body">
+                <li ng-repeat="(key,value) in selectedJSON.color" ng-if="key!='label'" class="form-body-list-item">
+                  <div class="form-body-list-row">
+                    <label for="key" class="form-body-list-item-label">{{value.label}}</label>
+                    <input type="color" value="{{value.color}}" ng-model="value.color" class="form-control form-body-list-item-color " ng-change="updateJSON()">
+                    <input type="text" value="{{value.color}}" ng-change="updateJSON()" ng-model="value.color" class="form-control" >
+                  </div>
+                </li>
+              </ul>
+              <ul ng-if="c.data.selectedCategory=='Logo'" class="form-body">
+                <li ng-repeat="(key,value) in selectedJSON.logo" ng-if="key!='label'"   class="form-body-list-logo">
+                  <label class="form-body-list-item-label">{{value.label}}</label>
+                  <input type="text" value="{{value.value}}" class="form-control" ng-model="value.value" ng-change="updateJSON()">
+                </li>
+              </ul>
+              <div ng-repeat="category in selectedJSON" ng-if="c.data.selectedCategory!='Logo' && c.data.selectedCategory!='Color' && category.label==c.data.selectedCategory" class="form-body" >
+                <button ng-disabled="!category.visible" class="cas-btn cas-btn-primary" ng-click="addField(category);updateJSON();">
+                  Add
+                </button>
+                <span style="float:right"><span><input type="checkbox" ng-checked="category.visible" ng-click="category.visible=!category.visible;updateJSON();"></span> Show {{category.label}} </span>
+
+                <div class="link-row">
+                  <span class="title">Order</span>
+                  <span class="title" ng-if="category.label!='Social Icon'">Name</span>
+                  <span class="title" ng-if="category.label=='Social Icon'">Font Awesome</span>
+                  <span class="title">Link</span>
+                </div>
+                <div ng-repeat="field in category.fields " class="link-row" >
+                  <input ng-disabled="!category.visible" type="number" value="{{field.order}}" ng-change="updateJSON()" ng-model="field.order" class="form-control">
+                  <input ng-disabled="!category.visible" type="text" value="{{field.name}}" ng-change="updateJSON()" ng-model="field.name"class="form-control">
+                  <input ng-disabled="!category.visible" type="text"  value="{{field.url}}" ng-change="updateJSON()" ng-model="field.url" class="form-control">
+                  <span ng-if="category.visible" class="trash-icon" ng-click="deleteField(category.fields,field);updateJSON();"><i class="fa fa-trash" aria-hidden="true"></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <h5 ng-if="c.data.showInfo!='false'" class="infoMessage" >
+          * Save changes
+        </h5>
+      </div>
+
+      <div class="cas-modal-footer">
+        <button class="cas-btn cas-btn-outline dropdown-toggle"  type="button" onclick="$('.cas-modal, .cas-modal-backdrop').hide()" ng-click="resetToDefault();">
+          Reset to Default
+        </button>
+        <button class="cas-btn cas-btn-outline" type="button" ng-if="c.data.showInfo!='true'" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">Cancel</button>
+        <button class="cas-btn cas-btn-outline" type="button" ng-if="c.data.showInfo=='true'" ng-click="resetColor()" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">Cancel</button>
+        <button class="cas-btn cas-btn-primary" type="button" ng-click="SaveChanges()" data-dismiss="modal" ng-disabled="c.data.showInfo!='true'" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">Save & Apply</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="cas-modal-backdrop header-modal-backdrop" aria-hidden="true" style="display: none;"></div>
+<!-----------------modal ends here----------------->
+
+<script>
+  /* function toggleAction (element) {
+    if ($(element).hasClass('cas-open')) {
+      $(element).removeClass('cas-open');
+    } else {
+      $(element).removeClass('cas-open');
+      $(element).addClass('cas-open');
+    }
+  }
+  $('wdg-header-cas-dropdown').focusout(function (e) {
+    alert('some');
+    $('wdg-header-cas-dropdown').removeClass('cas-open');
+  });*/
+</script>]]></template>
+    </sp_header_footer>
+</record_update>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_dependency">
+    <sp_dependency action="INSERT_OR_UPDATE">
+        <module>multiselectJS</module>
+        <name>multiselectJS</name>
+        <page_load>false</page_load>
+        <sp_portals/>
+        <sys_class_name>sp_dependency</sys_class_name>
+        <sys_created_by>prateek</sys_created_by>
+        <sys_created_on>2020-06-10 09:24:37</sys_created_on>
+        <sys_id>d5da22751b55501011c04196bc4bcbd1</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>multiselectJS</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_dependency_d5da22751b55501011c04196bc4bcbd1</sys_update_name>
+        <sys_updated_by>prateek</sys_updated_by>
+        <sys_updated_on>2020-06-10 09:24:37</sys_updated_on>
+    </sp_dependency>
+</record_update>

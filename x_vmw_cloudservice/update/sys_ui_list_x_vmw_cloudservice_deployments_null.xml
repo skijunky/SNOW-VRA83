@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_ui_list parent="" relationship="" sys_domain="global" table="x_vmw_cloudservice_deployments" version="2" view="">
+        <sys_ui_list_element action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element>name</element>
+            <list_id display_value="x_vmw_cloudservice_deployments" element="NULL" name="x_vmw_cloudservice_deployments" parent="NULL" relationship="NULL" sys_domain="global" view="Default view">8926e221dbd33300da86f26b68961924</list_id>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <position>0</position>
+            <sum>false</sum>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-09-21 17:12:09</sys_created_on>
+            <sys_id>c1ebbd5ddb4c0010b7f3f28239961901</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-09-21 17:12:09</sys_updated_on>
+        </sys_ui_list_element>
+        <sys_ui_list_element action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element>deployment_id</element>
+            <list_id display_value="x_vmw_cloudservice_deployments" element="NULL" name="x_vmw_cloudservice_deployments" parent="NULL" relationship="NULL" sys_domain="global" view="Default view">8926e221dbd33300da86f26b68961924</list_id>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <position>1</position>
+            <sum>false</sum>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-09-21 17:12:09</sys_created_on>
+            <sys_id>45ebbd5ddb4c0010b7f3f28239961901</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-09-21 17:12:09</sys_updated_on>
+        </sys_ui_list_element>
+        <sys_ui_list_element action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element>operational_status</element>
+            <list_id display_value="x_vmw_cloudservice_deployments" element="NULL" name="x_vmw_cloudservice_deployments" parent="NULL" relationship="NULL" sys_domain="global" view="Default view">8926e221dbd33300da86f26b68961924</list_id>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <position>2</position>
+            <sum>false</sum>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-09-21 17:12:09</sys_created_on>
+            <sys_id>c5ebbd5ddb4c0010b7f3f28239961901</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-09-21 17:12:09</sys_updated_on>
+        </sys_ui_list_element>
+        <sys_ui_list_element action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element>u_project.organization</element>
+            <list_id display_value="x_vmw_cloudservice_deployments" element="NULL" name="x_vmw_cloudservice_deployments" parent="NULL" relationship="NULL" sys_domain="global" view="Default view">8926e221dbd33300da86f26b68961924</list_id>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <position>3</position>
+            <sum>false</sum>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-09-21 17:12:09</sys_created_on>
+            <sys_id>49ebbd5ddb4c0010b7f3f28239961901</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-09-21 17:12:09</sys_updated_on>
+        </sys_ui_list_element>
+        <sys_ui_list_element action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element>u_project</element>
+            <list_id display_value="x_vmw_cloudservice_deployments" element="NULL" name="x_vmw_cloudservice_deployments" parent="NULL" relationship="NULL" sys_domain="global" view="Default view">8926e221dbd33300da86f26b68961924</list_id>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <position>4</position>
+            <sum>false</sum>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-09-21 17:12:09</sys_created_on>
+            <sys_id>c9ebbd5ddb4c0010b7f3f28239961901</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-09-21 17:12:09</sys_updated_on>
+        </sys_ui_list_element>
+        <sys_ui_list_element action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element>organization_id</element>
+            <list_id display_value="x_vmw_cloudservice_deployments" element="NULL" name="x_vmw_cloudservice_deployments" parent="NULL" relationship="NULL" sys_domain="global" view="Default view">8926e221dbd33300da86f26b68961924</list_id>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <position>5</position>
+            <sum>false</sum>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-09-21 17:12:09</sys_created_on>
+            <sys_id>4debbd5ddb4c0010b7f3f28239961901</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-09-21 17:12:09</sys_updated_on>
+        </sys_ui_list_element>
+        <sys_ui_list_element action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element>sys_updated_on</element>
+            <list_id display_value="x_vmw_cloudservice_deployments" element="NULL" name="x_vmw_cloudservice_deployments" parent="NULL" relationship="NULL" sys_domain="global" view="Default view">8926e221dbd33300da86f26b68961924</list_id>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <position>6</position>
+            <sum>false</sum>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-09-21 17:12:09</sys_created_on>
+            <sys_id>cdebbd5ddb4c0010b7f3f28239961901</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-09-21 17:12:09</sys_updated_on>
+        </sys_ui_list_element>
+        <sys_ui_list action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element/>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <name>x_vmw_cloudservice_deployments</name>
+            <parent/>
+            <position/>
+            <relationship/>
+            <sum>false</sum>
+            <sys_class_name>sys_ui_list</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-09-21 17:12:09</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>8926e221dbd33300da86f26b68961924</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>x_vmw_cloudservice_deployments</sys_name>
+            <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_ui_list_x_vmw_cloudservice_deployments_null</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-09-21 17:12:09</sys_updated_on>
+            <sys_user/>
+            <view display_value="Default view" name="NULL">Default view</view>
+            <view_name/>
+        </sys_ui_list>
+    </sys_ui_list>
+</record_update>

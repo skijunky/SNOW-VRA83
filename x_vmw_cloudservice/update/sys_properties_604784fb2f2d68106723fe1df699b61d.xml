@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="INSERT_OR_UPDATE">
+        <choices/>
+        <description>This system property will check for the pre-configurations required for ITSM Plugin.&#13;
+</description>
+        <ignore_cache>true</ignore_cache>
+        <is_private>false</is_private>
+        <name>x_vmw_cloudservice.vra_check_configuration</name>
+        <read_roles>x_vmw_cloudservice.vra_catalog_admin,admin</read_roles>
+        <suffix>vra_check_configuration</suffix>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2021-01-13 09:05:58</sys_created_on>
+        <sys_id>604784fb2f2d68106723fe1df699b61d</sys_id>
+        <sys_mod_count>34</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.vra_check_configuration</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_properties_604784fb2f2d68106723fe1df699b61d</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-02-12 11:43:26</sys_updated_on>
+        <type>boolean</type>
+        <value>true</value>
+        <write_roles>admin</write_roles>
+    </sys_properties>
+    <sys_translated_text action="delete_multiple" query="documentkey=604784fb2f2d68106723fe1df699b61d"/>
+</record_update>

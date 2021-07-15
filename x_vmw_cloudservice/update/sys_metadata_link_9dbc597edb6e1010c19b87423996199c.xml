@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_metadata_link">
+    <sys_metadata_link action="INSERT_OR_UPDATE">
+        <directory>update</directory>
+        <documentkey>a83d06321bcc0010e61b21b6bc4bcb76</documentkey>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="x_vmw_cloudservice_day_2_action_request_entitlement">
+    <x_vmw_cloudservice_day_2_action_request_entitlement action="INSERT_OR_UPDATE">
+        <action>Snapshot.Delete</action>
+        <display_name>Delete Snapshot</display_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-09-26 10:18:41</sys_created_on>
+        <sys_id>a83d06321bcc0010e61b21b6bc4bcb76</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-09-26 10:18:41</sys_updated_on>
+        <type>Resource</type>
+    </x_vmw_cloudservice_day_2_action_request_entitlement>
+</record_update>
+]]></payload>
+        <sys_class_name>sys_metadata_link</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-08-14 09:34:55</sys_created_on>
+        <sys_id>9dbc597edb6e1010c19b87423996199c</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_metadata_link_9dbc597edb6e1010c19b87423996199c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-08-14 09:34:55</sys_updated_on>
+        <tablename>x_vmw_cloudservice_day_2_action_request_</tablename>
+    </sys_metadata_link>
+</record_update>

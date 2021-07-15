@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance">
+    <sp_instance action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <class_name/>
+        <color>default</color>
+        <css/>
+        <glyph/>
+        <id/>
+        <order>1</order>
+        <roles/>
+        <short_description/>
+        <size>md</size>
+        <sp_column display_value="2">b2479259db337700ff7c294648961963</sp_column>
+        <sp_widget display_value="CAS_sharedResourcesCard">6c8a55f5db233300ff7c294648961956</sp_widget>
+        <sys_class_name>sp_instance</sys_class_name>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-09 09:01:38</sys_created_on>
+        <sys_id>fa889299db337700ff7c294648961915</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_instance_fa889299db337700ff7c294648961915</sys_update_name>
+        <sys_updated_by>navdeep</sys_updated_by>
+        <sys_updated_on>2019-09-21 09:35:41</sys_updated_on>
+        <title/>
+        <url/>
+        <widget_parameters><![CDATA[{
+	"page_window_size": {
+		"value": "10",
+		"displayValue": "10"
+	}
+}]]></widget_parameters>
+    </sp_instance>
+    <sys_translated_text action="delete_multiple" query="documentkey=fa889299db337700ff7c294648961915"/>
+</record_update>

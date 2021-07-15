@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_transform_script">
+    <sys_transform_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <map display_value="vRA Machines Transform map">444d2c641beb3300e61b21b6bc4bcb93</map>
+        <order>100</order>
+        <script><![CDATA[(function runTransformScript(source, map, log, target /*undefined onStart*/ ) {
+
+	var pGr = new GlideRecord('sys_plugins');
+	pGr.addQuery('source', 'com.snc.cmdb.scoped');
+	pGr.query();
+	if (!pGr.next()) {
+		error_message = 'Configuration Management For Scoped Apps CMDB (com.snc.cmdb.scoped) plugin is not installed.';
+		error = true;
+	}
+
+
+
+})(source, map, log, target);]]></script>
+        <sys_class_name>sys_transform_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-09-11 08:13:36</sys_created_on>
+        <sys_id>189659732fc3101037ea59ab2799b6dd</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>onStart</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_transform_script_189659732fc3101037ea59ab2799b6dd</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-09-11 08:13:36</sys_updated_on>
+        <when>onStart</when>
+    </sys_transform_script>
+</record_update>

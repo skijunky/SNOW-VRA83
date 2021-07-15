@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.vRAOAuthUtil</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>vRAOAuthUtil</name>
+        <script><![CDATA[var vRAOAuthUtil = Class.create();
+vRAOAuthUtil.prototype = {
+    initialize: function() {
+        this.appUtil = new CASAppUtil();
+    },
+
+    processAuthCode: function(auth_code, state) {
+        try {
+            CASLogger.debug('Inside the vRAOAuthUtil.processAuthCode.');
+            var token_url = '';
+            var redirect_url = '';
+            var base64Auth = '';
+            var client_id = '';
+            var client_secret = '';
+
+            var userProfile = new GlideRecord(this.appUtil.configuration.table.oauthToken);
+            userProfile.addQuery('state', state);
+            userProfile.addQuery('user', gs.getUserID());
+            userProfile.query();
+            if (userProfile.next()) {
+                token_url = userProfile.endpoint.token_url;
+				redirect_url = userProfile.endpoint.redirect_url;
+                client_secret = userProfile.endpoint.client_secret.getDecryptedValue();
+                client_id = userProfile.endpoint.client_id;
+
+                var body = "grant_type=authorization_code&code=" + auth_code + "&redirect_uri=" + redirect_url;
+                base64Auth = gs.base64Encode(client_id + ':' + client_secret);
+                var response = this.appUtil.makeApiCall(token_url, 'post', body, '', "application/json", "application/x-www-form-urlencoded", 'Basic ' + base64Auth);
+
+                if (response.haveError()) {
+                    CASLogger.error('REST call error found inside vRAOAuthUtil.processAuthCode : ' + response.getErrorMessage());
+                    return false;
+                } else {
+                    var responseBody = response.getBody();
+                    if (this.updateToken(response, state))
+                        return true;
+                    else
+                        return false;
+                }
+            }else{
+				return false;
+			}
+        } catch (ex) {
+            CASLogger.error('Exception caught inside the vRAOAuthUtil.processAuthCode ' + ex);
+            return false;
+        }
+    },
+
+    updateToken: function(response, state) {
+        try {
+            var responseBody = response.getBody();
+            var respBody = this.appUtil.parse(responseBody);
+            var refreshToken = respBody.refresh_token;
+			
+            var tokenGR = new GlideRecord(this.appUtil.configuration.table.oauthToken);
+            tokenGR.addQuery('user', gs.getUserID());
+            tokenGR.addQuery('state', state + '');
+            tokenGR.query();
+            if (tokenGR.next()) {
+                tokenGR.token_received = refreshToken;
+                tokenGR.type = 'refresh_token';
+                tokenGR.user = gs.getUserID();
+                tokenGR.state = state.toString();
+                tokenGR.active = true;
+                tokenGR.update();
+                return true;
+            } else {
+                return false;
+            }
+			
+        } catch (e) {
+            CASLogger.error('Exception caught inside the CASDaoUtil.updateToken ' + e);
+            return false;
+        }
+    },
+
+    getOAuthStateCode: function(endpoint) {
+        try {
+            var userID = gs.getUserID();
+            var state = '';
+            var result = {};
+            var vra = new GlideRecord(this.appUtil.configuration.table.register_cas);
+            vra.get(endpoint + '');
+
+            result = {
+                "state": state + '',
+                "client_id": vra.client_id + '',
+                "auth_url": vra.authorization_url + '',
+                "redirct_url": vra.redirect_url + '',
+				"orgID": vra.organization_id + ''
+            };
+
+            var tokens = new GlideRecord(this.appUtil.configuration.table.oauthToken);
+            tokens.addQuery('user', userID);
+            tokens.addQuery('endpoint', endpoint + '');
+            tokens.query();
+            if (tokens.hasNext()) {
+                if (tokens.next()) {
+                    state = tokens.state;
+                }
+                result.state = state + '';
+                return JSON.stringify(result);
+            } else {
+                state = Math.floor(Math.random() * (99999999999 - 1000 + 1)) + 1000;
+                tokens.initialize();
+                tokens.endpoint = endpoint + '';
+                tokens.user = userID;
+                tokens.state = state + '';
+                tokens.type = 'refresh_token';
+                tokens.insert();
+
+                result.state = state + '';
+                return JSON.stringify(result);
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRARegistervRA.getOAuthStateCode " + e);
+            return false;
+        }
+    },
+
+    manageTokens: function() {
+        try {
+            var tokens = new GlideRecord(this.appUtil.configuration.table.oauthToken);
+            tokens.addQuery('active', true);
+            tokens.query();
+            while (tokens.next()) {
+                var url = "https://console.cloud.vmware.com"+this.appUtil.configuration.api.validateOauthToken;
+                var body = "token=" + tokens.token_received.getDecryptedValue();
+                var base64Auth = gs.base64Encode(tokens.endpoint.client_id + ':' + tokens.endpoint.client_secret.getDecryptedValue());
+                var response = this.appUtil.makeApiCall(url, 'post', body, '', "application/json", "application/x-www-form-urlencoded", 'Basic ' + base64Auth);
+
+                if (response.haveError()) {
+                    CASLogger.error('REST call error found inside getVersionsvRA.manageTokens : ' + response.getErrorMessage());
+                } else {
+                    var responseBody = response.getBody();
+                    var respBody = this.appUtil.parse(responseBody);
+                    var isActive = respBody.active;
+                    tokens.active = isActive;
+                    tokens.update();
+                }
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAOAuthUtil.manageTokens " + e);
+        }
+    },
+
+    type: 'vRAOAuthUtil'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-11-27 12:07:18</sys_created_on>
+        <sys_id>906eeae01bf8a0109fb21067bc4bcbd3</sys_id>
+        <sys_mod_count>39</sys_mod_count>
+        <sys_name>vRAOAuthUtil</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_906eeae01bf8a0109fb21067bc4bcbd3</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-03-03 10:33:03</sys_updated_on>
+    </sys_script_include>
+</record_update>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>Entitlement_Updation_grp_email_script</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript( /* GlideRecord */ current, /* TemplatePrinter */ template,
+											/* Optional EmailOutbound */
+											email, /* Optional GlideRecord */ email_action,
+											/* Optional GlideRecord */
+											event) {
+
+	// Add your code here.
+	try {
+		CASLogger.debug("Inside EmailScript : Entitlement Email Notification for Update Operation");
+
+
+		var appUtil = new CASAppUtil();
+		var impactedUser=event.parm2;	
+		var a=impactedUser.toString();
+		var groupRecievers = a.split(',');		
+		
+		var group = new GlideRecordSecure(appUtil.configuration.table.group_users_member);
+		group.addQuery("group", groupRecievers);
+		group.query();
+
+		var preGroup = '';
+
+		while (group.next()) {
+			//email trigger for Group Email ID.
+			if(group.group.active == true){
+				if (preGroup != group.group.name) {
+					if (group.group.email != '' && group.group.email != event.parm1) {
+						email.addAddress("bcc", group.group.email + '', group.group.name + '');
+					}
+					preGroup = group.group.name;
+				}
+
+				//email trigger for Group's Members Email ID
+				if (group.user.email != '' && group.user.email != event.parm1 && group.user.active == true) email.addAddress("bcc", group.user.email + '', group.user.name + '');
+	
+			}
+		}
+
+
+
+		//get the Endpoint Active Status.
+		var endpointStatus = current.active ? "Active" : "Deactive";
+
+
+		template.print(
+			"<div style='height: inherit; width: 100%; padding: 4px; text-align: center; background-color: #ffffbf; margin: 10px 0px 20px; font-family: arial; font-weight: 400; font-size: 19px;'><strong>Entitlement Details</strong></div><div style='margin: 10px 0px 10px 0px;font-family: arial; font-size: 14.5px;'><p>Hi,</p><p>The Entitlement has been Updated with following details.</p><br/></div><table style='font-family: arial; border-collapse: collapse; width: 100%; margin-top: -30px; height: 120px;'><tbody><!--<tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Entitlement Name</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + current.name + "<br /></strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Description</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" +(current.description == '' ? '-' : current.description)+ "</strong></td></tr>--><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Endpoint Name</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + current.getDisplayValue('endpoint') + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Entitlement Status</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + endpointStatus + "<br /></strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Deployment Actions</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + (current.getDisplayValue('deployment_actions') == '' ? '-' : current.getDisplayValue('deployment_actions')) + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Machine Actions</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + (current.getDisplayValue('machine_actions') == '' ? '-' : current.getDisplayValue('machine_actions')) + "</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Projects</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + current.getDisplayValue('select_projects') + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Catalog Items</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + (current.getDisplayValue('select_catalog_items') == '' ? '-' : current.getDisplayValue('select_catalog_items')) + "</strong></td></tr><!--<tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Created By</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + current.sys_created_by + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Created on</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + current.sys_created_on + "</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Updated By</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + current.sys_updated_by + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Updated on</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + current.sys_updated_on + "</strong></td></tr>--></tbody></table>"
+		); 
+
+	} catch (e) {
+		CASLogger.error("Exception caught inside EmailScript : Entitlement Email Notification for Update Operation " + e);
+	}
+
+
+})(current, template, email, email_action, event);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-03-29 08:08:44</sys_created_on>
+        <sys_id>d99d925edb3300102dd0d1b1ca961938</sys_id>
+        <sys_mod_count>43</sys_mod_count>
+        <sys_name>Entitlement_Updation_grp_email_script</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_email_d99d925edb3300102dd0d1b1ca961938</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-04-30 12:04:53</sys_updated_on>
+    </sys_script_email>
+</record_update>

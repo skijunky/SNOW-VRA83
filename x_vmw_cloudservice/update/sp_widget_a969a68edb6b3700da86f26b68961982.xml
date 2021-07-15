@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope) {
+  /* widget controller */
+  var c = this;
+	
+	//-------------------------------toggleOrganization method----------------------------
+	//USAGE: For selecting organizations and highlighting the selected items
+	//PARAMS: sysId--> contains the sys_id of organizations selected
+	//VALUE:	sysId--> STRING
+	$scope.toggleOrganization = function(sysId) {
+		c.data.selectedOrganization = (c.data.selectedOrganization != null) ? (c.data.selectedOrganization != sysId)? sysId : null : sysId;
+	}
+	
+	//-------------------------------toggleProject method----------------------------
+	//USAGE: For selecting projects and highlighting the selected items
+	//PARAMS: sysId--> contains the sys_id of projects selected
+	//VALUE:	sysId--> STRING
+	$scope.toggleProject = function(sysId) {
+		c.data.selectedProject = (c.data.selectedProject != null) ? (c.data.selectedProject != sysId)? sysId : null : sysId;
+	}
+	
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.cas-clr-vertical-nav {
+  height: calc(100vh - 96px); 
+}
+.cas-nav-link:hover, .cas-nav-group-trigger:hover {
+  background-color: #cccccc;
+}
+.wdg-close {
+  .cas-nav-group-children {
+    display: none;
+  }
+}
+.wdg-open {
+  .cas-nav-group-trigger-icon {
+    transform: rotate(90deg);
+  }
+  .cas-nav-group-children {
+    display: block
+  }
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_left_dropdown</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>cas_left_dropdown</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	var appUtil = new CASAppUtil();
+	var page = $sp.getParameter('id');
+	if (page == appUtil.configuration.page.deploymentDetail) {
+		page = ($sp.getParameter('list') == 'true') ? appUtil.configuration.page.deploymentList : appUtil.configuration.page.deploymentCard;
+	}
+	//----------------------------------canReadProjects method-----------
+	//USAGE: For checking whether specific project is entitled to user or not
+	//PARAMS: sysid--> sys_id of specific project
+	//VALUE: sysid--> STRING
+	var canReadProjects = function(sysid) {
+		try {
+			CASLogger.debug('Inside CAS_organizationsCategory.canReadProjects Widget: For checking whether specific project is entitled to logged in user or not.');
+			var entitle = new CASEntitlementUtil(); 
+			return entitle.checkEntitlementProjects(sysid);
+		} catch(e) {
+			CASLogger.error('Exception caught inside CAS_organizationsCategory.canReadProjects Widget: ' + e);
+		}
+	}
+
+	//----------------------------------canReadCatalog method-----------
+	//USAGE: For checking whether specific catalog is entitled to user or not
+	//PARAMS: sysid--> sys_id of specific catalog
+	//VALUE: sysid--> STRING 
+	var canReadCatalog = function(sysid) {
+		try {
+			CASLogger.debug('Inside CAS_organizationsCategory.canReadCatalog Widget: For checking whether specific catalgo is entitled to logged in user or not.');
+			var entitle = new CASEntitlementUtil();
+			return entitle.checkEntitlementItems(sysid);
+		} catch(e) {
+			CASLogger.error('Exception caught inside CAS_organizationsCategory.canReadCatalog Widget: ' + e);
+		}
+	}
+
+	//----------------------------------fetchProjects method-----------
+	//USAGE: For getting the projects JSON and assigning it to valid organization JSON structure
+	//PARAMS: organizationSysId--> SysId of organization passed from previous method
+	//VALUE: organizationSysId--> String
+	var fetchProjects = function(paramObject) {
+		try {
+			CASLogger.debug('Inside CAS_organizationsCategory.fetchProjects Widget: Used for fetching the projects for specific organization');
+
+			var projectGR = new GlideRecordSecure(appUtil.configuration.table.project);
+			projectGR.addEncodedQuery('organization='+paramObject.sysId);
+			projectGR.query();
+			var projectJSON = {};
+			while(projectGR.next()) {
+				//if (canReadCategory(categoryGR.sys_id) || gs.hasRole('admin')) {
+				projectJSON[projectGR.sys_id] =
+					{
+					'name' : projectGR.project_name.getDisplayValue() + '',
+					'sys_id' : projectGR.sys_id+ '',
+					'link' : '?id='+page+'&showP=false&proj_id='+projectGR.sys_id+'&org_id='+paramObject.sysId + '&org_name=' + paramObject.name + '&proj_name=' + projectGR.project_name.getDisplayValue()+'&list='+$sp.getParameter('list')
+				};
+				//}
+			}
+			return projectJSON;
+		} catch(e) {
+			CASLogger.error('Exception caught inside CAS_organizationsCategory.fetchProjects Widget: '+e);
+		}
+	};
+
+	//----------------------------------fetchOrganizations method-----------
+	//USAGE: For creating the Organizations JSON 
+	//PARAMS: NA
+	//VALUE: NA
+	var fetchOrganizations = function() {
+		try {
+			CASLogger.debug('Inside CAS_organizationsCategory.fetchOrganizations Widget: ');
+
+			var organizationsArray = [];
+		var organizationsGR = new GlideRecordSecure(appUtil.configuration.table.register_cas);
+
+
+
+
+
+			organizationsGR.query();
+			while(organizationsGR.next()) {
+				var organizationsJSON = {
+					'name' : organizationsGR.name.getDisplayValue()+'',
+					'sys_id' : organizationsGR.sys_id.getDisplayValue() + '',
+					'link' : '?id='+page+'&showP=true&org_id='+organizationsGR.sys_id + '&org_name=' + organizationsGR.name.getDisplayValue()+'&list='+$sp.getParameter('list')
+				};
+				organizationsJSON['projects'] = fetchProjects({sysId: organizationsGR.sys_id.getDisplayValue(), name: organizationsGR.name.getDisplayValue()});
+				organizationsArray.push(organizationsJSON);
+			}
+/*
+
+
+			var agg = new GlideAggregate('x_vmw_cloudservice_cas_catalog_items');
+			agg.addQuery('sys_idIN844fce0edbe73700da86f26b68961904,8c4f8e0edbe73700da86f26b689619d6')
+			agg.addAggregate('count');
+			//agg.addAggregate('count(distinct','category');
+			//agg.addQuery('opened_at', '>=', 'javascript:gs.monthsAgoStart(2)');
+			//agg.addQuery('opened_at', '<=', 'javascript:gs.monthsAgoEnd(2)');
+			//
+			agg.groupBy('category');
+			agg.query();
+			var organizationsJSON={};
+			while (agg.next()) {
+				if(typeof organizationsJSON[agg.category]=='undefined'){
+					organizationsJSON[agg.category].push({"label":agg.category.getDisplayValue(),"count":agg.getAggregate()});
+				}
+				//organizationsJSON['projects'] = fetchProjects({sysId: organizationsGR.sys_id.getDisplayValue(), name: organizationsGR.name.getDisplayValue()});
+				//organizationsArray.push(organizationsJSON);
+			
+			}
+			gs.addErrorMessage(JSON.stringify(organizationsJSON));
+*/
+			return organizationsArray;
+		} catch(e) {
+			CASLogger.error('Exception caught inside CAS_organizationsCategory.fetchOrganizations Widget: '+e);
+		}
+	};
+
+	try {
+		CASLogger.debug('Inside CAS_organizationsCategory Widget:');
+		data.selectedOrganization = $sp.getParameter('org_id');
+		data.selectedProject = $sp.getParameter('proj_id');
+		data.selectedCatalog = $sp.getParameter('cat_id');
+		data.header = 'Categories';
+		data.JSON = fetchOrganizations();
+	} catch(e) {
+		CASLogger.error('Exception caught inside CAS_organizationsCategory Widget: '+e);
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-08-30 07:55:01</sys_created_on>
+        <sys_id>a969a68edb6b3700da86f26b68961982</sys_id>
+        <sys_mod_count>9</sys_mod_count>
+        <sys_name>cas_left_dropdown</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_a969a68edb6b3700da86f26b68961982</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-01-13 10:23:21</sys_updated_on>
+        <template><![CDATA[<div class="cas-clr-vertical-nav cas-has-nav-groups">
+  <button class="cas-nav-trigger" type="button">
+    <div style="padding-left: 24px;font-weight: bold;color: #565656;">Categories</div>
+  </button>
+  <div class="cas-nav-content">
+    <div class="cas-nav-group wdg-close" 
+         ng-class='{"wdg-open": c.data.selectedOrganization == organization.sys_id}'
+         ng-repeat='organization in c.data.JSON'>
+      <div class="cas-nav-group-content" onclick="toggleOrganization(this)">
+        <a class="cas-nav-group-trigger" href="{{organization.link}}">
+          <div class="cas-nav-group-text">{{organization.name}}</div>
+          <cas-clr-icon class="cas-nav-group-trigger-icon" shape="angle" role="none" dir="right" title="Collapse"><span class="is-off-screen" id="_clr_icon_4">Collapse</span></cas-clr-icon>
+        </a>
+      </div>
+      <div class="cas-nav-group-children wdg-project" 
+           ng-class='{"wdg-project-selected": c.data.selectedOrganization == organization.sys_id}'>
+        <a href="{{project.link}}" 
+           class="cas-nav-link" 
+
+           ng-click='toggleProject(project.sys_id)' 
+           ng-class='{"cas-active": c.data.selectedProject == project.sys_id}'
+           ng-repeat="project in organization.projects">{{project.name}}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleOrganization (element) {
+    if ($(element).parent().hasClass('wdg-open')) {
+      $(element).parent().removeClass('wdg-open').addClass('wdg-close');
+    } else {
+      $(element).parent().removeClass('wdg-close').addClass('wdg-open');
+    }
+  }
+</script>]]></template>
+    </sp_widget>
+</record_update>

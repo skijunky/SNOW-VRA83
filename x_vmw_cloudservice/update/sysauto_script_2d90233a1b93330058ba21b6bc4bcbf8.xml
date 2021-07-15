@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sysauto_script">
+    <sysauto_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <business_calendar/>
+        <condition/>
+        <conditional>true</conditional>
+        <entered_time/>
+        <name>vRA Import Resources and CMDB</name>
+        <run_as/>
+        <run_as_tz/>
+        <run_dayofmonth>1</run_dayofmonth>
+        <run_dayofweek>1</run_dayofweek>
+        <run_period>1970-01-01 00:20:00</run_period>
+        <run_start>2019-08-20 09:35:54</run_start>
+        <run_time>1970-01-01 20:00:00</run_time>
+        <run_type>periodically</run_type>
+        <script><![CDATA[(function(){
+	
+	var appUtil= new CASAppUtil();
+	var x = new CASDaoUtil();
+	try
+	{
+		var configurationChecks = gs.getProperty(appUtil.configuration.properties.configurationCheck);
+		if(configurationChecks == 'true')
+		{
+			CASLogger.debug('Inside Import Resources and CMDB Schedule Job');
+			x.ScheduleJobForCMDB(); 
+		}
+	}
+	catch(e)
+	{
+		CASLogger.error("Exception caught inside vRA Import Resources and CMDB"+e);
+	}
+
+
+})();]]></script>
+        <sys_class_name>sysauto_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-08-20 09:39:58</sys_created_on>
+        <sys_id>2d90233a1b93330058ba21b6bc4bcbf8</sys_id>
+        <sys_mod_count>13</sys_mod_count>
+        <sys_name>vRA Import Resources and CMDB</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sysauto_script_2d90233a1b93330058ba21b6bc4bcbf8</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-01-18 12:49:41</sys_updated_on>
+        <time_zone/>
+        <upgrade_safe>false</upgrade_safe>
+    </sysauto_script>
+</record_update>

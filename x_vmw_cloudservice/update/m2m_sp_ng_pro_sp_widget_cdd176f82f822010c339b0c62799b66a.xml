@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="m2m_sp_ng_pro_sp_widget">
+    <m2m_sp_ng_pro_sp_widget action="INSERT_OR_UPDATE">
+        <sp_angular_provider display_value="casClrIcon">215b5ff6db533300ff7c2946489619a5</sp_angular_provider>
+        <sp_widget display_value="CAS_SP_deploymentDetails">e433a1a407d020103a35f61d7c1ed039</sp_widget>
+        <sys_class_name>m2m_sp_ng_pro_sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2021-01-29 10:18:44</sys_created_on>
+        <sys_id>cdd176f82f822010c339b0c62799b66a</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>casClrIcon.CAS_SP_deploymentDetails</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>m2m_sp_ng_pro_sp_widget_cdd176f82f822010c339b0c62799b66a</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-01-29 10:18:44</sys_updated_on>
+    </m2m_sp_ng_pro_sp_widget>
+</record_update>

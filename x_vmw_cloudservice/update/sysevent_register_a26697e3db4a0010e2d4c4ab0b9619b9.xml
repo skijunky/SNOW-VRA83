@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sysevent_register">
+    <sysevent_register action="INSERT_OR_UPDATE">
+        <caller_access/>
+        <description>Trigger of email notifications !</description>
+        <event_name>x_vmw_cloudservice.sample_email_trigger</event_name>
+        <fired_by>Script : Business rule</fired_by>
+        <queue/>
+        <suffix>sample_email_trigger</suffix>
+        <sys_class_name>sysevent_register</sys_class_name>
+        <sys_created_by>ayush.aman</sys_created_by>
+        <sys_created_on>2020-01-06 09:41:34</sys_created_on>
+        <sys_id>a26697e3db4a0010e2d4c4ab0b9619b9</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.sample_email_trigger</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sysevent_register_a26697e3db4a0010e2d4c4ab0b9619b9</sys_update_name>
+        <sys_updated_by>dinesh.nikam</sys_updated_by>
+        <sys_updated_on>2020-01-13 08:13:32</sys_updated_on>
+        <table>sc_req_item</table>
+    </sysevent_register>
+</record_update>

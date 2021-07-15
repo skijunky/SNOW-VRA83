@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element extends="sys_import_set_row" label="Resources Import Set" max_length="40" name="x_vmw_cloudservice_vra_machines_import_set" sizeclass="0" type="collection">
+        <element label="CreatedAt" max_length="100" name="createdat" type="string"/>
+        <element label="DependsOn" max_length="1000" name="dependson" type="string"/>
+        <element label="DeploymentId" max_length="40" name="deploymentid" type="string"/>
+        <element label="id" max_length="200" name="id" type="string"/>
+        <element label="Name" max_length="200" name="name" type="string"/>
+        <element label="Organization" max_length="50" name="organization" type="string"/>
+        <element label="Properties" max_length="2000" name="properties" type="string"/>
+        <element label="State" max_length="30" name="state" type="string"/>
+        <element label="SyncStatus" max_length="100" name="syncstatus" type="string"/>
+        <element label="Type" max_length="100" name="type" type="string"/>
+    </element>
+</database>

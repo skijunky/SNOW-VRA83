@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="topic" label="Topic" language="en" table="x_vmw_cloudservice_cas_queue">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>topic</element>
+            <help/>
+            <hint/>
+            <label>Topic</label>
+            <language>en</language>
+            <name>x_vmw_cloudservice_cas_queue</name>
+            <plural>Topics</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-07-03 14:10:32</sys_created_on>
+            <sys_id>64235d631bde3300e61b21b6bc4bcb9d</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Topic</sys_name>
+            <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_documentation_x_vmw_cloudservice_cas_queue_topic_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-07-03 14:10:32</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>true</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>false</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_cas_catalog_entitlement</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRA Notify  when Entitlement is deleted</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+
+
+
+
+// 	var users=previous.entitled_users;
+// 	gs.error("check---------------------->"+users);
+// 	var group=previous.entitled_groups;
+	
+// 	var urg=users+','+group;
+	
+// 	var name=previous.getDisplayValue('name');
+// 	var description=previous.getDisplayValue('description');
+// 	var endpoint=previous.getDisplayValue('endpoint');
+// 	var select_projects=previous.getDisplayValue('select_projects');
+// 	var select_catalog_items=previous.getDisplayValue('select_catalog_items');
+// 	var active=previous.getDisplayValue('active');
+// 	var deployment_actions=previous.getDisplayValue('deployment_actions');
+// 	var machine_actions=previous.getDisplayValue('machine_actions');
+// 	var entitled_users=previous.getDisplayValue('entitled_users');
+// 	var entitled_groups=previous.getDisplayValue('entitled_groups');
+// 	//var cat= previous.getDisplayValue('select_projects');	
+
+
+
+// 	var Details ={"name": name, "description": description, "endpoint":endpoint, "select_projects":select_projects, "select_catalog_items":select_catalog_items,		
+// 				  "active":active,
+// 				  "deployment_actions":deployment_actions,
+// 				  "machine_actions":machine_actions};
+
+// // 	var parser = new JSON(); // Creates an instance of the JSON class.
+// // 	var formattedDetails = parser.encode(Details); // json formatted object
+
+// 	//gs.log('JSON object: '+ formattedDetails);
+// 	gs.eventQueue('x_vmw_cloudservice.entitlement_deletion', null, new global.JSON().encode(Details),urg);
+	var users=previous.entitled_users;
+	
+	 	gs.eventQueue('x_vmw_cloudservice.entitlement_deletion', previous, users);
+
+
+})(previous, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-02-03 11:18:32</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>faa8fbecdbb200102dd0d1b1ca96194d</sys_id>
+        <sys_mod_count>48</sys_mod_count>
+        <sys_name>vRA Notify  when Entitlement is deleted</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_faa8fbecdbb200102dd0d1b1ca96194d</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-03-20 11:09:53</sys_updated_on>
+        <template/>
+        <when>before</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=faa8fbecdbb200102dd0d1b1ca96194d"/>
+</record_update>

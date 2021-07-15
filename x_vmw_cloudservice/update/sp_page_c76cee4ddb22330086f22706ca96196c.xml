@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_page">
+    <sp_page action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <css>.body{
+  padding:0;
+}
+.custom-container-column{
+  padding:0;
+}
+.content-pane{
+  height:600px;
+}
+.clr-col-4{
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+}
+.no-padding{
+  padding: 0;
+}
+.container{
+  height:100vh;
+  width: 100%;
+  padding: 1rem;
+  background: #fafafa;
+}
+//top padding
+.top-padding{
+  padding-top:0.5rem;
+}
+.row-height{
+  height: calc(100vh - 96px);
+}
+.full-height{
+min-height:550px;
+height:auto;
+}
+
+section.page{
+  position: fixed;
+  overflow: auto;
+  top: 96px;
+	//dding-bottom:96px;
+}</css>
+        <draft>false</draft>
+        <dynamic_title_structure>VMware vRealize Automation ITSM Application</dynamic_title_structure>
+        <id>vra_homepage</id>
+        <internal>false</internal>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <seo_script/>
+        <short_description/>
+        <sys_class_name>sp_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-08 12:31:43</sys_created_on>
+        <sys_id>c76cee4ddb22330086f22706ca96196c</sys_id>
+        <sys_mod_count>37</sys_mod_count>
+        <sys_name>vra_homepage</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_page_c76cee4ddb22330086f22706ca96196c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-23 10:13:47</sys_updated_on>
+        <title>vRA_homepage</title>
+        <use_seo_script>false</use_seo_script>
+    </sp_page>
+    <sys_translated_text action="delete_multiple" query="documentkey=c76cee4ddb22330086f22706ca96196c"/>
+</record_update>

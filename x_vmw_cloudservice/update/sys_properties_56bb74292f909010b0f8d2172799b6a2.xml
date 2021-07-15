@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="INSERT_OR_UPDATE">
+        <choices/>
+        <description>The api url for different geographical locations could be different. Please confirm the api url for your location with VMware support..</description>
+        <ignore_cache>true</ignore_cache>
+        <is_private>false</is_private>
+        <name>x_vmw_cloudservice.cloud_API_endpoint_URL</name>
+        <read_roles>admin,x_vmw_cloudservice.vra_catalog_admin</read_roles>
+        <suffix>cloud_API_endpoint_URL</suffix>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-04-20 13:38:29</sys_created_on>
+        <sys_id>56bb74292f909010b0f8d2172799b6a2</sys_id>
+        <sys_mod_count>20</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.cloud_API_endpoint_URL</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_properties_56bb74292f909010b0f8d2172799b6a2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-29 13:07:06</sys_updated_on>
+        <type>string</type>
+        <value>https://api.mgmt.cloud.vmware.com,https://au.api.mgmt.cloud.vmware.com,https://de.api.mgmt.cloud.vmware.com</value>
+        <write_roles>x_vmw_cloudservice.vra_catalog_admin,admin</write_roles>
+    </sys_properties>
+    <sys_translated_text action="delete_multiple" query="documentkey=56bb74292f909010b0f8d2172799b6a2"/>
+</record_update>

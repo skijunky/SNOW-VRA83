@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_transform_script">
+    <sys_transform_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <map display_value="vRA Machines Transform map">444d2c641beb3300e61b21b6bc4bcb93</map>
+        <order>100</order>
+        <script><![CDATA[(function runTransformScript(source, map, log, target /*undefined onStart*/ ) {
+    try {
+        this.appUtil = new CASAppUtil();
+        var operational_status = '1';
+        var install_status = '1';
+        var get = new CASDaoUtil().getProjectId(source.deploymentid);
+        var project = get;
+
+        var payload = {
+            "items": [{
+                "className": 'x_vmw_cloudservice_machines',
+                "values": {
+                    "syncstatus": source.syncstatus + '',
+                    "createdat": source.createdat + '',
+                   // "name": source.name + '',
+                    "machine_id": source.id + '',
+                    "state": source.state + '',
+                    "type": source.type + '',
+                    "deploymentid": source.deploymentid + '',
+                    "operational_status": operational_status + '',
+                    "install_status": install_status + '',
+                    "project": project + '',
+                    "object_id": source.id + '',
+                },
+                "lookup": [],
+            }]
+        };
+
+        var obj = this.appUtil.parse(source.properties);
+
+        if (obj.type != null) {
+            payload["items"][0]["values"]["u_type"] = obj.type;
+        }
+		//changes done as per requirement in V-SNOW1412
+        if (obj.resourceName != null) {
+            payload["items"][0]["values"]["machine_name"] = obj.resourceName;
+        }
+		
+		if(obj.resourceName !=null)
+		{
+			payload["items"][0]["values"]["name"] = obj.resourceName;
+		}
+
+        if (obj.name != null) {
+            payload["items"][0]["values"]["resource_name"] = obj.name;
+        }
+
+        if (obj.capacityGb != null) {
+            payload["items"][0]["values"]["capacity_gb"] = obj.capacityGb;
+        }
+        if (obj.host != null) {
+            payload["items"][0]["values"]["host_schema"] = this.appUtil.stringify(obj.host);
+        }
+        if (obj.encrypted != null) {
+            payload["items"][0]["values"]["encrypted"] = obj.encrypted;
+        }
+        if (obj.status != null) {
+            payload["items"][0]["values"]["attachment_status"] = obj.status;
+        }
+        if (obj.region != null) {
+            payload["items"][0]["values"]["region"] = obj.region;
+        }
+        if (obj.account != null) {
+            payload["items"][0]["values"]["account"] = obj.account;
+        }
+
+        if (obj.account != null && obj.region != null) {
+            payload["items"][0]["values"]["account_region"] = obj.account + '/' + obj.region;
+        }
+        if (obj.zone != null) {
+            payload["items"][0]["values"]["zone"] = obj.zone;
+        }
+        if (obj.endpointType != null) {
+            payload["items"][0]["values"]["endpointtype"] = obj.endpointType;
+        }
+        if (obj.powerState != null) {
+            payload["items"][0]["values"]["status"] = obj.powerState;
+        }
+        if (obj.storage != null) {
+            payload["items"][0]["values"]["storage"] = this.appUtil.stringify(obj.storage);
+        }
+        if (obj.networks != null) {
+            payload["items"][0]["values"]["network_schema"] = this.appUtil.stringify(obj.networks);
+        }
+        if (obj.address != null) {
+            payload["items"][0]["values"]["address"] = obj.address;
+        }
+        if (obj.volumeType != null) {
+            payload["items"][0]["values"]["volumetype"] = obj.volumeType;
+        }
+        if (obj.externalLink != null) {
+            payload["items"][0]["values"]["externallink"] = obj.externalLink;
+        }
+
+        if (obj.nodeUUID != null) {
+            payload["items"][0]["values"]["node_uuid"] = obj.nodeUUID;
+        }
+        if (obj.environment != null) {
+            if ((typeof obj.environment) != 'object') {
+                payload["items"][0]["values"]["environment"] = obj.environment;
+            }
+        }
+        if (obj.role != null) {
+            payload["items"][0]["values"]["role"] = obj.role;
+        }
+        if (obj.networkType != null) {
+            payload["items"][0]["values"]["network_type"] = obj.networkType;
+        }
+        if (obj.workflowName != null) {
+            payload["items"][0]["values"]["workflow_name"] = obj.workflowName;
+        }
+        if (obj.workflowId != null) {
+            payload["items"][0]["values"]["workflow_id"] = obj.workflowId;
+        }
+        if (obj.stackGeneratedName) {
+            payload["items"][0]["values"]["stack_name"] = obj.stackGeneratedName;
+        }
+        if (obj.inputs) {
+            payload["items"][0]["values"]["inputs"] = this.appUtil.stringify(obj.inputs);
+        }
+        if (obj.outputs != null && obj.outputs != '{}') {
+            payload["items"][0]["values"]["outputs"] = this.appUtil.stringify(obj.outputs);
+        }
+        if (obj.resources != null) {
+            payload["items"][0]["values"]["resources"] = this.appUtil.stringify(obj.resources);
+        }
+
+        if (obj.id != null && source.type == 'vro.workflow') {
+            if (obj.id != null) {
+                payload["items"][0]["values"]["workflow_run_id"] = obj.id;
+            }
+            if (obj.startedOn != null) {
+                var startDate = obj.startedOn;
+                var IntDate = parseInt(startDate);
+                var actualDate = new Date(IntDate);
+                var date = actualDate.toISOString();
+                var actualdate = new Date(date);
+                payload["items"][0]["values"]["started_on"] = actualdate.toString();
+            }
+
+            if (obj.completedOn != null) {
+                var CompleteDate = obj.completedOn;
+                var IntComDate = parseInt(CompleteDate);
+                var actualComDate = new Date(IntComDate);
+                var date = actualComDate.toISOString();
+                var actualdate = new Date(date);
+                payload["items"][0]["values"]["completed_on"] = actualdate.toString();
+            }
+        }
+
+        if (source.type == 'aws.cft') {
+            if (obj.status != null) {
+                payload["items"][0]["values"]["status"] = obj.status;
+            }
+            payload["items"][0]["values"]["attachment_status"] = '';
+        }
+
+        if (source.type == 'abx.action' || source.type == 'Cloud.vSphere.Machine' || source.type == 'Cloud.AWS.EC2.Instance') {
+            if (obj.id != null) {
+                payload["items"][0]["values"]["id"] = obj.id;
+            }
+        }
+
+        if (source.type == 'Cloud.LoadBalancer' || source.type == 'Cloud.NSX.LoadBalancer') {
+
+            if (obj.address != null) {
+                payload["items"][0]["values"]["address"] = obj.address;
+            }
+
+            if (obj.routes != null) {
+                payload["items"][0]["values"]["routes_schema"] = this.appUtil.stringify(obj.routes);
+            }
+        }
+
+        var PropertiesImport = this.appUtil.parse(source.properties);
+        var objectProp = {
+            "properties": PropertiesImport
+        };
+        var stringProp = JSON.stringify(objectProp);
+        var objCustom = this.appUtil.parse(stringProp);
+
+        var key;
+
+        var resourceList = gs.getProperty(this.appUtil.configuration.properties.resourceExlusion);
+
+        var prop = objCustom.properties;
+
+        for (key in prop) {
+            var check = resourceList.indexOf(key);
+
+            if (check > -1) {
+                delete prop[key];
+            }
+
+        }
+
+        payload["items"][0]["values"]["custom_properties_schema"] = this.appUtil.stringify(prop);
+
+        var jsonUntil1 = new global.JSON();
+        var input1 = jsonUntil1.encode(payload);
+        var output1 = sn_cmdb.IdentificationEngine.createOrUpdateCI('ITSM 8.x', input1);
+        //var pasrseOutput = JSON.parse(output1);
+		
+    } catch (e1) {
+        CASLogger.error("Exception caught Inside onBefore Script of vRA Machines Transform map" + e1);
+    }
+	
+	ignore = true;
+    var addTopic = new CASDaoUtil();
+    var deploymentId = source.deploymentid;
+    var resourceId = source.id;
+    var organization = source.organization;
+    new addTopic.insert("startImportActionForResource", deploymentId, resourceId, organization);
+	
+
+})(source, map, log, target);]]></script>
+        <sys_class_name>sys_transform_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-09-11 07:26:13</sys_created_on>
+        <sys_id>83bb09bf2f43101037ea59ab2799b634</sys_id>
+        <sys_mod_count>51</sys_mod_count>
+        <sys_name>onBefore</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_transform_script_83bb09bf2f43101037ea59ab2799b634</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-01-28 07:54:55</sys_updated_on>
+        <when>onBefore</when>
+    </sys_transform_script>
+</record_update>

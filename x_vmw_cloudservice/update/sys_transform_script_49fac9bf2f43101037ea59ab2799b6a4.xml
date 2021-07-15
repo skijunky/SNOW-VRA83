@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_transform_script">
+    <sys_transform_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <map display_value="vRA Deployments Transfrom Map">c7ec66e5dbd33300da86f26b68961932</map>
+        <order>100</order>
+        <script><![CDATA[(function runTransformScript(source, map, log, target /*undefined onStart*/ ) {
+
+    var appUtil = new CASAppUtil();
+    var vra_owner = '';
+    var operational_status = '1';
+    var install_status = '1';
+    var expired = false;
+    var UserEmail = source.deployment_createdby;
+    var gr = new GlideRecord("sys_user");
+    var oRContition=gr.addQuery("email", UserEmail);
+	oRContition.addOrCondition('user_name',UserEmail);
+    gr.query();
+    if (gr.next()) {
+        vra_owner = gr.sys_id;
+    }
+
+    var removeUnderscore = source.deployment_status;
+    var status = removeUnderscore.replace(/_/g, ' ');
+    var projectId = source.projectid;
+    var organization = source.organization;
+    var projectCheck = new CASDaoUtil().transformProjectCheck(projectId, organization);
+    var u_project = '';
+    var test = '';
+    if (projectCheck) {
+        u_project = projectCheck;
+        test = projectId;
+    }
+
+    var expires_on = '';
+
+    if (source.expires_on != '') {
+        var expireDate = source.expires_on.toString().replace('Z', ".000Z");
+        expires_on = Date.parse(expireDate).toString();
+
+        var currentDate = new Date();
+        if (expires_on < currentDate.getTime())
+            expired = true;
+    }
+
+    var created_at = source.deployment_createdat;
+
+    if (source.deployment_createdat != '') {
+        var regexp = new RegExp('.[0-9]+Z');
+        var spliteTime = regexp.exec(source.deployment_createdat.toString()).toString();
+        var milliseconds = spliteTime.substring(1, 4);
+        var finalDate = source.deployment_createdat.toString().replace(spliteTime, '.' + milliseconds + 'Z');
+
+        created_at = Date.parse(finalDate).toString();
+    }
+
+    var UpdatedDate = source.deployment_lastupdatedat;
+	if (source.deployment_lastupdatedat != '') {
+        var regexp = new RegExp('.[0-9]+Z');
+        var spliteTime = regexp.exec(source.deployment_lastupdatedat.toString()).toString();
+        var milliseconds = spliteTime.substring(1, 4);
+        var finalDate = source.deployment_lastupdatedat.toString().replace(spliteTime, '.' + milliseconds + 'Z');
+
+        UpdatedDate = Date.parse(finalDate).toString();
+    }
+    //getDate = appUtil.dateFormat(UpdatedDate);
+    var last_updated_at = UpdatedDate;
+
+    var ExpenseObj = appUtil.parse(source.expense);
+    var last_updated_time = '';
+    var unit = '';
+    var message = '';
+    var code = '';
+
+    try {
+        if (ExpenseObj.lastUpdatedTime != null) {
+            var getLastUpdate = ExpenseObj.lastUpdatedTime;
+            getDate = appUtil.dateFormat(getLastUpdate);
+            last_updated_time = getDate;
+        }
+        if (ExpenseObj.unit != null) {
+            unit = ExpenseObj.unit;
+
+        }
+        if (ExpenseObj.message != null) {
+            message = ExpenseObj.message;
+
+        }
+        if (ExpenseObj.code != null) {
+            code = ExpenseObj.code;
+
+        }
+    } catch (e) {
+        CASLogger.info("Exception caught Inside onBefore Script for ExpenseObj" + e);
+    }
+
+    var payload = {
+        "items": [{
+            "className": 'x_vmw_cloudservice_deployments',
+            "values": {
+                "name": source.u_name + '',
+                "deployment_id": source.deployment_id + '',
+                "blueprint_version": source.blueprint_version + '',
+                "expires_on": expires_on + '',
+                "catalog_version": source.catalog_item_version + '',
+                "last_updated_by": source.deploymebt_lastupdatedby + '',
+                "catalog_id": source.catalog_item_id + '',
+                "bluprint_id": source.blueprintid + '',
+                "organization_id": source.orgid + '',
+                "short_description": source.description + '',
+                "vra_owner": vra_owner + '',
+                "status": status + '',
+                "u_project": u_project + '',
+                "test": test + '',
+                "expired": expired,
+                "created_at": created_at + '',
+                "last_updated_at": last_updated_at,
+                "last_updated_time": last_updated_time + '',
+                "unit": unit + '',
+                "message": message + '',
+                "code": code + '',
+				"operational_status" : operational_status+'',
+				"install_status" : "install_status"+'',				
+            },
+            "lookup": [],
+        }]
+    };
+
+    try {
+        var jsonUntil1 = new global.JSON();
+        var input1 = jsonUntil1.encode(payload);
+        var output1 = sn_cmdb.IdentificationEngine.createOrUpdateCI('ITSM 8.x', input1);
+        //var pasrseOutput = JSON.parse(output1);
+        //var sys_id = pasrseOutput.items[0].sysId;
+		
+    } catch (e1) {
+        CASLogger.error("Exception caught Inside onBefore Script for vRA Deployments Transfrom Map" + e1);
+    }
+	
+    ignore = true;
+
+    var addTopic = new CASDaoUtil();
+    var deploymentId = source.deployment_id;
+    var org = source.organization;
+    new addTopic.insert("startImportActionForDeployment", "", deploymentId, org);
+
+})(source, map, log, target);]]></script>
+        <sys_class_name>sys_transform_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-09-11 07:22:53</sys_created_on>
+        <sys_id>49fac9bf2f43101037ea59ab2799b6a4</sys_id>
+        <sys_mod_count>29</sys_mod_count>
+        <sys_name>onBefore</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_transform_script_49fac9bf2f43101037ea59ab2799b6a4</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-02-05 12:10:08</sys_updated_on>
+        <when>onBefore</when>
+    </sys_transform_script>
+</record_update>

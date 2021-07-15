@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function ($scope, $location, $rootScope, $window) {
+	/* widget controller */
+	var c = this;
+	$scope.redirectTo = function (category) {
+		$location.search({
+			'id': category
+		});
+	}
+	$rootScope.$on('updatedJSONFooter', function (event, result) {
+		c.data.json = result;
+		c.server.update();
+	});
+
+	$scope.$on('sp_loading_indicator', function (e, value) {
+		c.data.loaderShow = value;
+	});
+
+	$scope.$on('version_loader_indicator', function (e, value) {
+		c.data.versionAvailable = value;
+	});
+
+	$scope.$on('sp_loading_indicator_for_catalog_submit', function (e, value) {
+		c.data.loaderShow = value;
+		c.data.submitCatalogForm = value;
+	});
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.cas-subnav {
+  width: 100%;
+}
+.loader-container {
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  z-index: 2000 !important;
+  top:0;
+  left:0;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0, 0.3);
+  overflow-x: hidden;
+  color:#ffffff;
+  text-align:center;
+}
+
+.loadtext{
+  position:absolute;
+  top:50%;
+  z-index:2000 !important;
+  left:50%;
+	font-size:22px;
+  font-weight:400;
+}
+
+.empty-message-container {
+  font-size: 20px;
+  position: absolute;
+  top: calc(50% - 40px);
+  left: calc(50% - 100px);
+  z-index: 2001 !important;
+  color: #595959;
+}
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_navbar</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_navbar</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	//cas navbar widget.
+	try{
+		CASLogger.debug("Inside the CAS_navbar widget");
+		var appUtil=new CASAppUtil();
+		var home = appUtil.configuration.page.home;
+		var organization = appUtil.configuration.page.organizations;
+		var catalogForm = appUtil.configuration.page.catalogForm;
+		var deploymentList = appUtil.configuration.page.deploymentList;
+		var deploymentCard = appUtil.configuration.page.deploymentCard;
+		var deploymentDetail = appUtil.configuration.page.deploymentDetail;
+		var activitiesCard = appUtil.configuration.page.activitiesCard;
+		var activitiesList = appUtil.configuration.page.activitiesList;
+		var activitiesForm = appUtil.configuration.page.activitiesForm;
+		var sharedResourceList = appUtil.configuration.page.sharedResourcesList;
+		var sharedResourceCard = appUtil.configuration.page.sharedResources;
+		var sharedResourceForm = appUtil.configuration.page.sharedResourceForm;
+		var support = appUtil.configuration.page.support;
+		
+		data.collapse = false;
+		data.submitCatalogForm = false;
+		data.isCatalogFormPage = false;
+		data.versionAvailable = false;
+		data.navbarJSON={
+			headings:[
+				{
+					"label":"System Overview",
+					"link_id": home
+				},
+
+				{
+					"label":"Catalog",
+					"link_id": organization
+				},
+
+				{
+					"label":"Deployments",
+					"link_id": deploymentCard
+				},
+				{
+					"label":"Activities",
+					"link_id": activitiesCard
+				},
+
+				{
+					"label":"Support",
+					"link_id": support
+				}
+
+			]
+		}
+
+		var page = ($sp.getParameter('id')) ? $sp.getParameter('id') : 'NULL';
+		
+		if(page == 'vra_catalog_form'){
+			data.isCatalogFormPage = true;
+		}
+		
+		switch (page) {
+			case 'NULL':
+				data.selected=data.navbarJSON.headings[0];
+				break;
+			case home:
+				data.selected=data.navbarJSON.headings[0];
+				break;
+			case catalogForm:
+				data.selected=data.navbarJSON.headings[1];
+				break;
+			case organization:
+				data.selected = data.navbarJSON.headings[1];
+				break;
+			case deploymentCard:
+				data.selected=data.navbarJSON.headings[2];
+				break;
+			case deploymentList:
+				data.selected=data.navbarJSON.headings[2];
+				break;
+			case deploymentDetail:
+				data.selected=data.navbarJSON.headings[2];
+				break;
+			case activitiesCard:
+				data.selected=data.navbarJSON.headings[3];
+				break;
+			case activitiesForm:
+				data.selected=data.navbarJSON.headings[3];
+				break;
+			case activitiesList:
+				data.selected=data.navbarJSON.headings[3];
+				break;
+			case sharedResourceCard:
+				data.selected=data.navbarJSON.headings[3];
+				break;
+			case sharedResourceList:
+				data.selected=data.navbarJSON.headings[3];
+				break;
+			case sharedResourceForm:
+				data.selected=data.navbarJSON.headings[3];
+				break;
+			case support:
+				data.selected=data.navbarJSON.headings[4];
+				break;
+		}
+	}catch(e){
+		CASLogger.error("Exception caught inside the CAS_navbar widget "+e);
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-08 12:33:17</sys_created_on>
+        <sys_id>6eac228ddb22330086f22706ca961930</sys_id>
+        <sys_mod_count>343</sys_mod_count>
+        <sys_name>CAS_navbar</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_6eac228ddb22330086f22706ca961930</sys_update_name>
+        <sys_updated_by>pp</sys_updated_by>
+        <sys_updated_on>2020-08-05 13:53:42</sys_updated_on>
+        <template><![CDATA[<div
+  class="loader-container"
+  ng-if="c.data.loaderShow && (!c.data.isCatalogFormPage || c.data.submitCatalogForm)"
+>
+  <span class="cas-spinner loadtext">
+    Loading...
+  </span>
+  <span class="empty-message-container" ng-if="c.data.versionAvailable">
+    <p>
+      Catalog Item form is Loading
+    </p>
+  </span>
+</div>
+<nav class="cas-subnav">
+  <ul class="cas-nav">
+    <li
+      class="cas-nav-item"
+      ng-repeat="(key,value) in c.data.navbarJSON.headings"
+      ng-click="redirectTo(value.link_id);c.data.selected=value"
+    >
+      <a
+        class="cas-nav-link"
+        href="javascript:void(0)"
+        ng-class="{'cas-active':c.data.selected.label == value.label}"
+        >{{value.label}}</a
+      >
+    </li>
+  </ul>
+</nav>
+]]></template>
+    </sp_widget>
+</record_update>

@@ -1,0 +1,1428 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function ($rootScope, $scope, $window, $location) {
+	/* widget controller */
+	var c = this;
+	var previousPageSize = c.data.inputJSON.pageSize;
+	$scope.edit = false;
+	$scope.row = 0;
+	$scope.paginatedArr = [];
+	$scope.next_btn_disable_color = '';
+	$scope.previous_btn_disable_color = '';
+	$scope.searchInput = 1;
+	$scope.dateError = '';
+	$scope.loader = true;
+	
+// 	$scope.test = function(){
+// 		console.log('test function');
+// 	}
+
+    var checkDefaultValue = setInterval(function(){ 
+		if(c.data.portal_page == 'sc_cat_item'){
+			
+			if(c.data.renderJSON.length <= 0 && c.data.inputJSON.defaultClientScript != ''){
+				$scope.loader = true;
+				if($scope.page.g_form.getValue(c.data.inputJSON.name) != ''){
+					c.data.renderJSON = JSON.parse($scope.page.g_form.getValue(c.data.inputJSON.name))
+					$scope.paginatedArr = c.data.renderJSON;
+					$scope.totalSegment = Math.ceil(c.data.renderJSON.length / $scope.pageSize);
+					$scope.setPaginationArr($scope.pageNum, $scope.pageSize)
+					stopIntervalFunction();   
+					$scope.loader = false;
+				}   
+			}else{
+				$scope.loader = false;
+				stopIntervalFunction(); 
+			}
+			
+		}else{
+			$scope.loader = false;
+			stopIntervalFunction(); 
+		}
+        
+     }, 500);
+
+    function stopIntervalFunction() {
+        clearInterval(checkDefaultValue);
+    }
+	
+	//password Pattern functionality.	
+	$scope.setRegex = function(pattern){
+		if(pattern == ""){
+			return false;
+		}else{
+			var newPattern = '^'+pattern+'$';
+			return newPattern;
+		}
+	}
+
+	$rootScope.$broadcast('datagrid_loader_status',c.data.inputJSON.name);
+
+	$scope.changeDisableState = function(operation){
+		// console.log(pageNum)
+		var disableColor = 'hsl(198, 0%, 50%)';
+		var enabledColor = 'hsl(198, 0%, 20%)';
+
+		if(operation == 'next'){
+			$scope.previous_btn_disable_color = enabledColor;
+			if($scope.pageNum >= $scope.totalSegment){		
+				$scope.next_btn_disable_color = disableColor;
+			}else{
+				$scope.next_btn_disable_color = enabledColor;
+			}
+		}
+		
+		if(operation == 'previous'){
+			$scope.next_btn_disable_color = enabledColor;
+			if($scope.pageNum <= 1){		
+				$scope.previous_btn_disable_color = disableColor;
+			}else{
+				$scope.previous_btn_disable_color = enabledColor;
+			}
+		}
+
+		if(operation == 'disableAll'){
+			if($scope.pageNum >= $scope.totalSegment && $scope.pageNum <= 1){
+				$scope.previous_btn_disable_color = disableColor;
+				$scope.next_btn_disable_color = disableColor;
+			}
+		}
+
+		if(operation == 'enableAll'){
+			if($scope.pageNum <= $scope.totalSegment && $scope.pageNum > 1){
+				$scope.previous_btn_disable_color = enabledColor;
+				$scope.next_btn_disable_color = enabledColor;
+			}
+		}
+		
+	}
+
+	function broadcastJSON() {
+		if($scope.page.g_form != undefined){
+			if(c.data.renderJSON.length >= 0){
+				$scope.page.g_form.setValue(c.data.inputJSON.name,JSON.stringify(c.data.renderJSON));
+			}			
+		}
+		
+		$rootScope.$broadcast('getDatagridJSON', {
+			'field': c.data.inputJSON.name,
+			'JSON': c.data.renderJSON
+		});
+	}
+	broadcastJSON();
+
+	$scope.stringEncryption = function (string, field_type) {
+
+		if (field_type == 'password') {
+            var str='';
+            for (var i=0; i<string.length; i++){
+                str=str+'*';               
+            }
+            //return string.replaceAll(/./g, '*');
+            return str;
+        }
+
+		if (field_type == 'date') {
+			return new Date(string).toLocaleString();
+		}
+
+	}
+
+	$scope.deleteRow = function (arr, index) {
+		if(c.data.inputJSON.pageSize != ''){
+			var removedItem = arr.splice(index, 1);
+			var removedIndex = c.data.renderJSON.indexOf(removedItem[0]);
+			c.data.renderJSON.splice(removedIndex, 1);
+			$scope.setPaginationArr($scope.pageNum, $scope.pageSize, 'deleteRow');
+			
+			if(previousPageSize == '' && c.data.renderJSON.length  < 11){
+				c.data.inputJSON.pageSize = '';
+				$scope.pageSize = '';
+				$scope.paginatedArr = c.data.renderJSON;
+			}
+			
+		}else{
+			arr.splice(index, 1);
+		}
+		broadcastJSON();
+
+	}
+
+	$scope.editRow = function (arr, row, index) {
+
+		if(c.data.inputJSON.pageSize != ''){
+			var removedIndex = c.data.renderJSON.indexOf(arr[index]);
+		}else{
+			var removedIndex = index;
+		}
+		
+		c.data.action = "editRow";
+		c.data.row = row;
+		$scope.edit = true;
+		$scope.row = removedIndex;
+		c.server.update().then(function () {
+			c.data.action = "";
+			c.data.row = "";
+			$('#'+c.data.inputJSON.name+'_model').show();
+			$('.action-modal-datagrid-backdrop').show();
+			
+		});
+
+	}
+
+	$scope.addRow = function () {
+		c.data.action = "addRow";
+		c.server.update().then(function () {
+			c.data.action = "";
+			$('#'+c.data.inputJSON.name+'_model').show();
+			$('.action-modal-datagrid-backdrop').show();
+		});
+		
+	}
+
+	$scope.updateDatagridAnswer = function (field_id, field_value, field_type, field) {
+
+		if (field_type == 'date') {
+
+			var selectedDate = new Date(field_value);
+			var minDate = new Date(field.scale_min);
+			var maxDate = new Date(field.scale_max);
+
+			if (selectedDate < minDate && (selectedDate.toLocaleDateString() != minDate.toLocaleDateString())) {
+				$scope.dateError = 'Please select a valid min date.';
+			} else if (selectedDate > maxDate && (selectedDate.toLocaleDateString() != maxDate.toLocaleDateString())) {
+				$scope.dateError = 'Please select a valid max date.';
+			} else {
+				$scope.dateError = '';
+			}
+			field_value = new Date(field_value).toISOString();
+
+		}
+
+		if ((typeof field_value != 'undefined') && field_value != null)
+			c.data.answer[field_id] = field_value;
+
+	}
+
+	$scope.closeDataGridModel = function(){
+		$('#'+c.data.inputJSON.name+'_model').hide();   
+		$('.action-modal-datagrid-backdrop').hide();
+	}
+
+	//----------------------- DataGrid Pagination ------------------
+
+	$scope.setPaginationArr = function(page_num, pageSize, operation, id){
+
+		$scope.totalSegment = Math.ceil(c.data.renderJSON.length / $scope.pageSize);
+
+		if(operation == 'next'){
+			page_num = parseInt(page_num) + 1;
+		}
+		
+		if(operation == 'previous'){
+			page_num = parseInt(page_num) - 1;
+		}
+
+		if(operation == 'search'){
+			page_num = parseInt($('#'+id).val());
+		}
+
+		if(operation == 'deleteRow'){
+			if(page_num > $scope.totalSegment){
+				page_num = $scope.totalSegment;
+			}
+			$('#'+'searchInputId_'+c.data.inputJSON.name).val(page_num);
+		}
+
+		if(page_num > 0 && page_num <= $scope.totalSegment){
+			
+				
+			$scope.pageNum = page_num;
+
+			if($scope.totalSegment <= 1){
+				$scope.changeDisableState('disableAll');
+			}
+
+			if(page_num == 1 ){
+				$scope.changeDisableState('previous');
+			}
+
+			if(operation == 'search'){
+				if(page_num >= $scope.totalSegment){
+					$scope.changeDisableState('next');
+				}else if(page_num > 1 && page_num <= $scope.totalSegment){
+					$scope.changeDisableState('enableAll');
+				}	
+				
+			}
+
+			$('#'+id).val(page_num);
+			$scope.paginatedArr = paginate(pageSize, page_num);
+		}
+	
+	}
+
+	function paginate(page_size, page_number) {
+		return c.data.renderJSON.slice((page_number - 1) * page_size, page_number * page_size);
+	}
+
+	if(c.data.inputJSON.pageSize != '' || c.data.renderJSON.length > 10){	
+		if(c.data.inputJSON.pageSize == ''){
+			$scope.pageSize = 10;
+			c.data.inputJSON.pageSize = $scope.pageSize;
+		}else{
+			$scope.pageSize = c.data.inputJSON.pageSize;
+		}
+		
+		$scope.pageNum = 1;
+		$scope.totalSegment = Math.ceil(c.data.renderJSON.length / $scope.pageSize);
+		$scope.setPaginationArr($scope.pageNum, $scope.pageSize)
+
+	}else{
+		$scope.pageNum = 1;
+		$scope.paginatedArr = c.data.renderJSON;
+	}
+
+	
+	//------------------------------------------------
+
+	$scope.submitChange = function (operation) {
+
+		//console.log(c.data.answer);
+		if(operation == 'submit'){
+	
+			$('#'+c.data.inputJSON.name+'_model').hide();
+			$('.action-modal-datagrid-backdrop').hide();
+
+			if(c.data.inputJSON.pageSize != ''){
+
+				page_num = parseInt($('#searchInputId_'+c.data.inputJSON.name).val());
+				if((page_num > 0 && page_num <= $scope.totalSegment) || isNaN(page_num)){
+
+					if (!$scope.edit) {
+						c.data.renderJSON.push(c.data.answer);
+					} else {
+						c.data.renderJSON[$scope.row] = c.data.answer;
+					}
+
+					$scope.setPaginationArr($scope.pageNum, $scope.pageSize);
+				}
+
+			}else{
+
+				if (!$scope.edit) {
+					c.data.renderJSON.push(c.data.answer);
+				} else {
+					c.data.renderJSON[$scope.row] = c.data.answer;
+				}
+
+				//Automatic pagination after exceeding 10 records
+				if(c.data.inputJSON.pageSize == '' && c.data.renderJSON.length > 10){
+					c.data.inputJSON.pageSize = 10;
+					$scope.pageSize = c.data.inputJSON.pageSize;
+					$scope.totalSegment = Math.ceil(c.data.renderJSON.length / $scope.pageSize);
+					$scope.setPaginationArr($scope.pageNum, $scope.pageSize)
+				}
+			}
+
+			broadcastJSON();
+			$scope.edit = false;
+		}
+		
+	}
+
+	
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>thead, tfoot, tbody tr {&#13;
+  display:table;&#13;
+  width:100%;&#13;
+  table-layout:fixed;&#13;
+}&#13;
+td{&#13;
+	white-space:normal !important;&#13;
+}&#13;
+.scrollit {&#13;
+    overflow-x:auto;&#13;
+    overflow-y: hidden;&#13;
+    border:1px solid #ccc;&#13;
+    border-radius: .125rem;&#13;
+}&#13;
+.onload-loader{&#13;
+  text-align: center;&#13;
+  color: #777;&#13;
+  font-size: 14px;&#13;
+  font-weight: lighter;&#13;
+  margin : -13px;&#13;
+  letter-spacing: 1.2px;&#13;
+}&#13;
+.onload-loader span{&#13;
+  animation: blink 1s ease infinite;&#13;
+  font-size: 70px;&#13;
+  letter-spacing: -10px;&#13;
+}&#13;
+&#13;
+.onload-loader span:nth-child(1){&#13;
+  animation-delay: .2s;&#13;
+}&#13;
+.onload-loader span:nth-child(2){&#13;
+  animation-delay: .4s;&#13;
+}&#13;
+.onload-loader span:nth-child(3){&#13;
+  animation-delay: .6s;&#13;
+}&#13;
+&#13;
+@keyframes blink{&#13;
+  0%{&#13;
+    opacity:0.2;&#13;
+  },&#13;
+  100%{&#13;
+    opacity:1;&#13;
+  }&#13;
+}&#13;
+&#13;
+.pagination-wrapper{&#13;
+ 	background-color: #fafafa; &#13;
+  padding-top: 0;&#13;
+  padding-bottom: 0;&#13;
+  text-align: right;&#13;
+}&#13;
+&#13;
+.cas-datagrid-foot{&#13;
+ 	display:inline-block;&#13;
+}&#13;
+&#13;
+.datagrid-footer-description{&#13;
+ 	display:inline-block;&#13;
+  text-align: right;&#13;
+}&#13;
+&#13;
+&#13;
+.fullwidth{&#13;
+  width: 100%;&#13;
+}&#13;
+.labelflex{&#13;
+  flex: 0 0 20% !important;&#13;
+}&#13;
+.contentflex{&#13;
+  flex: 0 0 40% !important;&#13;
+}&#13;
+ul{&#13;
+  padding:5px !important;&#13;
+}&#13;
+.cas-content-area{&#13;
+  padding:0.7rem !important;&#13;
+  padding-top:0 !important;&#13;
+  padding-bottom:0 !important;&#13;
+}&#13;
+&#13;
+.cas-clr-input.ng-touched.ng-invalid{&#13;
+  border-bottom:1px solid #c92100;&#13;
+}&#13;
+&#13;
+.cas-clr-subtext {&#13;
+  display: block;&#13;
+  font-size: .458333rem;&#13;
+  line-height: .5rem;&#13;
+  color: #c92100;&#13;
+  margin-top: .2rem;&#13;
+}&#13;
+&#13;
+.info-error{&#13;
+  svg{&#13;
+    fill:#c92100;&#13;
+  }&#13;
+}&#13;
+&#13;
+select.ng-invalid.ng-invalid-required.ng-submitted{&#13;
+  border-bottom:1px solid #c92100;&#13;
+}&#13;
+input.ng-invalid.ng-invalid-required.ng-submitted{&#13;
+  border-bottom:1px solid #c92100;&#13;
+}&#13;
+.cas-alert.cas-alert-danger {&#13;
+  background: #f5dddb;&#13;
+  color: #575757;&#13;
+  border: 1px solid #f8b5b4;&#13;
+}&#13;
+&#13;
+.cas-alert {&#13;
+  font-size: .541667rem;&#13;
+  letter-spacing: normal;&#13;
+  line-height: .75rem;&#13;
+  position: relative;&#13;
+  box-sizing: border-box;&#13;
+  display: flex;&#13;
+  flex-direction: row;&#13;
+  width: auto;&#13;
+  border-radius: .125rem;&#13;
+  margin-top: .25rem;&#13;
+  background: #e0f0f6;&#13;
+  color: #575757;&#13;
+  border: 1px solid #45afd9;&#13;
+}&#13;
+&#13;
+.cas-alert-text {&#13;
+  font-size: .541667rem;&#13;
+  letter-spacing: normal;&#13;
+  line-height: .75rem;&#13;
+  display: inline-block;&#13;
+  flex-grow: 1;&#13;
+  flex-shrink: 1;&#13;
+  flex-basis: 98%;&#13;
+  max-width: 98%;&#13;
+  margin-right: .5rem;&#13;
+  text-align: left;&#13;
+  padding-top: 5px;&#13;
+}&#13;
+&#13;
+.cas-alert-item {&#13;
+  display: flex;&#13;
+  flex-wrap: nowrap;&#13;
+  flex-basis: 100%;&#13;
+  min-height: .75rem;&#13;
+  padding: .2rem;&#13;
+}&#13;
+&#13;
+.cas-alert-item:last-child {&#13;
+  margin-bottom: 0;&#13;
+}&#13;
+&#13;
+.cas-alert-icon-wrapper {&#13;
+  flex: 0 0 1.04166667rem;&#13;
+  align-self: start;&#13;
+  padding-top: .04166667rem;&#13;
+  height: .75rem;&#13;
+}&#13;
+&#13;
+&#13;
+/*.cas-clr-form{&#13;
+overflow-y:auto;&#13;
+height:770px;&#13;
+}*/&#13;
+&#13;
+.cas-clr-form-control{&#13;
+  flex-direction: row;&#13;
+}&#13;
+&#13;
+.form-wrapper-single-container{&#13;
+  margin-top:0;&#13;
+  overflow-y:auto;&#13;
+  height:calc(100vh - 240px);&#13;
+}&#13;
+&#13;
+&#13;
+.form-wrapper-multiple-container{&#13;
+  margin-top:0;&#13;
+  overflow-y:auto;&#13;
+  height:calc(100vh - 280px);&#13;
+}&#13;
+h2{&#13;
+  margin-top:0.5rem !important;&#13;
+}&#13;
+.cas-clr-col-12{&#13;
+  padding-left:0.2rem !important;&#13;
+  padding-right:0.2rem !important;&#13;
+  margin-bottom:10px;&#13;
+}&#13;
+&#13;
+.angle-down{&#13;
+position: relative;&#13;
+    right: 20px;&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper {&#13;
+    position: relative&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper .cas-clr-control-label {&#13;
+    font-weight: 400;&#13;
+    display: block&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper~.cas-clr-validate-icon {&#13;
+    margin-left: 0&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper~.cas-clr-subtext {&#13;
+    display: inline-block&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox],.cas-clr-radio-wrapper input[type=radio] {&#13;
+    position: absolute;&#13;
+    opacity: 0;&#13;
+    top: .25rem;&#13;
+    left: 0;&#13;
+    height: .8rem;&#13;
+    width: .8rem&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper label {&#13;
+    position: relative;&#13;
+    display: inline-block;&#13;
+    min-height: 1.2rem;&#13;
+    padding-left: 1.1rem;&#13;
+    margin-top: 0;&#13;
+    cursor: pointer;&#13;
+    line-height: 1.2rem;&#13;
+    color: #000;&#13;
+    color: var(--cas-clr-forms-checkbox-label-color,#000)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::before {&#13;
+    position: absolute;&#13;
+    top: -0.9rem;&#13;
+    left: 0;&#13;
+    content: "";&#13;
+    display: inline-block;&#13;
+    height: .8rem;&#13;
+    width: .8rem;&#13;
+    border: .05rem solid #b3b3b3;&#13;
+    border-color: var(--cas-clr-forms-border-color,#b3b3b3);&#13;
+    border-radius: .15rem;&#13;
+    border-radius: var(--cas-clr-forms-checkbox-border-radius,.15rem)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::after {&#13;
+    position: absolute;&#13;
+    content: "";&#13;
+    display: none;&#13;
+    height: .25rem;&#13;
+    width: .4rem;&#13;
+    border-left: .1rem solid;&#13;
+    border-bottom: .1rem solid;&#13;
+    border-color: #fff;&#13;
+    border-color: var(--cas-clr-forms-checkbox-mark-color,#fff);&#13;
+    top: -0.9rem;&#13;
+    left: .2rem;&#13;
+    -webkit-transform: translate(0,.2rem) rotate(-45deg);&#13;
+    transform: translate(0,.2rem) rotate(-45deg)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::before {&#13;
+    background: #0088c2;&#13;
+    background: var(--cas-clr-forms-checkbox-background-color,#0088c2);&#13;
+    border: 0&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::after {&#13;
+    display: inline-block&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox].cas-clr-indeterminate+label::before,.cas-clr-checkbox-wrapper input[type=checkbox]:indeterminate+label::before {&#13;
+    border: .05rem solid #0088c2;&#13;
+    border-color: var(--cas-clr-forms-checkbox-indeterminate-border-color,#0088c2)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox].cas-clr-indeterminate+label::after,.cas-clr-checkbox-wrapper input[type=checkbox]:indeterminate+label::after {&#13;
+    border-left: none;&#13;
+    border-bottom-color: #0088c2;&#13;
+    border-bottom-color: var(--cas-clr-forms-checkbox-indeterminate-border-color,#0088c2);&#13;
+    display: inline-block;&#13;
+    -webkit-transform: translate(0,.2rem);&#13;
+    transform: translate(0,.2rem)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper.cas-clr-checkbox-inline {&#13;
+    display: flex;&#13;
+    flex-wrap: wrap;&#13;
+    align-content: flex-start&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper.cas-clr-checkbox-inline .cas-clr-control-label {&#13;
+    display: inline-block;&#13;
+    margin-right: .6rem;&#13;
+    width: auto&#13;
+}&#13;
+&#13;
+.cas-clr-error .cas-clr-checkbox-wrapper input[type=checkbox]+label::before {&#13;
+    border-color: #c21d00;&#13;
+    border-color: var(--cas-clr-forms-invalid-color,#c21d00)&#13;
+}&#13;
+&#13;
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper label {&#13;
+    cursor: not-allowed&#13;
+}&#13;
+&#13;
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]+label::before,.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::before {&#13;
+    background-color: #ccc;&#13;
+    background-color: var(--cas-clr-forms-checkbox-disabled-background-color,#ccc);&#13;
+    border: 0&#13;
+}&#13;
+&#13;
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::after {&#13;
+    border-left: .1rem solid #000;&#13;
+    border-bottom: .1rem solid #000;&#13;
+    border-left-color: var(--cas-clr-forms-checkbox-disabled-mark-color,#000);&#13;
+    border-bottom-color: var(--cas-clr-forms-checkbox-disabled-mark-color,#000)&#13;
+}&#13;
+&#13;
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked.cas-clr-indeterminate+label::after,.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked:indeterminate+label::after {&#13;
+    border-left: none&#13;
+}&#13;
+&#13;
+.cas-clr-form-compact .cas-clr-checkbox-wrapper {&#13;
+    max-width: 100%;&#13;
+    display: flex;&#13;
+    flex-wrap: wrap;&#13;
+    align-content: flex-start;&#13;
+    height: 1.2rem&#13;
+}&#13;
+&#13;
+.cas-clr-form-compact .cas-clr-checkbox-wrapper~.cas-clr-subtext {&#13;
+    margin-left: .3rem&#13;
+}&#13;
+&#13;
+.cas-clr-form-compact .cas-clr-checkbox-wrapper .cas-clr-control-label {&#13;
+    display: inline-block;&#13;
+    margin-right: .6rem;&#13;
+    width: auto;&#13;
+    margin-top: 0&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper-datagrid input[type=checkbox]+label::before {&#13;
+    top: 0;&#13;
+    left: 50%;&#13;
+    transform: translateX(-50%);&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper-datagrid input[type=checkbox]+label::after {&#13;
+    top: 0;&#13;
+    left: 50%;&#13;
+    transform: translate(-50%,.2rem) rotate(-45deg);&#13;
+}&#13;
+&#13;
+//dual list&#13;
+.dual-list .list-group {&#13;
+    margin-top: 8px;&#13;
+}&#13;
+&#13;
+.list-left li, .list-right li {&#13;
+    cursor: pointer;&#13;
+}&#13;
+&#13;
+.list-arrows {&#13;
+    padding-top: 100px;&#13;
+}&#13;
+&#13;
+.list-arrows button {&#13;
+  margin-bottom: 20px;&#13;
+}&#13;
+.cas-dual-list{&#13;
+	height:150px;&#13;
+  background-color:#fff;&#13;
+  border-radius:.125rem;&#13;
+  padding-top:2px;&#13;
+  border:1px solid #ccc;&#13;
+}&#13;
+&#13;
+.cas-dual-list:hover{&#13;
+	background-color:#fff;&#13;
+}&#13;
+/*.btn{&#13;
+	line-height:1;&#13;
+  background-color: transparent;&#13;
+  margin:.25rem .5rem .25rem 0;&#13;
+}&#13;
+*/&#13;
+#right_button, #left_button, #right_all_button, #left_all_button{&#13;
+	line-height:1;&#13;
+  background-color: transparent;&#13;
+  margin:.25rem .5rem .25rem 0;&#13;
+}&#13;
+.cas-duallist-table-container{&#13;
+ 	 padding:0;height:auto&#13;
+}&#13;
+&#13;
+.cas-duallist-table{&#13;
+ 	margin-top: 0px;&#13;
+  margin-bottom: 0px;&#13;
+}&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+//radio-group&#13;
+.cas-radiocontainer {&#13;
+    flex: 1 1 100%;&#13;
+    margin-top: .25rem;&#13;
+    margin-bottom: .25rem;&#13;
+    position: relative;&#13;
+    display: block;&#13;
+}&#13;
+&#13;
+input[type="radio"i] {&#13;
+    background-color: initial;&#13;
+    cursor: default;&#13;
+    -webkit-appearance: radio;&#13;
+    box-sizing: border-box;&#13;
+    margin: 3px 3px 0px 5px;&#13;
+    padding: initial;&#13;
+    border: initial;&#13;
+}&#13;
+&#13;
+.cas-radio-group-container {&#13;
+    padding-left: 0;&#13;
+}&#13;
+&#13;
+.cas-radio-input-label {&#13;
+    margin-top: 0;&#13;
+    margin-bottom: 0;&#13;
+    position: relative;&#13;
+    min-height: 1rem;&#13;
+    padding-left: .916667rem;&#13;
+    cursor: pointer;&#13;
+    line-height: 1rem;&#13;
+    touch-action: manipulation;&#13;
+    font-size: .541667rem;&#13;
+    letter-spacing: normal;&#13;
+&#13;
+}&#13;
+&#13;
+.radio input[type=radio] {&#13;
+    position: absolute;&#13;
+    top: .1666665rem;&#13;
+    left: 0;&#13;
+    opacity: 0;&#13;
+    height: .666667rem;&#13;
+    width: .666667rem;&#13;
+    box-sizing: border-box;&#13;
+    padding: 0;&#13;
+    border-radius: 0;&#13;
+    touch-action: manipulation;&#13;
+    margin: 0;&#13;
+    overflow: visible;&#13;
+}&#13;
+&#13;
+input[type=radio]+label::before,&#13;
+input[type=radio]+label::before {&#13;
+    position: absolute;&#13;
+    top: .1666665rem;&#13;
+    left: 0;&#13;
+    content: '';&#13;
+    display: inline-block;&#13;
+    height: .666667rem;&#13;
+    width: .666667rem;&#13;
+    border: 1px solid #9a9a9a;&#13;
+    border-radius: 50%;&#13;
+}&#13;
+&#13;
+.radio input[type=radio]:checked+label::before,&#13;
+input[type=radio]:checked+label::before {&#13;
+    box-shadow: inset 0px 0px 0px 0.25rem #0095d3;&#13;
+    border: 0;&#13;
+}&#13;
+&#13;
+.radio input[type=radio]:focus+label::before,&#13;
+input[type=radio]:focus+label::before {&#13;
+    box-shadow: inset 0px 0px 0px 0.25rem #0095d3, 0px 0px 2px 2px #6bc1e3;&#13;
+    border: 0;&#13;
+}&#13;
+&#13;
+&#13;
+//value picker&#13;
+.cas-clr-valuepicker-wrapper{&#13;
+  position: relative;&#13;
+}&#13;
+&#13;
+.cas-valuepicker-options-wrapper{&#13;
+  position: absolute;&#13;
+	display: flex;&#13;
+  flex-direction: column;&#13;
+  top: 100%;&#13;
+  left: 0;&#13;
+  min-width: 5rem;&#13;
+  width:100%;&#13;
+  background: #fff;&#13;
+  border: 1px solid #ccc;&#13;
+  border-radius: .125rem;&#13;
+  box-shadow: 0 1px 0.125rem rgba(115,115,115,.25);&#13;
+  margin-top: .083333rem;&#13;
+  padding: .5rem 0;&#13;
+  z-index: 100;&#13;
+  display:none;&#13;
+ &#13;
+}&#13;
+&#13;
+.cas-valuepicker-options-container{&#13;
+  overflow: auto;&#13;
+  max-height: 330px;&#13;
+  display: block;&#13;
+  white-space: nowrap;&#13;
+  box-sizing: inherit;&#13;
+  visibility: visible;&#13;
+}&#13;
+&#13;
+.cas-valuepicker-option{&#13;
+  margin-top: 0;&#13;
+  margin-bottom: 0;&#13;
+  padding-top: .25rem;&#13;
+  padding-bottom: .25rem;&#13;
+  height: auto;&#13;
+  padding: .125rem 1rem;&#13;
+  color: #575757;&#13;
+  font-size: .583333rem;&#13;
+  font-weight: 400;&#13;
+  letter-spacing: normal;&#13;
+  background: 0 0;&#13;
+  border: 0;&#13;
+  cursor: pointer;&#13;
+  display: block;&#13;
+  line-height: inherit;&#13;
+  margin: 0;&#13;
+  width: 100%;&#13;
+  text-transform: none;&#13;
+  overflow: hidden;&#13;
+  text-overflow: ellipsis;&#13;
+  text-align: left;&#13;
+}&#13;
+&#13;
+.cas-valuepicker-option:hover{&#13;
+  background-color: #eee;&#13;
+  color: #565656;&#13;
+  text-decoration: none;&#13;
+}&#13;
+&#13;
+.cas-valuepicker-options-no-match{&#13;
+ 	margin: 0 auto;&#13;
+  margin-top: 0px;&#13;
+  margin-right: auto;&#13;
+  margin-bottom: 0px;&#13;
+  margin-left: auto;&#13;
+  box-sizing: inherit;&#13;
+}&#13;
+&#13;
+.cas-vlauepicker-options-footer{&#13;
+  border-top: 1px solid #eee;&#13;
+  padding: .5rem 1rem 0;&#13;
+  margin-top: .25rem;&#13;
+  margin-bottom: .25rem;&#13;
+  font-weight: 400;&#13;
+  font-size: .5rem;&#13;
+  letter-spacing: normal;&#13;
+  line-height: 1rem;&#13;
+  white-space: nowrap;&#13;
+  visibility: visible;&#13;
+  width:100%;&#13;
+}&#13;
+&#13;
+.spinner {&#13;
+	position: relative;&#13;
+	display: inline-block;&#13;
+	margin: 5px;&#13;
+	padding: 0;&#13;
+	background: url(data:image/svg+xml;charset=utf8,%3Csvg%20id%3D%22Layer_2%22%20data-name%3D%22Layer%202%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2072%2072%22%3E%0A%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3Cstyle%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20.cls-1%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20.cls-2%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20fill%3A%20none%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke-miterlimit%3A%2010%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke-width%3A%205px%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20.cls-1%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke%3A%20%23000000%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke-opacity%3A%200.15%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20.cls-2%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke%3A%20%230072a3%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%3C%2Fstyle%3E%0A%20%20%20%20%3C%2Fdefs%3E%0A%20%20%20%20%3Ctitle%3EPreloader_72x2%3C%2Ftitle%3E%0A%20%20%20%20%3Ccircle%20class%3D%22cls-1%22%20cx%3D%2236%22%20cy%3D%2236%22%20r%3D%2233%22%2F%3E%0A%20%20%20%20%3Cpath%20class%3D%22cls-2%22%20d%3D%22M14.3%2C60.9A33%2C33%2C0%2C0%2C1%2C36%2C3%22%3E%0A%20%20%20%20%3C%2Fpath%3E%0A%3C%2Fsvg%3E%0A);&#13;
+	text-indent: 100%;&#13;
+	overflow: hidden;&#13;
+	white-space: nowrap;&#13;
+  -webkit-animation: spin 0.5s linear infinite; /* Safari */&#13;
+  animation: spin 0.5s linear infinite;&#13;
+}&#13;
+&#13;
+.spinner.spinner-inline, .spinner.spinner-sm {&#13;
+	height: 0.8rem;&#13;
+	width: 0.8rem;&#13;
+	min-height: 0.8rem;&#13;
+	min-width: 0.8rem;&#13;
+}&#13;
+&#13;
+.field-ellipses{&#13;
+  overflow: hidden;&#13;
+  text-overflow: ellipsis;&#13;
+}&#13;
+&#13;
+.empty-message-container {&#13;
+  height: calc(100vh - 157.4px);&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  font-size: 19px;&#13;
+  span {&#13;
+    span {&#13;
+      display: inline-flex;&#13;
+      margin: auto;&#13;
+      position: relative;&#13;
+      left: 50%;&#13;
+      transform: translateX(-50%);&#13;
+    }&#13;
+  }&#13;
+}&#13;
+&#13;
+.ci-loader{&#13;
+  font-size: 40px;&#13;
+  position: absolute !important;&#13;
+  left: inherit !important;&#13;
+  margin-left: 10px !important;&#13;
+  margin-top: -5px !important;&#13;
+}&#13;
+&#13;
+.one {&#13;
+  opacity: 0;&#13;
+  -webkit-animation: dot 1.3s infinite;&#13;
+  -webkit-animation-delay: 0.0s;&#13;
+  animation: dot 1.3s infinite;&#13;
+  animation-delay: 0.0s;&#13;
+}&#13;
+&#13;
+.two {&#13;
+  opacity: 0;&#13;
+  -webkit-animation: dot 1.3s infinite;&#13;
+  -webkit-animation-delay: 0.2s;&#13;
+    animation: dot 1.3s infinite;&#13;
+    animation-delay: 0.2s;&#13;
+}&#13;
+&#13;
+.three {&#13;
+  opacity: 0;&#13;
+  -webkit-animation: dot 1.3s infinite;&#13;
+  -webkit-animation-delay: 0.3s;&#13;
+   animation: dot 1.3s infinite;&#13;
+   animation-delay: 0.3s;&#13;
+}&#13;
+&#13;
+@-webkit-keyframes dot {&#13;
+    0% { opacity: 0; }&#13;
+   50% { opacity: 0; }&#13;
+  100% { opacity: 1; }&#13;
+}&#13;
+&#13;
+@keyframes dot {&#13;
+    0% { opacity: 0; }&#13;
+   50% { opacity: 0; }&#13;
+  100% { opacity: 1; }&#13;
+}&#13;
+&#13;
+&#13;
+@-webkit-keyframes spin {&#13;
+  0% { -webkit-transform: rotate(0deg); }&#13;
+  100% { -webkit-transform: rotate(360deg); }&#13;
+}&#13;
+&#13;
+@keyframes spin {&#13;
+  0% { transform: rotate(0deg); }&#13;
+  100% { transform: rotate(360deg); }&#13;
+}&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+// .cas-clr-subtext{&#13;
+//   display: block;&#13;
+//   font-size: .45833rem;&#13;
+//   line-height: .5rem;&#13;
+//   color: #c92100;&#13;
+//   margin-top: .2rem;&#13;
+// }&#13;
+&#13;
+// .info-error{&#13;
+//   fill : #c92100;&#13;
+// }</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_datagrid</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_dataGrid</name>
+        <option_schema>[{"name":"datagrid_options","section":"other","label":"datagrid options","type":"string"}]</option_schema>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function () {
+	/* populate the 'data' object  */
+	/* e.g., data.table = $sp.getValue('table'); */
+		
+	data.answer = {};
+	data.fields_arr = [];
+	data.action = '';
+	data.portal_page = $sp.getParameter('id');
+
+	if (!input) {
+		try {
+			//  gs.addInfoMessage(JSON.stringify(options));
+			data.inputJSON = options.field;
+			data.renderJSON = data.inputJSON.default_value || [];
+			populateField(options.field.json, '');
+
+		} catch (e) {
+			CASLogger.error("Exception inside CAS_Datagrid Widget : " + e);
+		}
+	}
+
+
+	if (input && input.action == "editRow") {
+		populateField(input.inputJSON.json, input.row);
+	}
+
+	if (input && input.action == "addRow") {
+		populateField(input.inputJSON.json, '');
+	}
+
+	function populateField(inputJSON, answerJSON) {
+
+		data.tableHeaders = inputJSON.type.fields;
+
+		for (var i = 0; i < data.tableHeaders.length; i++) {
+
+			var type = fetchDatatype(data.tableHeaders[i].type.dataType);
+			var editValue = '';
+			var mandatory = false;
+			var minValue = '';
+			var maxValue = '';
+			var pattern = '';
+			var patternMsg = '';
+			if (data.tableHeaders[i].constraints != undefined) {
+
+				if (data.tableHeaders[i].constraints.required != undefined)
+					mandatory = data.tableHeaders[i].constraints.required;
+
+				if (data.tableHeaders[i].constraints['min-value'] != undefined)
+					minValue = data.tableHeaders[i].constraints['min-value'];
+
+				if (data.tableHeaders[i].constraints['max-value'] != undefined)
+					maxValue = data.tableHeaders[i].constraints['max-value'];
+
+				if (data.tableHeaders[i].constraints.pattern != undefined) {
+					if (data.tableHeaders[i].constraints.pattern.value != undefined){
+						pattern = data.tableHeaders[i].constraints.pattern.value;
+						patternMsg = data.tableHeaders[i].constraints.pattern.message;
+					}
+				}
+
+			}
+
+			if (answerJSON != '') {
+				if (type.fieldType == 'number') {
+					if (type.datatype == 'Decimal') {
+						editValue = parseFloat(answerJSON[data.tableHeaders[i].id]);
+					} else {
+						editValue = parseInt(answerJSON[data.tableHeaders[i].id]);
+					}
+				} else {
+					editValue = answerJSON[data.tableHeaders[i].id];
+				}
+
+				data.answer[data.tableHeaders[i].id] = answerJSON[data.tableHeaders[i].id];
+			}
+
+			if (answerJSON == '') {
+				if (type.fieldType == 'number') {
+					if (type.datatype == 'Decimal') {
+						data.answer[data.tableHeaders[i].id] = minValue;
+					} else {
+						data.answer[data.tableHeaders[i].id] = minValue;
+					}
+				} else {
+					data.answer[data.tableHeaders[i].id] = '';
+				}
+				
+			}
+
+			data.fields_arr.push({
+				"name": (data.tableHeaders[i].id) ? data.tableHeaders[i].id + '' : '',
+				"display_name": (data.tableHeaders[i].label) ? data.tableHeaders[i].label + '' : '',
+				"type": type.type + '',
+				"help_text": '',
+				"mandatory": (mandatory == true) ? mandatory : false,
+				"order": i,
+				"fieldId": 'form_field--' + (input ? input.inputJSON.name : 'undefined')  + "--" + data.tableHeaders[i].id,
+				"value": (editValue != '') ? editValue :(minValue != '' && type.fieldType == 'number')?minValue: '',
+				"visible": 'true',
+				"read_only": false,
+				"pattern": (pattern != '') ? pattern : '',
+				"scale_max": (maxValue != '') ? maxValue : '',
+				"scale_min": (minValue != '') ? minValue : '',
+				"field_type": (type.fieldType) ? type.fieldType : 'text',
+				"datatype": (type.datatype != '') ? type.datatype : 'string',
+				"pattern_msg":(patternMsg != '') ? patternMsg : ''
+			});
+		}
+	}
+
+
+	function fetchDatatype(type) {
+		if (type == 'string') return {
+			'type': 6,
+			'fieldType': 'text',
+			'datatype': ''
+		};
+		else if (type == 'integer') return {
+			'type': 6,
+			'fieldType': 'number',
+			'datatype': ''
+		};
+		else if (type == 'boolean') return {
+			'type': 7,
+			'fieldType': 'boolean',
+			'datatype': ''
+		};
+		else if (type == 'secureString') return {
+			'type': 25,
+			'fieldType': 'password',
+			'datatype': ''
+		};
+		else if (type == 'decimal') return {
+			'type': 6,
+			'fieldType': 'number',
+			'datatype': 'Decimal'
+		};
+		else if (type == 'dateTime') return {
+			'type': 10,
+			'fieldType': 'date',
+			'datatype': ''
+		};
+		else return {
+			'type': 6,
+			'fieldType': 'text',
+			'datatype': ''
+		};
+	}
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>prateek</sys_created_by>
+        <sys_created_on>2020-06-11 05:25:04</sys_created_on>
+        <sys_id>ab0d72861b15901011c04196bc4bcba3</sys_id>
+        <sys_mod_count>743</sys_mod_count>
+        <sys_name>CAS_dataGrid</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_ab0d72861b15901011c04196bc4bcba3</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-12-08 11:26:44</sys_updated_on>
+        <template><![CDATA[<div class="myWidget">
+ <div class="innerWidgetDiv"> 
+    <span class="" ng-click="addRow();"  ng-if="!c.data.inputJSON.read_only" onclick=""><cas-clr-icon shape="plus-circle" size="16" color="#0077b8"></cas-clr-icon></span>
+    <div class="cas-clr-row" >
+      <div class="cas-clr-col-12">
+        <div class="scrollit">
+        <table class="cas-table" style="margin-top: 0rem;border:0px">
+          <thead>
+            <tr>
+              <th ng-if="!c.data.inputJSON.read_only" style="width: 25px !important;padding : 0.4853rem 0.1rem 0.1rem 0.1rem"></th>
+              <th ng-if="!c.data.inputJSON.read_only" style="width: 25px !important;padding : 0.4853rem 0.1rem 0.1rem 0.1rem"></th>
+              <th style="width: 3.5rem !important;height: 50px;font-size:0.5555rem;" ng-repeat="header in c.data.tableHeaders">{{header.label}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="tag in paginatedArr track by $index" ng-init="rowIndex = $index;">
+              <td ng-if="!c.data.inputJSON.read_only" class="left" style="width: 25px !important;padding : 0.4853rem 0.1rem 0.1rem 0.1rem">
+                <span ng-click="deleteRow(paginatedArr,rowIndex);"><cas-clr-icon shape="minus-circle" size="16" color="#0077b8"></cas-clr-icon></span>              
+              </td>
+              <td ng-if="!c.data.inputJSON.read_only" class="left" style="width: 25px !important;padding : 0.4853rem 0.1rem 0.1rem 0.1rem"> 
+                <span id="{{'edit'+rowIndex}}" style="display:block" ng-click="editRow(paginatedArr, tag,rowIndex);updateJSON();"><cas-clr-icon shape="pencil" size="16" color="#0077b8"></cas-clr-icon></span>              
+              </td>
+              <td class="left wdg-table-name" style="width: 3.5rem !important;height: 50px;overflow-wrap: break-word;" title="" ng-repeat="header in c.data.tableHeaders">
+                <div id="{{header.id+rowIndex}}" style="display:block" >
+                  <div ng-if="header.type.dataType == 'string'">{{tag[header.id]}}</div>
+                  <div ng-if="header.type.dataType == 'integer'">{{tag[header.id]}}</div>
+                  <div ng-if="header.type.dataType == 'decimal'">{{tag[header.id]}}</div>
+                  <div ng-if="header.type.dataType == 'secureString'">{{stringEncryption(tag[header.id],'password')}}</div>
+                  <div ng-if="header.type.dataType == 'dateTime'">{{stringEncryption(tag[header.id],'date')}}</div>
+                  <div ng-if="header.type.dataType == 'boolean'">     
+                    <div class="cas-clr-checkbox-wrapper cas-clr-checkbox-wrapper-datagrid">
+                      <input class="cas-clr-checkbox" ng-disabled="true" type="checkbox" name="{{header.id + rowIndex}}" id="{{header.id + rowIndex}}" ng-model="tag[header.id]" ng-checked="tag[header.id]" /> 
+                      <label class="cas-clr-control-label" for="{{header.id + rowIndex}}"></label>
+                    </div>  
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <table>
+          <tfoot>
+            <tr ng-if="c.data.inputJSON.pageSize != '' && c.data.renderJSON.length > 0">
+              <td class="pagination-wrapper" style="border: 1px solid #ccc;padding-right: 6px;border-radius: .125rem;"> 
+                <div class="load-more-wrapper" ng-show="c.data.paginationObj.itemsArray.length < c.data.paginationObj.totalRecords">
+                  <div class="cas-btn cas-btn-link wdg-load-more"
+                       ng-if="c.data.infiniteScroll"
+                       ng-click="search(c.data.paginationObj.currentRecord + c.data.paginationObj.windowSize)">
+                    Load More
+                  </div>
+                </div>
+                <div class="datagrid-footer-description">  {{(((pageNum - 1)*pageSize) + 1)}} - {{(pageNum * pageSize) > c.data.renderJSON.length ? c.data.renderJSON.length :(pageNum * pageSize) }} of {{c.data.renderJSON.length}}</div>
+                <div class="cas-datagrid-foot" ng-if="!c.data.infiniteScroll">
+                  <div class="cas-pagination-list">
+                    <button class="cas-pagination-first pagination-btn" type="button"
+                            ng-class="{disabled : pageNum <= 1 }" 
+                            ng-click="setPaginationArr(1, pageSize, '', 'searchInputId_'+c.data.inputJSON.name);changeDisableState('previous');"
+                            ng-disabled="pageNum <= 1"	
+                            aria-label="First Page">
+                      <cas-clr-icon color="{{previous_btn_disable_color}}" shape="step-forward-2" dir="down" size="15" role="none"></cas-clr-icon>
+                    </button>
+                    <button class="cas-pagination-previous pagination-btn" 
+                            ng-class="{disabled : pageNum <= 1 }" 
+                            ng-click="setPaginationArr(pageNum, pageSize, 'previous', 'searchInputId_'+c.data.inputJSON.name);changeDisableState('previous');"
+                            ng-disabled="pageNum <= 1"
+                            type="button"
+                            aria-label="Previous Page">
+                      <cas-clr-icon color="{{previous_btn_disable_color}}" shape="angle" dir="left" size="15" role="none"></cas-clr-icon>
+                    </button>
+                    <input class="cas-pagination-current cas-clr-input" 
+                           type="text" 
+                           value="1"
+                           id="{{'searchInputId_'+c.data.inputJSON.name}}"
+                           ng-keypress="$event.keyCode === 13 && setPaginationArr(pageNum, pageSize, 'search', 'searchInputId_'+c.data.inputJSON.name)"
+                           ng-blur="setPaginationArr(pageNum, pageSize, 'search', 'searchInputId_'+c.data.inputJSON.name)"
+                           size='2'
+                           aria-label="Current Page"> &nbsp;/&nbsp;
+                    <span aria-label="Total Pages">{{totalSegment}}</span>
+                    <button class="cas-pagination-next pagination-btn" type="button"
+                            ng-class="{disabled : pageNum >= totalSegment}" 
+                            ng-disabled="pageNum >= totalSegment"
+                            ng-click="setPaginationArr(pageNum, pageSize, 'next', 'searchInputId_'+c.data.inputJSON.name);changeDisableState('next');"
+                            aria-label="Next Page">
+                      <cas-clr-icon color="{{next_btn_disable_color}}" shape="angle" dir="right" size="15" role="none"></cas-clr-icon>
+                    </button>
+                    <button class="cas-pagination-last pagination-btn" 
+                            type="button" 
+                            ng-class="{disabled : pageNum >= totalSegment}" 
+                            ng-click="setPaginationArr(totalSegment, pageSize, '', 'searchInputId_'+c.data.inputJSON.name);changeDisableState('next');"
+                            ng-disabled="pageNum >= totalSegment"
+                            aria-label="Last Page">
+                      <cas-clr-icon color="{{next_btn_disable_color}}" shape="step-forward-2" dir="up" size="15" role="none"></cas-clr-icon>
+                    </button>
+                  </div>
+                </div>
+
+              </td>
+            </tr>
+            <tr ng-if="c.data.inputJSON.pageSize == '' && c.data.renderJSON.length > 0">
+              <td class="pagination-wrapper" style="padding : .5em;border: 1px solid #ccc;padding-right: 6px;border-radius: .125rem;"> 
+                <div class="datagrid-footer-description">  1 - {{c.data.renderJSON.length}} of {{c.data.renderJSON.length}}</div>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        <div ng-if="(c.data.renderJSON.length == 0) && loader && (c.data.inputJSON.defaultClientScript != '')" class="onload-loader">
+          Loading
+            <span>.</span>
+            <span>.</span>
+            <span>.</span>
+        </div>
+      </div>
+    </div> 
+  </div>
+  
+  
+  <!-------------------- column fields Model ----------------------------->
+  <div class="cas-modal action-modal-datagrid" id="{{c.data.inputJSON.name}}_model" style="display: none">
+    <div class="cas-modal-dialog" role="dialog" aria-hidden="true">
+      <div class="cas-modal-content">
+        <div class="cas-modal-header">
+          <button aria-label="Close" class="cas-close" type="button"  ng-click="c.data.reason='';closeDataGridModel();" onclick="">
+            <cas-clr-icon aria-hidden="true" shape="close" color="#565656" size="25" role="none"></cas-clr-icon>
+          </button>
+          <h3 class="cas-modal-title">{{c.data.inputJSON.display_name}}</h3>
+        </div>
+        <ng-form name='datagridForm' class="cas-clr-form cas-clr-form-horizontal" >
+        <div class="cas-modal-body"> 
+          
+            <!-- <div ng-if="(datagridForm.$submitted && datagridForm.$invalid)" class="cas-alert cas-alert-danger">
+              <div class="cas-alert-item">
+                <div class="cas-alert-icon-wrapper">
+                  <cas-clr-icon shape="exclamation-circle" size="24" color="#c92100" title="{{field.tooltip_text}}" class="info-error"></cas-clr-icon>
+                </div>
+                <span class="cas-alert-text">  Correct the highlighted errors custom. </span>
+              </div>
+            </div>                -->
+            <div  ng-repeat="field in c.data.fields_arr" >            
+              <div class="cas-clr-form-control" >
+                
+                <div >
+                  <label for="{{field.fieldId}}" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2 labelflex">{{field.display_name}}<span ng-if="field.mandatory== true" style="color:red;margin-left:5px;">*</span></label>
+                </div>
+                
+                <!-------------Single Line Text---------->
+                <div class="cas-clr-control-container  cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==6 && field.field_type!='number'" ng-class="{'cas-clr-error':(!(c.data.submitted && datagridForm.$valid) && datagridForm[field.fieldId].$invalid && (datagridForm[field.fieldId].$touched ||datagridForm.$submitted ) && field.mandatory=='true')}" >
+                  <div class="cas-clr-input-wrapper">
+                    <input type="{{field.field_type}}" ng-min="{{(field.scale_min && field.field_type!='text')?field.scale_min:''}}" ng-max="{{(field.scale_max && field.field_type!='text')?field.scale_max:''}}" ng-minlength="{{(field.scale_min && field.field_type=='text')?field.scale_min:''}}" ng-maxlength="{{(field.scale_min && field.field_type=='text')?field.scale_max:''}}"  ng-pattern="setRegex(field.pattern)" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value" 
+                            ng-change="updateDatagridAnswer(field.name,field.value,field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}" class="cas-clr-input fullwidth"  />
+                    <span ng-show="(datagridForm[field.fieldId].$touched || datagridForm.$submitted) && datagridForm[field.fieldId].$invalid && field.mandatory  && !(datagridForm[field.fieldId].$error.maxlength || datagridForm[field.fieldId].$error.minlength ) && !(datagridForm[field.fieldId].$error.pattern)" class="cas-clr-subtext">Field is mandatory</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && datagridForm[field.fieldId].$invalid   && ((datagridForm[field.fieldId].$error.max && field.field_type=='number') ||(datagridForm[field.fieldId].$error.maxlength && field.field_type!='number')) && field.scale_max"   class="cas-clr-subtext">Max {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_max}}</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && datagridForm[field.fieldId].$invalid && ((datagridForm[field.fieldId].$error.min && field.field_type=='number') ||(datagridForm[field.fieldId].$error.minlength && field.field_type!='number')) && field.scale_min" class="cas-clr-subtext">Min {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_min}}</span>
+                    <span ng-show="datagridForm[field.fieldId].$error.pattern"  class="cas-clr-subtext">{{(field.pattern_msg)?field.pattern_msg:'Invalid Input!'}}</span> 
+                  </div>
+                </div>
+                
+                  <!--------Numeric Fields--------> 
+                <div class="cas-clr-control-container  cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==6 && field.field_type=='number'" ng-class="{'cas-clr-error':(!(c.data.submitted && datagridForm.$valid) && datagridForm[field.fieldId].$invalid && (datagridForm[field.fieldId].$touched ||datagridForm.$submitted ) && field.mandatory=='true')}" >
+                  <div class="cas-clr-input-wrapper">
+                    <input type="{{field.field_type}}" ng-if="field.datatype!='Decimal'" ng-min="{{(field.scale_min)?field.scale_min:''}}" ng-max="{{(field.scale_max)?field.scale_max:''}}" ng-pattern="setRegex(field.pattern)" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory"  step="{{field.steps}}" id="{{field.fieldId}}" ng-model="field.value" 
+                            ng-change="updateDatagridAnswer(field.name,field.value,field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}" class="cas-clr-input fullwidth" onkeypress='return event.charCode >= 48 && event.charCode <= 57' />
+                    <input type="{{field.field_type}}" ng-if="field.datatype=='Decimal'" ng-min="{{(field.scale_min)?field.scale_min:''}}" ng-max="{{(field.scale_max)?field.scale_max:''}}" ng-pattern="setRegex(field.pattern)" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory"  step="{{field.steps}}" id="{{field.fieldId}}" ng-model="field.value" 
+                            ng-change="updateDatagridAnswer(field.name,field.value,field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}" class="cas-clr-input fullwidth" />
+                    <span ng-show="(datagridForm[field.fieldId].$touched || datagridForm.$submitted) && datagridForm[field.fieldId].$invalid && field.mandatory  &&!(datagridForm[field.fieldId].$error.maxlength || datagridForm[field.fieldId].$error.minlength ) && !(datagridForm[field.fieldId].$error.pattern)" class="cas-clr-subtext">Field is mandatory</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && datagridForm[field.fieldId].$invalid   && ((datagridForm[field.fieldId].$error.max && field.field_type=='number') ||(datagridForm[field.fieldId].$error.maxlength && field.field_type!='number')) && field.scale_max"   class="cas-clr-subtext">Max {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_max}}</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && datagridForm[field.fieldId].$invalid && ((datagridForm[field.fieldId].$error.min && field.field_type=='number') ||(datagridForm[field.fieldId].$error.minlength && field.field_type!='number')) && field.scale_min" class="cas-clr-subtext">Min {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_min}}</span>
+                    <span ng-show="datagridForm[field.fieldId].$error.pattern"  class="cas-clr-subtext">{{(field.pattern_msg)?field.pattern_msg:'Invalid Input!'}}</span> 
+                  </div>
+                </div>
+
+                <!------------Password------------->
+                <div class="cas-clr-control-container  cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==25" ng-class="{'cas-clr-error':(!(c.data.submitted && datagridForm.$valid) && datagridForm[field.fieldId].$invalid && (datagridForm[field.fieldId].$touched ||datagridForm.$submitted ) && field.mandatory=='true')}" >
+                  <div class="cas-clr-input-wrapper">
+                    <input type="{{field.field_type}}" ng-minlength="{{(field.scale_min != 0) ? field.scale_min : ''}}" ng-maxlength="{{(field.scale_max != 0) ? field.scale_max : ''}}" ng-pattern="setRegex(field.pattern)" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value" 
+                            ng-change="updateDatagridAnswer(field.name,field.value,field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}" class="cas-clr-input fullwidth" />
+                    <span ng-show="(datagridForm[field.fieldId].$touched || datagridForm.$submitted) && datagridForm[field.fieldId].$invalid && field.mandatory  &&!(datagridForm[field.fieldId].$error.maxlength || datagridForm[field.fieldId].$error.minlength ) && !(datagridForm[field.fieldId].$error.pattern)" class="cas-clr-subtext">Field is mandatory</span>
+                    <span ng-show="datagridForm[field.fieldId].$error.maxlength"  class="cas-clr-subtext">Max Value of password should be {{field.scale_max}}</span>
+                    <span ng-show="datagridForm[field.fieldId].$error.minlength" class="cas-clr-subtext">Min Value of password should be {{field.scale_min}}</span>
+                    <span ng-show="datagridForm[field.fieldId].$error.pattern"  class="cas-clr-subtext">{{(field.pattern_msg)?field.pattern_msg:'Invalid Input!'}}</span> 
+                  </div>
+                </div>
+
+                  <!-------------Date & Time----------->
+                <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==10" ng-class="{'cas-clr-error':(!(c.data.submitted && datagridForm.$valid) && datagridForm[field.fieldId].$invalid && (datagridForm[field.fieldId].$touched ||datagridForm.$submitted ) && field.mandatory=='true')}" >
+                  <sp-date-picker field="field.value" ng-disabled="field.read_only" name="{{field.fieldId}}" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value"  ng-change="updateDatagridAnswer(field.name,field.value,field.field_type,field)" data-date-format="yyyy-mm-dd" sn-include-time="true"></sp-date-picker>
+                  <span ng-show="(datagridForm[field.fieldId].$touched || datagridForm.$submitted) && datagridForm[field.fieldId].$invalid && field.mandatory" class="cas-clr-subtext">Field is mandatory</span>
+                  <span ng-if="dateError" class="cas-clr-subtext">{{dateError}}{{(field.pattern_msg)?', '+field.pattern_msg:''}}</span>
+                </div>
+                            
+                <!-----------Checkbox---------->
+                <div class="cas-clr-form-control cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==7">
+                  <div class="cas-clr-control-container">
+                    <div class="cas-clr-checkbox-wrapper">
+                      <input class="cas-clr-checkbox" ng-init="field.value = field.value.toString() === 'true'? true : false; updateDatagridAnswer(field.name,field.value,field_type)"  ng-disabled="field.read_only" type="checkbox" name="{{field.fieldId}}" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value" 
+                              placeholder="{{field.help_text}}" ng-checked="field.value" ng-change="updateDatagridAnswer(field.name,field.value,field_type)"/> 
+                      <label class="cas-clr-control-label" for="{{field.fieldId}}"></label>
+                    </div>             
+                  </div>
+                  <span ng-show="(datagridForm[field.fieldId].$touched || datagridForm.$submitted) && datagridForm[field.fieldId].$invalid && field.mandatory" class="cas-clr-subtext">Field is mandatory</span> 
+                </div>
+
+                <cas-clr-icon shape="exclamation-circle" size="24"
+                              data-toggle="tooltip"
+                              data-placement="right"
+                              class="info-tooltip"
+                              ng-if="(field.tooltip_text || (datagridForm[field.fieldId].$invalid && datagridForm[field.fieldId].$touched)||(datagridForm.$submitted && datagridForm[field.fieldId].$invalid) || (field.is_duallist && (datagridForm[field.fieldId].$touched || datagridForm.$submitted) && field.mandatory && !field.selected_options.length))" 
+                              title="{{field.tooltip_text}}"  
+                              ng-class="{'info-error': (!(c.data.submitted && datagridForm.$valid)  && ((datagridForm[field.fieldId].$invalid && datagridForm[field.fieldId].$touched) || (datagridForm.$submitted && datagridForm[field.fieldId].$invalid))) || (field.is_duallist && (datagridForm[field.fieldId].$touched || datagridForm.$submitted) && (field.mandatory && !field.selected_options.length))}"></cas-clr-icon>
+              </div>
+            </div>    
+          </div>  
+        </ng-form> 
+        <div class="cas-clr-form-control cas-clr-col-12">
+          <button class="cas-btn cas-btn-primary" ng-disabled="datagridForm.$invalid || (dateError != '')" ng-click="submitChange('submit')">Apply</button>
+          <a class="cas-btn cas-btn-outline" onclick="$('.action-modal-datagrid, .action-modal-datagrid-backdrop').hide()">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cas-modal-backdrop action-modal-datagrid-backdrop" aria-hidden="true" style="display: none;"></div>
+</div>]]></template>
+    </sp_widget>
+</record_update>

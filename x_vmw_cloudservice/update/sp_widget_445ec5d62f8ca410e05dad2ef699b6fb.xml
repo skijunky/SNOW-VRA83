@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function($scope) {
+  var c = this;
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.cas_sp_widget_table{&#13;
+  height: 302px;&#13;
+  width: 100%;&#13;
+  border: 1px solid #dee5e7;&#13;
+  border-radius: 4px;&#13;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .05);&#13;
+  display : inline-grid;&#13;
+}&#13;
+&#13;
+.cas_sp_widget_header{&#13;
+  height: 38.6px;&#13;
+  width: 100%;&#13;
+  background-color: #f5f5f5;&#13;
+  color: #4a4a4a;&#13;
+  border-color: #dee5e7;&#13;
+  padding: 10px 15px;&#13;
+  border-bottom: 1px solid #dee5e7;&#13;
+  border-top-right-radius: 3px;&#13;
+  border-top-left-radius: 3px;&#13;
+  font-weight: 500;&#13;
+  line-height: 1.1;&#13;
+  font-size: 16px;&#13;
+}&#13;
+&#13;
+.cas_sp_widget_footer{&#13;
+  height: 32px;&#13;
+  width: 100%;&#13;
+  border-top: 1px solid #dee5e7;&#13;
+  background: #f7f6f6;&#13;
+  border-bottom-right-radius: 3px;&#13;
+  border-bottom-left-radius: 3px;&#13;
+  justify-self: flex-end;&#13;
+  align-self: flex-end;&#13;
+  text-align: right;&#13;
+  padding: 4px;&#13;
+  padding-right: 10px;&#13;
+  font-size: 16px;&#13;
+}&#13;
+&#13;
+.cas_sp_widget_body{&#13;
+  height: 229px;&#13;
+  width: 100%;&#13;
+  overflow-x: auto;&#13;
+}&#13;
+&#13;
+.cas_sp_card{&#13;
+  width	: 100%;&#13;
+  padding: 16px;&#13;
+  height : 58px; //70px; &#13;
+  background-color: #fff;&#13;
+  display : flex;&#13;
+  flex-direction: row;&#13;
+  justify-content: flex-start;&#13;
+  padding: 10px;&#13;
+  border-bottom : 0.5px solid #dee5e7;&#13;
+}&#13;
+&#13;
+&#13;
+.cas_sp_card_logo{&#13;
+  align-self:center;&#13;
+  width: 40px; // 55px;&#13;
+  height: 57px; //55px; &#13;
+  margin-right : 8px;&#13;
+  &#13;
+}&#13;
+&#13;
+.cas_sp_card_title{&#13;
+  font-size: 15.5px; //20px;&#13;
+  color:#0288d1;&#13;
+  font-weight:100;&#13;
+  letter-spacing:0.4px;&#13;
+  cursor: pointer;&#13;
+  display: inline-block;&#13;
+  max-width : 280px;&#13;
+  max-height : 24px;&#13;
+}&#13;
+&#13;
+.cas_sp_badge{&#13;
+  display: inline-block;&#13;
+  border: 1px solid;&#13;
+  border-radius:50px;&#13;
+  font-size: 10px; //11px;&#13;
+  padding:3px;&#13;
+  padding-left: 15px;&#13;
+  padding-right: 15px;&#13;
+  margin-left: 10px;&#13;
+  position: relative;&#13;
+  top: -7px; //-3px;&#13;
+  font-weight: inherit;&#13;
+  letter-spacing: 0.7px;&#13;
+}&#13;
+&#13;
+.in_progress{&#13;
+  border-color : #4fc3f7;&#13;
+  background : #b3e5fc;&#13;
+  color: #0277bd;&#13;
+}&#13;
+&#13;
+.create_success{&#13;
+  border-color : #81c784;&#13;
+  background : #c8e6c9;&#13;
+  color: #2e7d32;&#13;
+}&#13;
+&#13;
+.failed{&#13;
+  border-color : #e57373; &#13;
+  background : #ffcdd2;&#13;
+  color: #c62828; &#13;
+}&#13;
+&#13;
+.update_success{&#13;
+  border-color : #81c784;&#13;
+  background : #c8e6c9;&#13;
+  color: #2e7d32;&#13;
+}&#13;
+&#13;
+.cas_sp_card_content{&#13;
+  display : flex;&#13;
+  flex-direction: column;&#13;
+  justify-content: space-between;&#13;
+  width : 100%;&#13;
+  height: 43px; &#13;
+}&#13;
+&#13;
+.cas_sp_card_sub_title{&#13;
+  display: inline-block;&#13;
+  padding-right:5px;&#13;
+  color:#919FA8;&#13;
+}&#13;
+&#13;
+.cas_sp_card_sub_heading{&#13;
+  display: inline-block;&#13;
+}&#13;
+&#13;
+.cas_sp_seperator{&#13;
+  display:inline-block;&#13;
+  margin-left:5px;&#13;
+  margin-right:5px;&#13;
+  color:#919FA8;&#13;
+}&#13;
+&#13;
+.cas_sp_empty_message_container{&#13;
+  height: 229px;&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  span {&#13;
+    span {&#13;
+      display: inline-flex;&#13;
+      margin: auto;&#13;
+      position: relative;&#13;
+      left: 50%;&#13;
+      transform: translateX(-50%);&#13;
+    }&#13;
+  }&#13;
+}&#13;
+&#13;
+.hidden_ellipsis{&#13;
+	overflow : hidden;&#13;
+  	text-overflow : ellipsis;	&#13;
+}&#13;
+&#13;
+@media screen and (max-width: 600px) {&#13;
+  .cas_sp_card{&#13;
+    height: auto;&#13;
+  }&#13;
+&#13;
+  .cas_sp_card_content {&#13;
+    height: auto;&#13;
+  }&#13;
+  &#13;
+}&#13;
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_sp_deployments</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+
+    scope.addTooltip = function(name, sysId) {
+
+        var depName = $('#dep_name__' + sysId);
+        var depNameClone = $('#dep_name_clone__' + sysId);
+        if (depName.width() < depNameClone.width()) {
+            if (depName.attr('data-toggle') == undefined) {
+                depName.attr({
+                    'title': name,
+                    'data-toggle': "tooltip",
+                    'data-placement': "right"
+                });
+            }
+        } else {
+            depName.removeAttr("title data-toggle data-placement");
+        }
+
+    };
+}]]></link>
+        <name>CAS_SP_deployments</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+    try {
+        CASLogger.debug('Inside CAS_SP_deployments widget');
+        var daoUtil = new CASDaoUtil();
+        var appUtil = new CASAppUtil();
+
+        if (!input) {
+
+            //creating viewAll link
+            data.viewAllLink = '/' + gs.getProperty(appUtil.configuration.properties.ServicePortalPrefix) + '?id=' + appUtil.configuration.page.casSPDeploymentListPage;
+
+			data.deployment_limit = gs.getProperty(appUtil.configuration.properties.DeploymentLimit);
+			
+            //preparing the paramObject for fetching the Deployments
+            var paramObject = {};
+            paramObject.organizationSysId = $sp.getParameter('org_id') ? $sp.getParameter('org_id') : null;
+            paramObject.projectSysId = $sp.getParameter('proj_id') ? $sp.getParameter('proj_id') : null;
+            paramObject.lowerWindow = 0;
+            paramObject.upperWindow = (data.deployment_limit < 0) ? 0 : data.deployment_limit;
+
+            //calling the function to fetch the Deployments
+            data.depCards = daoUtil.fetchPortalDeployments(paramObject);
+        }
+
+    } catch (e) {
+        CASLogger.error('Exception caught inside CAS_SP_deployments widget: ' + e);
+    }
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-26 09:01:14</sys_created_on>
+        <sys_id>445ec5d62f8ca410e05dad2ef699b6fb</sys_id>
+        <sys_mod_count>235</sys_mod_count>
+        <sys_name>CAS_SP_deployments</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_445ec5d62f8ca410e05dad2ef699b6fb</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-03-03 09:50:02</sys_updated_on>
+        <template><![CDATA[<div>
+  <div class="cas_sp_widget_table">
+    <div class="cas_sp_widget_header">vRA Deployments</div>
+  	<div class="cas_sp_widget_body">
+        <div class="cas_sp_card" ng-repeat="card in c.data.depCards">
+          <cas-clr-icon style="align-self:center;width:47px;height:50px;margin-right:8px;" shape="cas-logo" size="50" color="green" role="none"></cas-clr-icon>
+          <div class="cas_sp_card_content">
+            <div style="margin-top:-4px;">
+              <div id="dep_name__{{card.sysId}}" class="hidden_ellipsis cas_sp_card_title" ng-mouseover="addTooltip(card.name, card.sysId);" ><a href="{{card.deploymentDetailsLink}}" >{{card.name}}</a></div> 
+              <div id="dep_name_clone__{{card.sysId}}" style="max-width:none;display: none;" class="cas_sp_card_title" ><a href="javascript:void(0)">{{card.name}}</a></div>
+              <div class="cas_sp_badge" ng-class="{'create_success' : card.status == 'CREATE SUCCESSFUL','failed' : card.status == 'CREATE FAILED' || card.status == 'UPDATE FAILED', 'update_success' : card.status == 'UPDATE SUCCESSFUL', 'in_progress' : card.status == 'CREATE INPROGRESS'}">{{card.status == 'CREATE FAILED' ? 'Failed' : card.status == 'UPDATE FAILED' ? 'Update Failed' : card.status == 'CREATE INPROGRESS' ? 'In Progress': card.status == 'CREATE SUCCESSFUL' ? 'Create Successful' : card.status == 'UPDATE SUCCESSFUL' ? 'Update Sucessful' : card.status}}</div>
+            </div>
+            <div style="margin-bottom:2px;font-size:12px;display:inline-block;">
+              <div class="cas_sp_card_sub_title">{{card.status == 'CREATE FAILED' ? 'Failed on' : card.status == 'UPDATE FAILED' ? 'Failed on' : card.status == 'CREATE INPROGRESS' ? 'Started on': 'Provisioned on'}}</div><div class="cas_sp_card_sub_heading">{{card.provisionedOn | date:'dd/MM/yyyy hh:mm:ss a'}}</div>
+              <div class="cas_sp_seperator">|</div>
+              <div class="cas_sp_card_sub_title">Owner</div><div class="cas_sp_card_sub_heading">{{card.owner}}</div>
+              <div class="cas_sp_seperator">|</div>
+              <div class="cas_sp_card_sub_title">Resources</div><div class="cas_sp_card_sub_heading">{{card.resources.split(" ")[0]}}</div>
+            </div>
+          </div>      
+        </div>
+        <div class="cas_sp_empty_message_container" ng-if="!c.data.depCards.length">
+          <span><cas-clr-icon shape="sad-face" color="#717171" size="30"></cas-clr-icon>
+            <p>No record found</p>
+          </span>
+      	</div>
+    </div>
+    <div class="cas_sp_widget_footer"><a href="{{c.data.viewAllLink}}" ng-if="c.data.depCards.length">View All</a></div> 
+  </div>  
+</div>]]></template>
+    </sp_widget>
+</record_update>

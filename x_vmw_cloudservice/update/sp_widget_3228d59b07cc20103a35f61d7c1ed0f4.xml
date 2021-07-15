@@ -1,0 +1,899 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope, $filter,spUtil,$location) {
+	
+	var c = this;
+	$scope.actionCardIndex = -1;
+	$scope.actionIndex = -1;
+
+	$scope.changingUrl = false;
+	$scope.deploymentList = [].concat(c.data.deployments || []);
+	
+	
+	$scope.changeUrl = function ( path ) {
+		$scope.changingUrl = true;
+		if(path == 'Home'){
+			path = c.data.homePageURL;
+		}
+		$location.url( path );
+	};
+	
+	$scope.getActions = function(deployment){
+		deployment.runtimeActions = [{label:"loading...", link:""}];
+		c.server.get({deploymentSysId: deployment.sysId, action:'fetchDeploymentActions' }).then(function(response){
+			deployment.runtimeActions = response.data.newActions.length?response.data.newActions:[{label:"No Action Available", link:""}];
+		})
+	}
+	
+	
+	$scope.pagination = {
+		itemsPerPage:parseInt(c.data.windowLimit),
+		items:c.data.deployments,
+		totalDeploymentsCount: parseInt(c.data.totalDeploymentsCount),
+		currentPageNo:1,
+		startingItem:1,
+		startIndex:0,
+		pageLoading: false,
+		currentItems:c.data.deployments || null,
+		searchKeyword:'',
+		orderBy:'',
+		ascending: true,
+		searchDeployments : function(searchKeyword){
+			$("#cas_sp_search_input").blur();
+			this.initialize();
+			this.updateCurrentItems();
+		},
+		
+		clearSearch : function(){
+			this.searchKeyword='';
+			this.initialize();
+			this.updateCurrentItems();
+		},
+		
+		sortDeployments: function(orderBy){
+			if(this.orderBy === orderBy){
+				this.ascending = !this.ascending;
+			}
+			else{
+				this.ascending = true;
+			}
+			this.orderBy = orderBy;
+			this.initialize();
+			this.updateCurrentItems();
+		},
+		
+		initialize: function(){
+			this.currentPageNo = 1;
+			this.startingItem = 1;
+			this.startIndex = 0;
+			this.totalDeploymentsCount = parseInt(c.data.totalDeploymentsCount);
+			this.currentItems = [];
+			this.items = [];
+		},
+		handlePageInput:function(event){
+			var pageNo = parseInt($("#pageInput").val());
+			if(event.keyCode === 13){
+				$("#pageInput").trigger("blur");
+			}
+			
+		},
+		getPageCount:function(){
+			if(!this.itemsPerPage)return 0;
+			if(!this.totalDeploymentsCount)return 1;
+			if(this.totalDeploymentsCount % this.itemsPerPage){
+				return parseInt(this.totalDeploymentsCount / this.itemsPerPage + 1);
+			}
+			else{
+				return parseInt(this.totalDeploymentsCount / this.itemsPerPage);
+			}
+		},
+		updateCurrentItems:function(){
+			var body = {};
+			if(this.searchKeyword){
+				body.action = "searchDeployments";
+				body.query ='nameLIKE' + this.searchKeyword + '^OR' +
+					'short_descriptionLIKE' + this.searchKeyword + '^OR' +
+					'statusLIKE' + this.searchKeyword + '^OR' +
+					'u_projectLIKE' + this.searchKeyword + '^OR' +
+					'u_project.organizationLIKE' + this.searchKeyword;
+			}
+			else{
+				body.action = "fetchBatch";
+			}
+			body.orderBy = this.orderBy;
+			body.orderByAsc = this.ascending;
+			body.lowerWindow = this.startIndex;
+			body.upperWindow = this.startIndex + this.itemsPerPage;
+			this.pageLoading = true;
+			c.server.get(body).then(function(response){
+				if(response.data.newDeploymentBatch){
+					for(var i = 0; i<response.data.newDeploymentBatch.length; i++){
+						this.items[i + this.startIndex] = response.data.newDeploymentBatch[i]; 
+					}
+					
+					this.totalDeploymentsCount = response.data.totalDeploymentsCount;
+					
+					if(response.data.totalDeploymentsCount == 0){
+						$scope.totalDeploymentsCount = 0;
+						this.items=[];
+						this.totalDeploymentsCount= 0;
+						this.currentPageNo=1;
+						this.startingItem=0;
+						this.startIndex=-1;
+						this.currentItems=[];
+					}
+				}
+				else{
+					this.items = []
+				}
+				
+				this.currentItems = [].concat(this.items).splice(this.startIndex,this.itemsPerPage);
+				this.pageLoading = false;
+			}.bind(this));
+				
+		},
+		goToNextPage:function(){
+			if(this.currentPageNo + 1 > this.getPageCount()){
+				return;
+			}
+			else {
+				this.startIndex += this.itemsPerPage;
+				this.currentPageNo += 1;
+				this.updateCurrentItems();
+			}
+		},
+		goToPreviousPage:function(){
+			if(this.currentPageNo - 1 < 1){
+				return;
+			}
+			else {
+				this.startIndex -= this.itemsPerPage;
+				this.currentPageNo -= 1;
+				this.updateCurrentItems();
+			}
+		},
+		goToPage:function(pageNo){
+			var pageNo = parseInt(pageNo || this.currentPageNo);
+			if(Number.isNaN(pageNo))return;
+			if(pageNo<=0){
+				this.goToFirstPage();
+			}
+			else if(pageNo > this.getPageCount()){
+				this.goToLastPage();
+			}
+			else{
+				this.startIndex = (pageNo - 1) * this.itemsPerPage;
+				this.currentPageNo = pageNo;
+				this.updateCurrentItems();
+			}
+		},
+		goToFirstPage:function(){
+			this.startIndex = 0;
+			this.currentPageNo = 1;
+			this.updateCurrentItems();
+		},
+		goToLastPage:function(){
+			this.startIndex = (this.getPageCount() - 1) * this.itemsPerPage;
+			this.currentPageNo = this.getPageCount();
+			this.updateCurrentItems();
+		}
+	}
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* Chrome, Safari, Edge, Opera */  
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.cas_sp_full_page_loader{
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: white;
+    opacity: 0.85;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+  	font-size:20px;
+  	display: flex;
+  	flex-direction: column;
+  	align-items: center;
+  	justify-content: center;
+}
+
+.cas_sp_depolyment_list_container{
+ 		position: relative;
+  	overflow: hidden;
+}
+
+.cas_sp_spinner_container{  
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    opacity: .8;
+    z-index: 500;
+    position: sticky;
+    transform: translate(0px, 200px);
+}
+
+.cas_sp_spinner{
+ 	width: 100%;
+    height: calc(100vh - 50px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.9); 
+}
+
+/*------------General------------*/
+.cas_clr_col_8 &gt; h2 {
+  margin-top: 0;
+  line-height: 1.475rem;
+}
+
+/*------------------Header--------------------*/
+
+.cas_sp_header_section_container{
+ 	display:flex;
+  align-items:center;
+  justify-content: space-between;
+  padding:10px;
+  background-color: #f1f3f4;
+  border: 1px solid #DDDDDD;
+}
+
+.cas_sp_header_title{
+ 	font-size: 25px;
+  font-weight: 500;
+}
+
+.cas_sp_deployments_count{
+ 	font-size: 12px; 
+}
+
+.cas_sp_search_bar_container{
+ 	display: flex;
+  width: 220px;
+}
+
+.cas_sp_input{
+    padding: 6px 11px;
+  	padding-right: 18px;
+    font-size: 14px;
+    border: 1px solid gainsboro;
+    border-radius: 4px;
+    border-bottom-right-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+.cas_sp_clearSearch{
+    position: relative;
+    left: -60px;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+}
+
+.cas_sp_search_button{
+  padding: 6px 11px;
+  display:flex;
+  align-items: center;
+  border:1px solid gainsboro;
+  border-radius:4px;
+  border-top-left-radius:0px;
+  border-bottom-left-radius:0px;
+  border-left:none;
+  background-color: white;
+}
+
+.cas_sp_deployment_list-header{
+  background-color: #F1F3F4;
+  border: 1px solid #DDDDDD;
+}
+
+/*---------------------Table--------------------------*/
+.cas_sp_deployment_list_table_wrapper{
+  width:100%;
+  overflow-x:auto;
+}
+
+.left {
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
+
+.cas_sp_wdg_table_name {
+  max-width: 1.2rem;
+  span {
+    vertical-align: middle;
+  }
+}
+
+.wdg_table_desc {
+  max-width: 2rem;
+}
+
+.cas_sp_dropdown {
+  position: absolute;
+}
+
+tbody {
+  display:block;
+  height: calc(100vh - 260px);
+  overflow-x:auto;
+  overflow-y:scroll;
+}
+
+thead {
+  display:table;
+  width:calc(100% - 17px);
+  table-layout:fixed;/* even columns width , fix width of table too*/
+}
+
+tbody tr {
+  display:table;
+  width:100%;
+  table-layout:fixed;/* even columns width , fix width of table too*/
+}
+
+tbody tr {
+  position: relative;
+}
+
+.cas_disabled {
+  pointer-events: none;
+}
+
+.wdg_action {
+  width: 10px;
+  &amp;:hover {
+    cursor: pointer;
+  }
+}
+
+.cas_sp_disabled {
+  fill: #565656;
+  cursor: not-allowed;
+  opacity: .4;
+  background-color: transparent;
+  border-color: transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  &amp;:hover {
+    fill: #565656;
+  }
+}
+
+.cas_sp_deployment-list-table-header{
+  background-color: #F1F3F4;
+  border: 1px solid #DDDDDD;
+}
+
+.cas_sp_sort_column_button{
+ 	font-size: 10px; 
+  visibility: visible;
+  color:#2e2e2e;
+}
+
+.cas_sp_deployment_list_table_body{
+ 	height: calc(100vh - 310px) !important; 
+}
+
+.cas_sp_deployment_list_table{
+ 	min-width: 1100px; 
+  border: 1px solid #DDDDDD;
+}
+
+.cas_sp_deployment_list_table_container{
+ 	overflow-x: auto; 
+}
+
+/*----------------Dropdown----------------------*/
+.cas_sp_wdg_dropdown {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 0px;
+  margin-bottom: -3px;
+}
+
+.cas_sp_dropdown_menu {
+  padding: .5rem 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: .125rem;
+  box-shadow: 0 1px 0.125rem rgba(115,115,115,.25);
+}
+
+.cas_sp_dropdown_item {
+  a {
+    color: #575757;
+  }
+  padding: 10px 1rem;
+  &amp;:hover {
+    cursor: pointer;
+    background-color: #ededed;
+    color: #575757;
+    text-decoration: none;
+  }
+}
+
+/*----------------Pagination--------------------*/
+.cas_sp_pagination_wrapper{
+	width:100%;text-align:right;
+}
+
+.cas_sp_pagination_wrapper{
+	display: flex;justify-content: flex-end;
+}
+
+.cas_sp_pagination_options_container{
+	display: flex;align-items: center;
+}
+
+
+/*------------No Record Found Section-----------*/
+.cas_sp_empty_message_container {
+  height: calc(100vh - 157.4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  width: 100%;
+  span {
+    span {
+      display: inline-flex;
+      margin: auto;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/*------Badge------*/
+.cas_sp_badge{
+  width: auto;
+  max-width: 90%;
+  overflow: hidden;
+}
+
+.cas_sp_success_badge{
+    border: 1px solid #65B500;
+    background-color: #DFF0D0;
+    color: #62A420;
+    font-weight: 500;
+}
+
+.cas_sp_failed_badge{
+    border: 1px solid #EBAFA6;
+    background-color: #F5DBD9;
+    color: #A32100;
+    font-weight: 500;
+}
+
+.cas_sp_in_progress_badge{
+    border: 1px solid #4fc3f7;
+    background-color: #b3e5fc;
+    color: #0277bd;
+    font-weight: 500;
+}
+
+.cas_sp_breadcrumb_cotainer{
+  padding: 10px 5px;
+  color: #165C53;
+  margin-bottom: 10px;
+}
+
+.cas_sp_breadcrumb_item{
+  padding: 10px 7px;
+}
+
+.cas_sp_breadcrumb_item a {
+ 	text-decoration: none;
+  color: #165C53;
+  cursor: pointer;
+}
+
+
+
+/*---------------------------------------------------*/
+.cas_sp_pagination_container{
+ 	 width:100%;text-align:right
+}
+
+.cas_sp_pagination_options_container{
+  display: flex;justify-content: flex-end;
+}
+
+.cas_sp_pagination_options{
+ 	display: flex;align-items: center;
+}
+
+.cas_sp_pagination_button{
+  font-size: 13px;background: none;color: #666666;
+}
+
+.cas_sp_pagination_button_disabled{
+ 	color: #CBCBCB; 
+}
+
+.cas_sp_pagination_page_input{
+  color:rgb(72, 85, 99);display:inline;height:21px;width: 50px;
+}
+
+.cas_sp_pagination_text{
+  margin-left: 1px; margin-right: 10px
+}
+
+
+
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_sp_deploymentlist</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_SP_deploymentList</name>
+        <option_schema>[{"hint":"No of items to show per page","name":"items_per_page","section":"other","default_value":"10","label":"Items per page","type":"integer"}]</option_schema>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+			try{
+			var daoUtil = new CASDaoUtil();
+			var appUtil = new CASAppUtil();
+
+			data.paramObject = {};
+			data.paramObject.organizationSysId = $sp.getParameter('org_id') ? $sp.getParameter('org_id') : null;
+			data.paramObject.projectSysId = $sp.getParameter('proj_id') ? $sp.getParameter('proj_id') : null;
+			data.totalDeploymentsSearchCount = 0;
+			data.homePageURL = '/' + gs.getProperty(appUtil.configuration.properties.ServicePortalPrefix) + '?id=index';
+			data.totalDepCountQuery = '';
+			if(!gs.hasRole('admin')){
+				data.totalDepCountQuery = 'operational_status=1^servicenow_ownerDYNAMIC90d1921e5f510100a9ad2572f2b477fe^ORvra_ownerDYNAMIC90d1921e5f510100a9ad2572f2b477fe^ORshared_groupsDYNAMICd6435e965f510100a9ad2572f2b47744^ORentitled_usersDYNAMIC90d1921e5f510100a9ad2572f2b477fe';
+			}else{
+				data.totalDepCountQuery = 'operational_status=1';
+			}
+				
+			this.getDeployments = function(lowerWindow, upperWindow, orderBy, orderByAsc,paramObject){
+				if(paramObject){
+					data.paramObject = paramObject;
+				}
+				else{
+					data.paramObject.lowerWindow = lowerWindow;
+					data.paramObject.upperWindow = upperWindow;
+					data.paramObject.orderBy  = orderBy;
+					data.paramObject.orderByAsc = !orderByAsc
+				}
+				data.paramObject.isServicePortal = true;
+				return daoUtil.fetchPortalDeployments(data.paramObject);
+			};
+
+			if(!input){
+				data.windowLimit = gs.getProperty(appUtil.configuration.properties.DeploymentWindowSize);
+				data.newDeploymentBatch = [];
+				data.searchResult = [];
+
+				var lowerWindow = 0;
+				var upperWindow = data.windowLimit;
+
+				//total count of the Deployments
+				data.totalDeploymentsCount = daoUtil.getTotalRecordCount(appUtil.configuration.table.deployments, data.totalDepCountQuery);
+
+				//assinging the Deployments in to varibale
+				data.deployments = this.getDeployments(lowerWindow, upperWindow);
+
+
+			}
+				
+			if(input && input.action == 'fetchDeploymentActions'){
+				data.newActions = daoUtil.fetchServicePortalActions({deploymentSysId : input.deploymentSysId, type : 'deployment'});
+				data.totalDeploymentsCount = daoUtil.getTotalRecordCount(appUtil.configuration.table.deployments, data.totalDepCountQuery);
+			}
+
+			if(input && input.action == 'fetchBatch'){
+				data.newDeploymentBatch = this.getDeployments(input.lowerWindow, input.upperWindow, input.orderBy, input.orderByAsc);
+				data.totalDeploymentsCount = daoUtil.getTotalRecordCount(appUtil.configuration.table.deployments, data.totalDepCountQuery);
+				
+			}
+
+			if(input && input.action == 'searchDeployments'){
+
+				var searchParamObject = {}
+				searchParamObject.query = data.totalDepCountQuery+'^'+input.query;
+				searchParamObject.isServicePortal = true;
+				searchParamObject.lowerWindow = input.lowerWindow;
+				searchParamObject.upperWindow = input.upperWindow;
+				searchParamObject.orderBy = input.orderBy;
+				searchParamObject.orderByAsc = !input.orderByAsc;
+
+				//fetching the total count of the search result
+				data.totalDeploymentsCount = daoUtil.getTotalRecordCount(appUtil.configuration.table.deployments,searchParamObject.query);
+				data.newDeploymentBatch = daoUtil.fetchPortalDeployments(searchParamObject);
+
+			}
+				
+			//function for fetching the Deployments from the backend.
+			
+
+				
+		}catch (e) {
+        CASLogger.error('Exception caught inside CAS_deploymentList widget: '+e);
+    }
+	
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-10-29 12:06:14</sys_created_on>
+        <sys_id>3228d59b07cc20103a35f61d7c1ed0f4</sys_id>
+        <sys_mod_count>473</sys_mod_count>
+        <sys_name>CAS_SP_deploymentList</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_3228d59b07cc20103a35f61d7c1ed0f4</sys_update_name>
+        <sys_updated_by>Nayab</sys_updated_by>
+        <sys_updated_on>2021-03-03 11:27:40</sys_updated_on>
+        <template><![CDATA[<div class="cas_sp_full_page_loader" ng-if="changingUrl">
+  <div class="cas_sp_full_page_loader_spinner_container">
+    <i class="fa fa-spinner fa-pulse fa-3x fa-fw" aria-hidden="true" title="Updating value"></i>
+  </div>
+</div>
+
+<!--breadcrumb-->
+<div class="breadcrumb cas_sp_breadcrumb_cotainer"> 
+  <span class="cas_sp_breadcrumb_item">
+    <a ng-click="changeUrl('/sp?id=index')">Home</a>
+  </span> 
+</div>
+<!--breadcrumb ends here -->
+
+<!--Main section-->
+<div class="cas_sp_depolyment_list_container">
+  <div class="cas_sp_spinner_container" ng-if="pagination.pageLoading">
+    <div class="cas_sp_spinner">
+      <i class="fa fa-spinner fa-pulse fa-3x fa-fw" aria-hidden="true" title="Updating value"></i>
+    </div>
+  </div>
+  <!--Header and search bar-->
+  <div class="cas_sp_header_section_container">
+    <div class="cas_sp_header_title_container">
+      <div>
+        <span class="cas_sp_header_title">Deployments</span>
+        <span class="cas_sp_deployments_count">({{pagination.totalDeploymentsCount}})</span>
+        
+      </div>
+    </div>
+    <div class="cas_sp_search_bar_container">    
+      <input type="text" placeholder="Search" 
+             class="cas_sp_input"
+             id="cas_sp_search_input"
+             ng-model="pagination.searchKeyword" 
+             ng-model-options="{ debounce: 1000 }" 
+             ng-change="pagination.searchDeployments()" />
+      <button class="cas_sp_search_button">
+        <cas-clr-icon size="16" class="search-icon" shape="search"></cas-clr-icon>
+      </button>
+      <span class="cas_sp_clearSearch" ng-show="pagination.searchKeyword" ng-click="pagination.clearSearch();"><i class="fa fa-times" aria-hidden="true"></i></span>
+    </div>
+  </div>
+  <!--End of the Header-->
+  
+  
+  <!--No Record Found-->
+  <div class="cas_sp_empty_message_container" ng-if="!pagination.totalDeploymentsCount">
+    <span><cas-clr-icon shape="sad-face" color="#717171" size="30"></cas-clr-icon>
+      <p>No record found</p>
+    </span>
+  </div>
+  <!--End of no record found-->
+  
+  
+  <!--Deployment List Table---->
+  <div class="" ng-show="c.data.deployments.length">
+    <div class="cas_sp_deployment_list_table_container">
+      <div class="cas_sp_deployment_list_table_wrapper">
+        <table class="table cas_sp_deployment_list_table" width="100%">
+          <thead class="cas_sp_deployment_list_header">
+            <tr>
+              <th class="left wdg_action"></th>
+              <th class="left" ng-click="pagination.sortDeployments('name');">
+                <span>Name</span>
+                <span aria-hidden="true" class="sort-icon" ng-if="pagination.orderBy === 'name'">
+                   <a href="javascript:void(0)" class="cas_sp_sort_column_button">
+                    <i class="sort-icon-padding list-column-icon icon-vcr-down" ng-if="!pagination.ascending" ></i>
+                    <i class="sort-icon-padding list-column-icon icon-vcr-up" ng-if="pagination.ascending"></i>
+                  </a>
+                </span>
+              <!--<th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'short_description', ascending : ascFlag});">Description</th>-->
+              <th class="left" ng-click="ascFlag = pagination.sortDeployments('status');">
+                <span>Status</span>
+                <span aria-hidden="true" class="sort-icon" ng-if="pagination.orderBy === 'status'">
+                   <a href="javascript:void(0)" class="cas_sp_sort_column_button">
+                    <i class="sort-icon-padding list-column-icon icon-vcr-down" ng-if="!pagination.ascending" ></i>
+                    <i class="sort-icon-padding list-column-icon icon-vcr-up" ng-if="pagination.ascending"></i>
+                  </a>
+                </span>
+              </th>
+              <th class="left" >
+              	<span>Description</span>
+              </th>
+              <th class="left" ng-click="pagination.sortDeployments('created_at');">
+              	<span>Provisioned On</span>
+                <span aria-hidden="true" class="sort-icon" ng-if="pagination.orderBy === 'created_at'">
+                   <a href="javascript:void(0)" class="cas_sp_sort_column_button">
+                    <i class="sort-icon-padding list-column-icon icon-vcr-down" ng-if="!pagination.ascending" ></i>
+                    <i class="sort-icon-padding list-column-icon icon-vcr-up" ng-if="pagination.ascending"></i>
+                  </a>
+                </span>
+              </th>
+              <th class="left" ng-click="pagination.sortDeployments('expires_on');">
+              	<span>Expires On</span>
+                <span aria-hidden="true" class="sort-icon" ng-if="pagination.orderBy === 'expires_on'">
+                   <a href="javascript:void(0)" class="cas_sp_sort_column_button">
+                    <i class="sort-icon-padding list-column-icon icon-vcr-down" ng-if="!pagination.ascending" ></i>
+                    <i class="sort-icon-padding list-column-icon icon-vcr-up" ng-if="pagination.ascending"></i>
+                  </a>
+                </span>
+              </th>
+              <th class="left">
+              	<span>Resources</span>
+              </th>
+              <th class="left" ng-click="pagination.sortDeployments('u_project');">
+              	<span>Project</span>
+                <span aria-hidden="true" class="sort-icon" ng-if="pagination.orderBy === 'u_project'">
+                   <a href="javascript:void(0)" class="cas_sp_sort_column_button">
+                    <i class="sort-icon-padding list-column-icon icon-vcr-down" ng-if="!pagination.ascending" ></i>
+                    <i class="sort-icon-padding list-column-icon icon-vcr-up" ng-if="pagination.ascending"></i>
+                  </a>
+                </span>
+              </th>
+              <th class="left" ng-click="pagination.sortDeployments('u_project.organization');">
+              	<span>Endpoint</span>
+                <span aria-hidden="true" class="sort-icon" ng-if="pagination.orderBy === 'u_project.organization'">
+                   <a href="javascript:void(0)" class="cas_sp_sort_column_button">
+                    <i class="sort-icon-padding list-column-icon icon-vcr-down" ng-if="!pagination.ascending" ></i>
+                    <i class="sort-icon-padding list-column-icon icon-vcr-up" ng-if="pagination.ascending"></i>
+                  </a>
+                </span>
+              </th>
+              <th class="left">
+              	<span>Owner</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="cas_sp_deployment_list_table_body">
+            <tr ng-repeat="list in pagination.currentItems | filter: {name : filterText}">
+              <td class="left wdg_action">
+                <div class="dropdown cas_sp_dropdown">
+                  <!--<button class="cas-btn cas-btn-link" type="button" >-->
+                    <span class="dropdown-toggle cas_sp_wdg_dropdown cas-sp-dropdown-toggle" id="dropdownMenuButton" ng-click="getActions(list)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><cas-clr-icon shape="ellipsis-vertical" size="15" color="#989898" role="none"></cas-clr-icon></span>
+                  <!--</button>-->
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a ng-repeat="action in list.runtimeActions" href ng-click="action.valid?changeUrl(action.actionCatalogLink):''">
+                      <div class="cas_sp_dropdown_item" ng-click="changingUrl = action.valid?true:false"  ng-class="{'cas_sp_disabled' : (!action.valid || (list.actionValid == false))}">
+                              {{action.label}}
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </td>
+              <td class="left cas_sp_wdg_table_name" title="{{list.name}}">
+                <cas-clr-icon shape="cas-logo" size="15" color="rgb(47, 132, 0)" size="15" role="none"></cas-clr-icon>
+                  <a href ng-click="changeUrl(list.deploymentDetailsLink)">{{list.name}}</a>
+              </td>
+              <!--<td class="left wdg-table-desc" title="{{list.description}}">
+  {{list.description}}
+  </td>-->
+              <td class="status" title="{{list.status}}">
+                <div ng-switch="list.status">
+                  <span ng-switch-when="In Progress" class="badge cas_sp_badge cas_sp_in_progress_badge">{{list.status}}</span>
+                  <span ng-switch-when="CREATE FAILED" class="badge cas_sp_badge cas_sp_failed_badge">{{list.status}}</span>
+                  <span ng-switch-when="CREATE SUCCESSFUL" class="badge cas_sp_badge cas_sp_success_badge">{{list.status}}</span>
+                  <span ng-switch-when="UPDATE SUCCESSFUL" class="badge cas_sp_badge cas_sp_success_badge">{{list.status}}</span>
+                  <span ng-switch-when="Powered Off" class="badge cas_sp_badge cas_sp_off_badge">{{list.status}}</span>
+                  <span ng-switch-when="-">{{list.status}}</span>
+                  <span ng-switch-default>
+                    <span ng-if="list.status.includes('FAILED')" class="badge cas_sp_badge cas_sp_failed_badge">{{list.status}}</span>
+                    <span ng-if="list.status.includes('SUCCESS')" class="badge cas_sp_badge cas_sp_success_badge">{{list.status}}</span>
+                    <span ng-if="list.status.includes('Progress') || list.status.includes('PROGRESS')" class="badge cas_sp_badge cas_sp_in_progress_badge">{{list.status}}</span>
+                  </span>
+                </div>
+              </td>
+              <td class="left" title="{{list.description}}">{{list.description||'-'}}</td>
+              <td class="left" title="{{list.provisionedOn | date:'dd/MM/yyyy hh:mm:ss a'}}">{{list.provisionedOn | date:"dd/MM/yyyy hh:mm:ss a"}}</td>
+              <td class="left" title="{{list.expiresOn | date:'dd/MM/yyyy hh:mm:ss a'}}">{{list.expiresOn | date:"dd/MM/yyyy hh:mm:ss a"}}</td>
+              <td class="left" title="{{list.resources}}">{{list.resources}}</td>
+              <td class="left" title="{{list.project}}">{{list.project}}</td>
+              <td class="left" title="{{list.endpoint}}">{{list.endpoint||'-'}}</td>
+              <td class="left" title="{{list.owner}}">{{list.owner}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+        <!-------------------------Pagination--------------------------------------->
+      <div class="cas_sp_pagination_container">
+          <div>
+            <div>
+                <div width="100%" class="text-align-right cas_sp_pagination_options_container" nowrap="true" >
+                   <span class="cas_sp_pagination_options">
+                      <!--First Page Button-->
+                      <button class="list_nav  btn btn-icon h_flip_content cas_sp_pagination_button" ng-class="pagination.currentPageNo == 1?'cas_sp_pagination_button_disabled':''" id="goToFirstPageButton" ng-click="pagination.currentPageNo == 1?'':pagination.goToFirstPage()" >
+                        <span class="icon-vcr-left" ></span>
+                        <span class="icon-vcr-left" ></span>
+                      </button>
+
+                      <!--Previous Page Button-->
+                      <button class="list_nav  btn btn-icon h_flip_content cas_sp_pagination_button" ng-class="pagination.currentPageNo == 1?'cas_sp_pagination_button_disabled':''" id="goToPreviousPageButton" ng-click="pagination.currentPageNo == 1?'':pagination.goToPreviousPage()">
+                        <span class="icon-vcr-left"></span>
+                      </button>
+
+                      <!--Go to Page Input-->
+                      <div class="vcr_controls" id="goToInputIndexButton">
+                        <span style="margin-left: 0px;" class=" list_row_number_input ">
+                          <span style="margin-left: 1px; margin-right: 1px">Page: </span>
+                        </span>
+                        <input type="number" class="list_row_number_input form-control cas_sp_pagination_page_input" id="pageInput" ng-blur="pagination.currentPageNo = (pagination.currentPageNo || 1); pagination.goToPage()" ng-keyup="pagination.handlePageInput($event)" ng-model="pagination.currentPageNo">
+                        <span style="margin-left: 0px;" class=" list_row_number_input ">
+                          <span style="margin-left: 1px; margin-right: 10px">/{{pagination.getPageCount()}}</span>
+                        </span>
+                        
+                        <span style="margin-left: 5px;" class=" list_row_number_input ">
+                          Deployments: 
+                          <span style="margin-left: 1px; margin-right: 1px">{{pagination.startIndex +1}}</span>
+                             to
+                             <span style="margin-left: 1px; margin-right: 1px">{{(pagination.startIndex + pagination.itemsPerPage)> pagination.totalDeploymentsCount? pagination.totalDeploymentsCount: (pagination.startIndex + pagination.itemsPerPage)}}</span>
+                             of
+                             <span style="margin-left: 1px;">{{pagination.totalDeploymentsCount}}</span>
+                        </span>
+                      </div>
+
+                      <!--Next Page Button-->
+                      <button class="list_nav  btn btn-icon h_flip_content cas_sp_pagination_button" ng-class="pagination.currentPageNo == pagination.getPageCount()?'cas_sp_pagination_button_disabled':''" title="Next page" ng-click="pagination.currentPageNo == pagination.getPageCount()?'':pagination.goToNextPage()" style="background: none;" id="goToNextPageButton">
+                        <span class="icon-vcr-right"></span>
+                      </button>
+
+                      <!--Last Page Button-->
+                      <button class="list_nav  btn btn-icon h_flip_content cas_sp_pagination_button" ng-class="pagination.currentPageNo == pagination.getPageCount()?'cas_sp_pagination_button_disabled':''"  ng-click="pagination.currentPageNo == pagination.getPageCount()?'':pagination.goToLastPage()" id="goToLastPageButton">
+                        <span class="icon-vcr-right"></span>
+                        <span class="icon-vcr-right"></span>
+                      </button>
+                   </span>
+              </div>
+            </div>
+          </div>
+      <!-------------------------Pagination ends here-------------------------->
+      </div>
+    </div>
+  </div>
+	<!--End of Deployment List Table-->
+
+</div>
+<!----------End of Main Section-------->]]></template>
+    </sp_widget>
+</record_update>

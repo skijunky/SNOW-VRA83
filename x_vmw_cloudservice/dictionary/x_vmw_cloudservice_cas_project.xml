@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element attributes="update_synch=true" extends="sc_category" label="Project" max_length="40" name="x_vmw_cloudservice_cas_project" sizeclass="1" type="collection">
+        <element label="Administrator User" max_length="200" name="administrator_user" type="string"/>
+        <element label="Cost" max_length="200" name="cost" type="string"/>
+        <element default="1970-01-01T03:00:00.000Z" label="Last CMDB Import Time" max_length="100" name="last_cmdb_import_time" type="string"/>
+        <element label="Member User" max_length="200" name="member_user" type="string"/>
+        <element attributes="edge_encryption_enabled=true" label="Endpoint" max_length="32" name="organization" reference="x_vmw_cloudservice_register_cas_organization" reference_cascade_rule="delete" type="reference"/>
+        <element label="Organization Id" max_length="100" name="organization_id" type="string"/>
+        <element label="Project Description" max_length="200" name="project_description" type="string"/>
+        <element label="Project Id" max_length="100" name="project_id" type="string"/>
+        <element label="Project Name" max_length="100" name="project_name" type="string"/>
+        <element attributes="edge_encryption_enabled=true" default="0" label="Catalog Items" max_length="36" name="u_catalog_items" type="integer"/>
+        <element attributes="edge_encryption_enabled=true" default="0" label="Deployments" max_length="36" name="u_deployments" type="integer"/>
+        <element default="1970-01-01T03:00:00.000Z" label="Last Catalog Import time" max_length="100" name="u_last_catalog_import_time" type="string"/>
+        <index name="index">
+            <element name="organization"/>
+        </index>
+    </element>
+</database>

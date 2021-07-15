@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties_category_m2m">
+    <sys_properties_category_m2m action="INSERT_OR_UPDATE">
+        <category display_value="vRA Email Properties">f9f1c8b0dbb20010874f6f77489619d3</category>
+        <order>400</order>
+        <property display_value="x_vmw_cloudservice.sendApprovalRequest" name="x_vmw_cloudservice.sendApprovalRequest">87d201a8dbe28010e2d4c4ab0b961947</property>
+        <sys_class_name>sys_properties_category_m2m</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-04-10 05:04:24</sys_created_on>
+        <sys_id>4676ef8a078810103e1dfc018c1ed074</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.sendApprovalRequest.vRA Email Properties</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_properties_category_m2m_4676ef8a078810103e1dfc018c1ed074</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-04-10 05:04:24</sys_updated_on>
+    </sys_properties_category_m2m>
+</record_update>

@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope, $rootScope) {
+    var c = this;
+
+    $rootScope.$broadcast('getPaginationDataEvent', c.data.paginationObj);
+
+    $scope.$on("setPaginationDataEvent", function(evt, passedObj) {
+        //alert("hjjik")
+        if (passedObj.legend) {
+            $scope.selectTab(passedObj.legend, passedObj.legendColor);
+        }
+        if (passedObj.showMyFilter != null) {
+            $scope.selectFilter(passedObj.showMyFilter);
+        }
+        if (passedObj.table) {
+            $scope.tableSearch(passedObj);
+        }
+        if (passedObj.query || passedObj.query == '') {
+            $scope.querySearch(passedObj);
+        }
+        if (passedObj.orderBy) {
+            $scope.orderSearch(passedObj);
+        }
+    });
+
+    //-----------------------------------selectFilter-------------------------------------------------------
+    //USAGE: For updating data for admin and other user according to dropdown selected in activity page
+    //PARAMS: filter--> contain the value from submitter dropdown
+    //VALUES: filter--> Me, 'All | Manage' --> STRING
+    $scope.selectFilter = function(filter) {
+        $rootScope.$broadcast('apply_filter', filter);
+        c.data.paginationObj.showMyFilter = filter;
+        c.data.filter = (filter) ? 'Me' : 'All  |  Manage';
+        c.data.actions = "search_query";
+        c.server.update().then(function() { //-->calling the server method
+            c.data.actions = undefined; //--> resetting the actions to null;
+            $rootScope.$broadcast('getPaginationDataEvent', c.data.paginationObj);
+        });
+    };
+
+
+    //-------------------------------querySearch method----------------------------
+    //USAGE: For fetching the data on page load according to value in data.table variable
+    //PARAMS: obj--> contains the query string passed
+    //VALUE:	obj-->STRING
+    $scope.querySearch = function(obj) {
+        //console.log(obj);
+        c.data.passedQuery = obj.query;
+        c.data.actions = "search_query";
+        c.server.update().then(function() {
+            c.data.actions = undefined;
+            $rootScope.$broadcast('getPaginationDataEvent', c.data.paginationObj);
+        });
+    };
+
+
+    //-------------------------------windowSearch method----------------------------
+    //USAGE: For changing the window size of the pagination
+    //PARAMS: obj--> contains the query string passed
+    //VALUE:	obj-->STRING
+    $scope.windowSearch = function(windowSize) {
+        c.data.windowSize = windowSize;
+        c.data.actions = "search_window";
+        c.server.update().then(function() {
+            c.data.actions = undefined;
+            $rootScope.$broadcast('getPaginationDataEvent', c.data.paginationObj);
+        });
+    };
+
+    //-------------------------------orderSearch method----------------------------
+    //USAGE: For fetching the data on page load according to value in data.table variable
+    //PARAMS: obj--> contains the query string passed
+    //VALUE:	obj-->STRING
+    $scope.orderSearch = function(obj) {
+        c.data.passedOrder = obj.orderBy;
+        c.data.passedOrderByAsc = obj.orderByAsc;
+        c.data.actions = "search_order";
+        c.server.update().then(function() {
+            c.data.actions = undefined;
+            $rootScope.$broadcast('getPaginationDataEvent', c.data.paginationObj);
+        });
+    };
+
+    //-------------------------------tableSearch method----------------------------
+    //USAGE: For fetching the data on page load according to value in data.table variable
+    //PARAMS: table--> contains the value selected in left category panel 
+    //VALUE:	table--> requests, approvals -->STRING
+    $scope.tableSearch = function(obj) {
+        c.data.passedTable = obj.table;
+        c.data.passedMethod = obj.method;
+        c.data.actions = "search_table";
+        c.server.update().then(function() {
+            c.data.actions = undefined;
+        });
+    };
+
+    //----------------------------------selectTab method-----------------------------------------------------
+    //USAGE: For updating various legend tabs filter in activity page
+    //PARAMS: legend--> used for fetching the data from the backend with added legend filter
+    //				color--> used for updating the url color variable, contain HEX code of color
+    //VALUES: legend, color--> STRING
+    $scope.selectTab = function(legend, color) {
+        c.data.paginationObj.legend = legend;
+        c.data.paginationObj.legendColor = color;
+        c.data.actions = "search_legend";
+        c.server.update().then(function() {
+            c.data.actions = undefined;
+            $rootScope.$broadcast('getPaginationDataEvent', c.data.paginationObj);
+        });
+    }
+
+    //----------------------------------invalidPage method---------------------------------------------------
+    //USAGE: For checking the validity of the current record
+    //PARAMS: current_record--> contains the value of first record selected in the pagination input
+    //VALUES: current_record--> integer value
+    var invalidPage = function(current_record) {
+        if (current_record < 0 || current_record + 1 > c.data.paginationObj.totalRecords) {
+            return true;
+        }
+        return false;
+    }
+
+    //-----------------------------------search method--------------------------------------------------------
+    //USAGE: Below code is used to fetching data from table using the page number from the input
+    //PARAMS: current_record--> contains the value of first record selected in the pagination input
+    //VALUES: current_record--> integer value
+    $scope.search = function(current_record) {
+        if (!invalidPage(current_record)) { //-->check for the validity of the page from server
+            c.data.error_msg = undefined;
+            c.data.paginationObj.currentRecord = (parseInt(current_record));
+            c.data.actions = "search_button";
+            c.current_record = null;
+            c.server.update().then(function() { //-->calling the server method
+                c.data.actions = undefined; //--> resetting the actions to null;
+                $rootScope.$broadcast('getPaginationDataEvent', c.data.paginationObj);
+            });
+        } else {
+            c.data.error_msg = "You have entered invalid page number.";
+        }
+    }
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>
+.pagination-btn {
+  opacity: .5;
+}
+.disabled {
+  cursor: not-allowed;
+  opacity: .3;
+  text-decoration: none;
+}
+.error-msg {
+  color: $errorMsgColor;
+}
+.wdg-load-more {
+  margin: 13px auto;
+}
+.cas-datagrid-foot {
+  display: inline-flex;
+  align-items: center;
+}
+/* pagination ends here */</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>This widget return the pagination data to its parent widget.</description>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_pagination</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_pagination</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	try {
+		CASLogger.debug('Inside CAS_pagination: This widget is used for the pagination of the records.');
+		var appUtil = new CASAppUtil();
+		var daoUtil = new CASDaoUtil();
+
+		if (input) {
+			data.paginationObj = input.paginationObj;
+			data.actions = input.actions;
+			data.passedTable = input.passedTable;
+			data.passedMethod = input.passedMethod;
+			data.passedQuery = input.passedQuery;
+			data.passedOrder = input.passedOrder;
+			data.passedOrderByAsc = input.passedOrderByAsc;
+			data.windowSize = input.windowSize;
+			if (data.actions == "search_button") {
+				if (data.paginationObj.currentRecord > data.paginationObj.totalRecords || data.paginationObj.currentRecord < 0) {
+					data.paginationObj.currentRecord = 0;
+				} else {
+					data.paginationObj = daoUtil.pagination(data.paginationObj);
+				}
+			}
+			if (data.actions == "search_legend") {
+				data.paginationObj.currentRecord = 0;
+				data.paginationObj = daoUtil.pagination(data.paginationObj);
+			}
+			if (data.actions == "search_table") {
+				data.paginationObj.legend = 'All';
+				data.paginationObj.method = data.passedMethod;
+				data.paginationObj.table = appUtil.configuration.table[data.passedTable];
+				data.paginationObj.currentRecord = 0;
+				data.paginationObj = daoUtil.pagination(data.paginationObj);
+				}
+			if (data.actions == 'search_query') {
+				data.paginationObj.query = data.passedQuery;
+				data.paginationObj.itemsArray = [];
+				data.paginationObj.currentRecord = 0;
+				data.paginationObj = daoUtil.pagination(data.paginationObj);
+			}
+			if (data.actions == 'search_window') {
+				data.paginationObj.windowSize = data.windowSize;
+				data.paginationObj.itemsArray = [];
+				data.paginationObj.currentRecord = 0;
+				data.paginationObj = daoUtil.pagination(data.paginationObj);
+			}
+			if (data.actions == 'search_order') {
+				data.paginationObj.orderBy = data.passedOrder;
+				data.paginationObj.orderByAsc = data.passedOrderByAsc;
+				data.paginationObj.currentRecord = 0;
+				data.paginationObj = daoUtil.pagination(data.paginationObj);
+			}
+		}
+		else {
+			//gs.addErrorMessage('pa'+JSON.stringify(options));
+			//-------------------Input is not present---------------------------
+			//var broadcast = (options.broadcast) ? options.broadcast : null;
+			var legend =  (options.legend) ? options.legend : "All";
+			var windowSize = (options.windowSize) ? options.windowSize : 8;
+			var currentRecord = (input) ? input.current_record : 0;
+			var showMyFilter = (options.showMyFilter) ? options.showMyFilter : false;
+			var legendColor = (options.legendColor) ? options.legendColor : null;
+			var table = (options.table) ? options.table : null;
+			var method = (options.method) ? options.method : null;
+			var query = (options.query) ? options.query: '';
+			var hasAdminRole=(options.hasAdminRole) ? options.hasAdminRole: null;
+			var pageId=(options.pageId) ? options.pageId: null;
+			var catalogSysId = (options.catalogSysId) ? options.catalogSysId : null;
+		
+			data.windowSize = windowSize;
+			data.infiniteScroll = (options.infiniteScroll) ? options.infiniteScroll : false;
+			data.paginationObj = {
+				catalogSysId : catalogSysId,
+				currentRecord: currentRecord,
+				legend: legend,
+				showMyFilter: showMyFilter,
+				legendColor: legendColor,
+				windowSize: parseInt(windowSize),
+				table: table,
+				method: method,
+				query: query,
+				infiniteScroll: data.infiniteScroll,
+				hasAdminRole:hasAdminRole,
+				pageId:pageId,
+				itemsArray: []
+			}
+			data.paginationObj = daoUtil.pagination(data.paginationObj);
+		//	gs.addErrorMessage('hun '+JSON.stringify(data.paginationObj));
+		}
+	} catch (e) {
+		CASLogger.error('Error caught inside CAS_pagination  widget: '+ e);
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>Navdeep</sys_created_by>
+        <sys_created_on>2019-08-07 08:32:40</sys_created_on>
+        <sys_id>7645d4b6db433300291d61ca0b961997</sys_id>
+        <sys_mod_count>348</sys_mod_count>
+        <sys_name>CAS_pagination</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_7645d4b6db433300291d61ca0b961997</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-01-13 08:55:44</sys_updated_on>
+        <template><![CDATA[<!---------------Implementing the paginantion below ------------------------->
+<div class="load-more-wrapper" ng-show="c.data.paginationObj.itemsArray.length < c.data.paginationObj.totalRecords">
+  <div class="cas-btn cas-btn-link wdg-load-more"
+       ng-if="c.data.infiniteScroll"
+       ng-click="search(c.data.paginationObj.currentRecord + c.data.paginationObj.windowSize)">
+    Load More
+  </div>
+</div>
+
+<div class="cas-datagrid-foot" ng-if="!c.data.infiniteScroll">
+  <div class="cas-pagination-size">
+    Items per page
+    <div class="cas-clr-select-wrapper">
+      <select class="cas-clr-page-size-select" ng-model="c.data.windowSize" ng-change="windowSearch(c.data.windowSize)">
+        <option ng-selected="c.data.windowSize == 10" value=10>10</option>
+        <option ng-selected="c.data.windowSize == 20" value=20>20</option>
+        <option ng-selected="c.data.windowSize == 50" value=50>50</option>
+        <option ng-selected="c.data.windowSize == 100" value=100>100</option>
+      </select>
+    </div>
+  </div>
+  <div class="cas-pagination-description"> {{c.data.paginationObj.currentRecord + 1}} - {{c.data.paginationObj.upperDisplay}} of {{c.data.paginationObj.totalRecords}} items </div>
+  <div class="cas-pagination-list">
+    <button class="cas-pagination-first pagination-btn" type="button"
+            ng-class="{disabled : c.data.paginationObj.currentRecord == 0}" 
+            ng-click="search(0)"
+            aria-label="First Page">
+      <cas-clr-icon shape="step-forward-2" dir="down" size="15" role="none"></cas-clr-icon>
+    </button>
+    <button class="cas-pagination-previous pagination-btn" 
+            ng-class="{disabled : c.data.paginationObj.currentRecord < c.data.paginationObj.windowSize}" 
+            ng-click="search(c.data.paginationObj.currentRecord - c.data.paginationObj.windowSize)"
+            type="button"
+            aria-label="Previous Page">
+      <cas-clr-icon shape="angle" dir="left" size="15" role="none"></cas-clr-icon>
+    </button>
+    <input class="cas-pagination-current cas-clr-input" 
+           type="text" 
+           ng-model="c.current_record" 
+           ng-keyup="$event.keyCode == 13 && search(c.current_record - 1)"
+           size="2" 
+           ng-attr-placeholder="{{c.data.paginationObj.currentRecord + 1}}"
+           aria-label="Current Page"> &nbsp;of&nbsp;
+    <span aria-label="Total Pages">{{c.data.paginationObj.totalRecords}}</span>
+    <button class="cas-pagination-next pagination-btn" type="button"
+            ng-class="{disabled : c.data.paginationObj.currentRecord >=c.data.paginationObj.totalRecords - c.data.paginationObj.windowSize}" 
+            ng-click="search(c.data.paginationObj.currentRecord + c.data.paginationObj.windowSize)"
+            aria-label="Next Page">
+      <cas-clr-icon shape="angle" dir="right" size="15" role="none"></cas-clr-icon>
+    </button>
+    <button class="cas-pagination-last pagination-btn" 
+            type="button" 
+            ng-class="{disabled : c.data.paginationObj.currentRecord >=c.data.paginationObj.totalRecords - c.data.paginationObj.windowSize}" 
+            ng-click="search(c.data.paginationObj.totalRecords - c.data.paginationObj.windowSize)"
+            aria-label="Last Page">
+      <cas-clr-icon shape="step-forward-2" dir="up" size="15" role="none"></cas-clr-icon>
+    </button>
+  </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>

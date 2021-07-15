@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>true</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_cas_catalog_entitlement</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRA Notify when entitle is Delete</name>
+        <order>50</order>
+        <priority>10</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async.*/) {
+
+	try{
+		
+		var appUtil = new CASAppUtil();
+		var entitlement = gs.getProperty(appUtil.configuration.properties.vRA_entitlement);
+		
+		if(entitlement == 'true'){
+			
+			CASLogger.debug("Inside BR Entitlement Email Notification for Deletion Operation");
+
+			//getting the Created By User's Email ID.
+			var CreatedBy = new GlideRecordSecure(appUtil.configuration.table.users_table);
+			CreatedBy.addEncodedQuery('user_name='+current.sys_created_by);
+			CreatedBy.addEncodedQuery('active=true');
+			CreatedBy.query();
+
+			////getting the Updates By User's Email ID.
+			//var UpdatedBy = new GlideRecordSecure(appUtil.configuration.table.users_table);
+			//UpdatedBy.addEncodedQuery('user_name='+current.sys_updated_by);
+			//UpdatedBy.query();
+
+			if(CreatedBy.next()) var Creator_email = CreatedBy.email;
+			//if(UpdatedBy.next()) var Updator_email = UpdatedBy.email;
+
+			var reciever = '';
+			
+			if(current.entitled_users != ''){
+				var userRecievers = current.entitled_users.toString().split(',');
+
+				var user = new GlideRecordSecure(appUtil.configuration.table.users_table);
+				user.addQuery("sys_id", userRecievers);
+				user.addQuery("email", "!=", "");
+				user.addQuery("active=true");
+				user.addQuery("user_name", "!=", current.sys_created_by);
+				user.query();
+
+				if(user.next()){
+					reciever = user.email;
+				}
+
+				if(reciever == '' && current.entitled_groups != ''){
+					var groupRecievers = current.entitled_groups.toString().split(',');
+					
+					var group = new GlideRecordSecure(appUtil.configuration.table.group_users_member);
+					group.addQuery("group", groupRecievers);
+					group.query();
+
+					var preGroup = '';
+
+					while (group.next()) {
+						//email trigger for Group Email ID.
+						if(group.group.active == true){
+							if (preGroup != group.group.name) {
+								if (group.group.email != '') {
+									reciever = group.group.email;
+									break;
+								}
+								preGroup = group.group.name;
+							}
+
+							//email trigger for Group's Members Email ID
+							if (group.user.email != '' && group.user.active == true){
+								reciever = group.user.email;
+								break;
+							} 
+						}
+						
+					}
+				}
+			
+			}else if(current.entitled_groups != ''){
+				var groupRecievers = current.entitled_groups.toString().split(',');
+				
+				var group = new GlideRecordSecure(appUtil.configuration.table.group_users_member);
+				group.addQuery("group", groupRecievers);
+				group.query();
+
+				var preGroup = '';
+
+				while (group.next()) {
+					//email trigger for Group Email ID.
+					if(group.group.active == true){
+						if (preGroup != group.group.name) {
+							if (group.group.email != '') {
+								reciever = group.group.email;
+								break;
+							}
+							preGroup = group.group.name;
+						}
+
+						//email trigger for Group's Members Email ID
+						if (group.user.email != '' && group.user.active == true){
+							reciever = group.user.email;
+							break;
+						} 
+					}
+				}
+			}
+			
+			//creating the Clone of current Glide Object.
+			var currentClone = {};
+			currentClone.name = current.getDisplayValue('name');
+			currentClone.description = current.getDisplayValue('description');
+			currentClone.endpoint = current.getDisplayValue('endpoint');
+			currentClone.projects = current.getDisplayValue('select_projects');
+			currentClone.catalog_items = current.getDisplayValue('select_catalog_items');
+			currentClone.active = current.getDisplayValue('active');
+			currentClone.deployment_actions = current.getDisplayValue('deployment_actions');
+			currentClone.machine_actions = current.getDisplayValue('machine_actions');
+			currentClone.users = current.getValue('entitled_users');
+			currentClone.groups = current.getValue('entitled_groups');
+			currentClone.sys_created_by = current.getDisplayValue('sys_created_by');
+			currentClone.sys_created_on = current.getDisplayValue('sys_created_on');
+			currentClone.sys_updated_by = gs.getUserName();
+			currentClone.sys_updated_on = current.getDisplayValue('sys_updated_on');
+			currentClone.reciever = reciever.toString();
+
+			//creating the email reciever array
+			//var updatorReceivers = [Creator_email,Updator_email];
+
+
+			if(current.operation() == 'delete'){
+
+				gs.eventQueue('x_vmw_cloudservice.email_for_entitle_del', null, Creator_email, JSON.stringify(currentClone));
+				gs.eventQueue('x_vmw_cloudservice.entitlement_delete_u&', null, reciever, JSON.stringify(currentClone));
+				
+				//triggering the email notification event.
+				//if(Creator_email == Updator_email) gs.eventQueue('x_vmw_cloudservice.email_for_entitle_del', null, Creator_email, JSON.stringify(currentClone));
+				//else gs.eventQueue('x_vmw_cloudservice.email_for_entitle_del', null, updatorReceivers, JSON.stringify(currentClone));
+
+			}
+		}
+	}catch(e){
+		CASLogger.error("Exception caught inside BR: Entitlement Delete Email Notification "+e);
+	}
+	
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>prateek</sys_created_by>
+        <sys_created_on>2020-02-17 06:20:55</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>0e497285db030010a9870d53ca96192f</sys_id>
+        <sys_mod_count>99</sys_mod_count>
+        <sys_name>vRA Notify when entitle is Delete</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_0e497285db030010a9870d53ca96192f</sys_update_name>
+        <sys_updated_by>prateek</sys_updated_by>
+        <sys_updated_on>2020-04-09 10:34:58</sys_updated_on>
+        <template/>
+        <when>before</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=0e497285db030010a9870d53ca96192f"/>
+</record_update>

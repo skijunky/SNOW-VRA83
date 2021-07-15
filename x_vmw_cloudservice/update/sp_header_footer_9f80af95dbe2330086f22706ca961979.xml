@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_header_footer">
+    <sp_header_footer action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope,$rootScope) {
+  /* widget controller */
+  var c = this;
+	
+$rootScope.$on('updatedJSONFooter',function(event,result){
+	c.data.json=result;
+	
+	c.server.update();
+})
+
+
+	$scope.changeColor = function(bool, color) {
+		if(bool === true) {
+        this.iconColor = {color: color };
+    } else if (bool === false) {
+			this.iconColor = {color: color }; 
+    }
+	}
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>$fontStack: "FontAwesome","metropolis", "helvetica", "arial", "san-serif" ;
+$font-weight: 500;
+$fontColor: #ffffff ;
+$footerWidth:100%;
+$font-size: 14px;
+$font-weight: 400;
+$line-height: 15px;
+$weighted-font-size: 17px;
+$weighted-font-weight: 500;
+$weighted-line-height: 17px;
+
+@mixin fontProperties($size,$weight,$height){
+  font-size:$size;
+  font-weight:$weight;
+  line-height:$height;
+}
+
+.footer-container{
+  width:$footerWidth;
+ // height:300px;
+  padding-top:30px;
+  font-family: $fontStack;
+margin-bottom:96px;
+}
+.weighted-link-container{
+  color:$fontColor;
+  width:$footerWidth;
+  padding-left:13px;
+}
+
+.weighted-link-list{
+  padding:0;
+  display:flex;
+}
+
+.weighted-link-item{
+  list-style-type:none;
+  padding:5px;
+  margin:5px;
+  margin-left:13px;
+  @include fontProperties($weighted-font-size,$weighted-font-weight,$weighted-line-height);
+}
+.links-container{
+  color:$fontColor;
+  width:95%;
+  padding-left:13px;
+  display:flex;
+}
+.links-list{
+  padding:0;
+  display:flex;
+
+}
+.links-item{
+  list-style-type:none;
+  padding:5px;
+  margin:5px;
+  margin-left:13px;
+  @include fontProperties($font-size,$font-weight,$line-height);
+}
+.social-link-item{
+  list-style-type:none;
+  padding:5px;
+  margin:5px;
+  @include fontProperties($font-size,$font-weight,$line-height);
+}
+
+.version-tag{
+  position: absolute;
+  right: 25px;
+  line-height:0;
+}
+
+.rectangle-bar{
+  height: 5px;
+  width: $footerWidth;
+  background: linear-gradient(90deg, #6DB33F 0%, #006990 100%);
+}
+.logo-container {
+  margin-top: 20px;
+  padding-left: 28px;
+  padding-bottom: 12px;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>CAS_footer</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_footer</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object */
+	/* e.g., data  .table = $sp.getValue('table'); */
+	try{
+		var appUtil=new CASAppUtil();
+		CASLogger.debug("Inside the CAS_footer widget");
+		
+		data.vra_version=gs.getProperty(appUtil.configuration.properties.version);
+		if(!input){
+			data.json=JSON.parse(gs.getProperty(appUtil.configuration.properties.headerJSON));
+			var gdt= new GlideDateTime();
+			data.current_year=gdt.getYearLocalTime();
+		} 
+		if(input){
+			data.json=input.json;
+		}
+		if(data.json){
+			for(var i in data.json){
+				if(data.json[i].label=='Footer'){
+					data.footerJSON=data.json[i];
+				}else if(data.json[i].label=='Header'){
+					data.headerJSON=data.json[i];
+				}
+			}	
+		}
+		if(data.headerJSON && data.footerJSON ){
+			data.gradient_first=data.footerJSON.color.color1.color;
+			data.gradient_second=data.footerJSON.color.color2.color;
+			data.text_color=data.footerJSON.color.text_color.color;
+
+			data.hasLogo=(data.footerJSON.logo.logo.value!='')?'true':'false';
+			data.hasWeightedLinks=(data.footerJSON.weighted_links.fields.length!=0)?'true':'false';
+			data.hasLinks=(data.footerJSON.links.fields.length!=0)?'true':'false';
+
+		}
+	}catch(e){
+		CASLogger.error("Exception caught inside the CAS_footer widget "+e);
+	}
+})();
+
+
+
+]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_header_footer</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-09 10:58:24</sys_created_on>
+        <sys_id>9f80af95dbe2330086f22706ca961979</sys_id>
+        <sys_mod_count>270</sys_mod_count>
+        <sys_name>CAS_footer</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_header_footer_9f80af95dbe2330086f22706ca961979</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-23 10:12:21</sys_updated_on>
+        <template><![CDATA[<div class="footer-container" style="background-color : {{c.data.footerJSON.color.background_color.color}}; color: {{c.data.footerJSON.color.text_color.color}};">
+
+  <div class="weighted-link-container" ng-if="c.data.hasWeightedLinks=='true' && c.data.footerJSON.weighted_links.visible">
+    <ul class="weighted-link-list">
+      
+      <li class="weighted-link-item" ng-repeat="item in c.data.footerJSON.weighted_links.fields | orderBy : 'order'" > 
+        <a ng-style="iconColor"
+           ng-mouseenter="changeColor(true,c.data.footerJSON.color.hover_color.color)"
+           ng-mouseleave="changeColor(false,c.data.footerJSON.color.text_color.color)"
+           style="color:{{c.data.footerJSON.color.text_color.color}}"
+           href="{{item.url}}"
+           target="_blank" 
+           ng-if="item.url!=''" >
+          <span >{{item.name}}</span>
+        </a> 
+        <a  ng-style="iconColor"
+           ng-mouseenter="changeColor(true,c.data.footerJSON.color.hover_color.color)"
+           ng-mouseleave="changeColor(false,c.data.footerJSON.color.text_color.color)"
+           style="color:{{c.data.footerJSON.color.text_color.color}}"
+           target="_blank"
+          
+           ng-if=" item.url=='' ">
+          <span >{{item.name}}</span>
+        </a></li>
+    </ul>
+  </div>
+
+  <div class="links-container" ng-if="c.data.hasLinks=='true'  ">
+    <ul class="links-list" ng-if="c.data.footerJSON.links.visible">
+      <li class="links-item">
+        <a>
+          <span style="color:{{c.data.footerJSON.color.text_color.color}}">@{{c.data.current_year}}  VMware, Inc</span>
+        </a>
+      </li>
+      <li class="links-item" ng-repeat="item in c.data.footerJSON.links.fields | orderBy : 'order'">
+        <a ng-style="iconColor"
+           ng-mouseenter="changeColor(true,c.data.footerJSON.color.hover_color.color)"
+           ng-mouseleave="changeColor(false,c.data.footerJSON.color.text_color.color)"
+           style="color:{{c.data.footerJSON.color.text_color.color}}"
+           href="{{item.url}}"
+           target="_blank"
+           ng-if="item.url!=''">
+          <span>{{item.name}}</span>
+        </a>
+        <a ng-style="iconColor"
+                   ng-mouseenter="changeColor(true,c.data.footerJSON.color.hover_color.color)"
+                   ng-mouseleave="changeColor(false,c.data.footerJSON.color.text_color.color)"
+                   style="color:{{c.data.footerJSON.color.text_color.color}}"
+                   target="_blank" 
+                   ng-if="item.url==''">
+          <span >{{item.name}}</span>
+          </a>
+      </li>
+    </ul>
+    <ul class="links-list" ng-if="c.data.footerJSON.icon_socialize.visible">
+      <li class="social-link-item" ng-repeat="item in c.data.footerJSON.icon_socialize.fields | orderBy : 'order'">
+        <a ng-style="iconColor"
+           ng-mouseenter="changeColor(true,c.data.footerJSON.color.hover_color.color)"
+           ng-mouseleave="changeColor(false,c.data.footerJSON.color.text_color.color)"
+           style="color:{{c.data.footerJSON.color.text_color.color}}"
+           href="{{item.url}}" 
+           target="_blank">
+          <span><i class="fa fa-{{item.name}}"></i></span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="rectangle-bar" 
+       style="background: linear-gradient(90deg, {{c.data.gradient_first}} 0%,{{c.data.gradient_second}} 100%);"></div>
+
+
+  <div class="logo-container">
+    <span ng-if="c.data.hasLogo=='true'">
+        <img class="logo" ng-src="{{c.data.footerJSON.logo.logo.value}}" height="45">
+    </span>
+    <span class="version-tag">{{c.data.vra_version}}</span>
+  </div>
+
+</div>]]></template>
+    </sp_header_footer>
+</record_update>

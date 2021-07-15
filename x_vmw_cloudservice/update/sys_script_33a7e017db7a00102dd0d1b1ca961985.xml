@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_cas_catalog_entitlement</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRA Notify when entitle is insert </name>
+        <order>50</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+//gs.eventQueue('x_vmw_cloudservice.entitlement_insert',current,gs.getUserID());	
+	var appUtil= new CASAppUtil();
+
+	try
+	{
+		CASLogger.debug("Inside Send email on Notify when entitle is inserted :Business Rule");
+		var entitlement= gs.getProperty(appUtil.configuration.properties.vRA_entitlement);
+		
+		if(entitlement=='true')
+		{
+
+			var reciever = '';
+						
+			if(current.entitled_users != ''){
+				var userRecievers = current.entitled_users.toString().split(',');
+
+				var user = new GlideRecordSecure(appUtil.configuration.table.users_table);
+				user.addQuery("sys_id", userRecievers);
+				user.addQuery("email", "!=", "");
+				user.addQuery("active=true");
+				user.addQuery("user_name", "!=", current.sys_created_by);
+				user.query();
+
+				if(user.next()){
+					reciever = user.email;
+				}
+
+				if(reciever == '' && current.entitled_groups != ''){
+					var groupRecievers = current.entitled_groups.toString().split(',');
+					
+					var group = new GlideRecordSecure(appUtil.configuration.table.group_users_member);
+					group.addQuery("group", groupRecievers);
+					group.query();
+
+					var preGroup = '';
+
+					while (group.next()) {
+						//email trigger for Group Email ID.
+						if(group.group.active == true){
+							if (preGroup != group.group.name) {
+								if (group.group.email != '') {
+									reciever = group.group.email;
+									break;
+								}
+								preGroup = group.group.name;
+							}
+
+							//email trigger for Group's Members Email ID
+							if (group.user.email != '' && group.user.active == true){
+								reciever = group.user.email;
+								break;
+							} 
+						}
+						
+					}
+				}
+			
+			}else if(current.entitled_groups != ''){
+				var groupRecievers = current.entitled_groups.toString().split(',');
+				
+				var group = new GlideRecordSecure(appUtil.configuration.table.group_users_member);
+				group.addQuery("group", groupRecievers);
+				group.query();
+
+				var preGroup = '';
+
+				while (group.next()) {
+					
+					//email trigger for Group Email ID.
+					if(group.group.active == true){
+						if (preGroup != group.group.name) {
+							if (group.group.email != '') {
+								reciever = group.group.email;
+								break;
+							}
+							preGroup = group.group.name;
+						}
+
+						//email trigger for Group's Members Email ID
+						if (group.user.email != '' && group.user.active == true){
+							reciever = group.user.email;
+							break;
+						} 
+					}
+					
+				}
+			}
+			
+			gs.eventQueue('x_vmw_cloudservice.entitlement_insert',current,gs.getUserID());	
+			gs.eventQueue('x_vmw_cloudservice.entitlement_insert_u&',current, reciever);
+
+		}
+	}
+
+	catch(e)
+	{
+		CASLogger.error("Exception caught inside Send email on Notify when entitle is inserted:Business Rule"+e);
+	}
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-02-11 09:07:13</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>33a7e017db7a00102dd0d1b1ca961985</sys_id>
+        <sys_mod_count>29</sys_mod_count>
+        <sys_name>vRA Notify when entitle is insert </sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_33a7e017db7a00102dd0d1b1ca961985</sys_update_name>
+        <sys_updated_by>prateek</sys_updated_by>
+        <sys_updated_on>2020-04-09 10:33:38</sys_updated_on>
+        <template/>
+        <when>before</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=33a7e017db7a00102dd0d1b1ca961985"/>
+</record_update>

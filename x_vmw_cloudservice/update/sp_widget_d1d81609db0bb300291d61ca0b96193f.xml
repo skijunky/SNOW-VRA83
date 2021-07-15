@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope, $timeout, $rootScope) {
+	var c = this;
+
+	$scope.fillModalData = function (titleMessage, type, bodyMessage,id) {
+		c.data.modalBody = (bodyMessage)? bodyMessage : null;
+		c.data.modalTitle = titleMessage;
+		c.data.modalType = type;
+		if(type==2){
+			c.data.itemId=id;
+		}
+	}
+
+	$scope.cartModal = function (type,id) {
+		if (type == 0) {
+			$scope.fillModalData('Clear Cart', 0, 'Are you sure you want to empty your cart?');
+		}
+		else if (type == 1) {
+			c.showDeliveryAddr = false;
+			c.showSpecialInstructions = false;
+			$scope.fillModalData('Order Confirmation', 1);
+			c.requestedFor = {
+				displayValue: c.data.cart.requested_for_display_name,
+				value: c.data.cart.requested_for,
+				name: 'requested_for'
+			};
+		}
+		else if(type==2){
+			$scope.fillModalData('Delete Item', 2, 'Are you sure you want to remove this item from the cart?',id);	
+		}
+	};
+
+	$scope.changeShippingInfo = function () {
+		c.server.get({
+			action: "change_shipping_info",
+			requestedFor: c.requestedFor.value,
+			special_instructions: c.special_instructions,
+			deliverTo: c.deliverTo,
+			cart: {name: c.data.cart.name}
+		}).then(function(response) {
+			$scope.cart = response.cart;
+			//c.updateDetails();
+		});
+	}
+
+	$scope.clearCart = function () {
+		c.data.action = 'clearCart';
+		c.server.update().then (function (response) {
+			$rootScope.$emit('updateCart', '');
+			$scope.items = response.items;
+			$scope.length = response.length;
+		});
+	};
+	
+	$scope.checkoutCart = function () {
+		c.server.get({
+			action: 'checkoutCart',
+			requestedFor: c.requestedFor.value,
+			special_instructions: c.special_instructions,
+			deliverTo: c.deliverTo
+		}).then(function (response) {
+			$scope.items = response.data.items;
+			$scope.length = response.data.length;
+			if (response.data.orderDetails) {
+				$timeout(function(){
+					window.location = c.data.link.activityPage;},1500);
+			}
+		});
+		
+	}
+
+	$scope.deleteCartItem = function (item_id) {
+		c.data.action = 'deleteCartItem';
+		c.data.removeItemID = item_id;
+		c.server.update().then (function (response) {
+			$scope.items = response.items;
+			$rootScope.$emit('updateCart', '');
+		});
+	}
+
+	$scope.modalSubmit = function (type) {
+		
+		if (type == 0) {
+			$scope.clearCart();
+		}
+		if (type == 1) {
+			$scope.checkoutCart();
+		}
+		if(type==2){
+			$scope.deleteCartItem(c.data.itemId);
+		}
+	}
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* main-container */
+.main-container {
+ height: calc(100vh - 96px);
+}
+.wdg-header {
+  display: flex;
+  align-items: center;
+}
+.cas-badge-count {
+  margin-left: 12px;
+}
+.wdg-item-name {
+  display: flex;
+  align-items: center;
+}
+header {
+  font-size: 2.5rem;
+  padding-botton: 1rem;
+  border-bottom: .1rem solid $borderColor;
+  color: $fontWeightedColor;
+}
+.wdg-item-logo {
+  margin-right: 5px;
+}
+/* items-list */
+.main-container {
+  ul {
+    padding-left: 0 !important;
+  }
+}
+/* items-list-container  */
+.items-list-container {
+  display: grid;
+  grid-template-columns: 1fr 6fr 2fr 2fr 2fr 2fr 3fr;
+  border-bottom : .1rem solid $borderColor;
+  color: $fontColor;
+  transition: background-color $transitionTime ease;
+  &amp;:hover {
+    background-color: $hoverBgColor;
+  }
+}
+
+.items-header-container {
+  display: grid;
+  grid-template-columns: 1fr 6fr 2fr 2fr 2fr 2fr 3fr;
+  border-bottom : .1rem solid $borderColor;
+  color: $fontColor;
+}
+
+
+/* list-heading */
+.list-heading {
+  font-size: 1.5rem;
+  color: $fontWeightedColor;
+}
+/* end of list-heading */
+
+/* item */
+.item {
+  padding: 1.5rem;
+}
+.item-name {
+  font-size: 1.8rem;
+  color: $fontColor;
+  margin-bottom: .5rem;
+}
+/* end of item */
+/* delete-icon */
+.item-delete {
+  align-self: center;
+  justify-self: center;
+}
+
+.delete-icon {
+  font-size: 2rem;
+  color: $fontWeightedColor;
+  transition: all $transitionTime ease;
+  &amp;:hover {
+    color: $dangerColor;
+    opacity: .8;
+  }
+}
+
+/* end of delete-icon */
+/* end of items-list-container */
+/* end of items-list */
+/* button-container */
+.button-container {
+  display: grid;
+  grid-template-columns: 2fr 7fr 2fr 1fr;
+  grid-gap: 1rem;
+}
+/* end of button-container */
+/* main-container */
+/* empty-cart-main-container */
+.empty-cart-main-container {
+  margin-top: 1rem;
+  text-align: center;
+  height: calc(100vh - 96px);
+  background-color: $bgColor;
+  padding: 1rem;
+}
+
+/* empty-cart-container */
+.empty-cart-container {
+  text-align: center;
+  position: relative;
+  top: 45%;
+  transform: translateY(-50%);
+}
+
+.empty-cart-icon {
+  font-size: 5.5rem;
+  color: #dedede;
+}
+
+.empty-cart-heading {
+  font-size: 1.5rem;
+  margin-bottom: .9rem;
+  color: #565656;
+}
+
+.empty-cart-description {
+  font-size: .7rem;
+  margin-bottom: .4rem;
+  color: $fontColor;
+}
+
+.empty-cart-button {
+  width: 30rem;
+  margin: 2rem;
+}
+/* end of empty-cart-container */
+/* end of empty-cart-main-container */
+
+/* button */
+.button {
+  border: none;
+  background-color: $bgColor;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  font-weight: 600;
+  color: $primaryColor;
+  transition: all $transitionTime ease;
+  &amp;:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+}
+/* button ends here */
+/* modal */
+.modal-content {
+  background-color: $bgColor;
+  font-family:  $fontStack;
+  box-shadow: 0px 0px 5px $shadowPrimaryColor, 0px 0px 3px $shadowSecondaryColor;
+}
+.modal-header, .modal-footer {
+  border-color: $borderColor;
+  color: $fontWeightedColor;
+}
+.modal-header {
+  button {
+    background-color: $bgColor;
+    color: $fontWeightedColor;
+    opacity: 1;
+  }
+}
+
+.select2-container {
+  color: $cardFontColor;
+  background-color: $cardBgColor;
+  a {
+    border-color: $borderColor;
+  }
+  .select2-arrow {
+    border-color: $borderColor;
+  }
+}
+.select2-drop { 
+  color: $cardFontColor;
+  background-color: $cardBgColor;
+  ul {
+    color: $cardFontColor;
+    background-color: $cardBgColor;
+  }
+}
+.select2-results { 
+  color: $cardFontColor !important;
+  background-color: $cardBgColor !important;
+  border: 1px solid red;
+}
+/* modal ends here */
+tbody {
+  display:block;
+  max-height: calc(100vh - 289px);
+  overflow-y:auto;
+  overflow-x: hidden;
+}
+thead, tbody tr {
+  display:table;
+  width:100%;
+  table-layout:fixed;/* even columns width , fix width of table too*/
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_cart</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_cart</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	try {
+		CASLogger.debug('Inside  CAS_cart widget: for two way checkout functionality');
+
+		var appUtil = new CASAppUtil();
+
+		data.items = [];
+		var cart = new sn_sc.CartJS();
+		data.emptyCartMessage = {
+			heading : 'Your shopping cart is empty',
+			descriptive : 'Once you added items to your shopping cart, you can check out from here.',
+			button : 'View the Catalog'
+		};
+
+		data.link = {
+			organizationsPage : '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+appUtil.configuration.page.organizations,
+			activityPage : '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+appUtil.configuration.page.activitiesList,
+			catalogFormPage : '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+appUtil.configuration.page.activitiesGrid
+		};
+
+		if (input && input.action == 'clearCart') {
+			cart.empty(cart.getCartID());
+		} 
+
+		if (input && input.action == 'deleteCartItem') {
+			cart.remove(input.removeItemID);
+		}
+
+		if (input && input.action == 'change_shipping_info') {
+			cart.setSpecialInstructions(input.special_instructions);
+			cart.setRequestedFor(input.requestedFor);
+			cart.setDeliveryAddress(input.deliverTo);
+		}
+
+		if (input && input.action == 'checkoutCart') {
+			var request = {
+				'special_instructions' : input.special_instructions,
+				'requested_for' : input.requestedFor,
+				'delivery_address' : input.deliverTo
+			};
+			data.orderDetails = cart.submitOrder(request);
+			gs.addInfoMessage("Request Submitted with Request Number: "+data.orderDetails.request_number+". Redirecting to the Activities Page.");
+		}
+
+
+		var getVraDetails = function (items) {
+			var appUtil = new CASAppUtil();
+			var catalogGR = new GlideRecordSecure(appUtil.configuration.table.catalogItem);
+			var sysIds = '';
+			for (var i = 0; i < items.length; i++) {
+				sysIds += items[i].catalog_item_id+',';
+			}
+			var queryString = 'sys_idIN' + sysIds;
+			catalogGR.addEncodedQuery(queryString);
+			catalogGR.query();
+			while(catalogGR.next()) {
+				
+				for (var j = 0; j < items.length; j++) {
+					if (items[j].catalog_item_id == catalogGR.sys_id) {
+						items[j].vra_name = catalogGR.organisation_name.getDisplayValue();
+					}
+				}
+				
+			}
+			return items;
+		}
+
+		if (gs.getProperty('com.glide.embedded_help.version') == 'Jakarta') {
+			var cartItems = cart.getCartItems(); 
+			var cartCount = 0;
+			var items = [];
+			while(cartItems.next()) {
+				var json = {
+					name : cartItems.cat_item.getDisplayValue()+'',
+					short_description : '',
+					created_by : cartItems.sys_created_by.getDisplayValue() + '',
+					updated_by : cartItems.sys_updated_by.getDisplayValue() + '',
+					catalog_item_id : cartItems.cat_item+'',
+					created_on : cartItems.sys_created_on.getDisplayValue() + '',
+					sys_id : cartItems.sys_id+''
+				}
+				items.push(json);
+			}
+			data.items = items;
+			data.length = data.items.length;
+
+		} else {
+			var cartDetails = cart.getCartDetails(true);
+			data.cart = cartDetails;
+			var createCartJSON = function (cartDetails) {
+				var items = (cartDetails.cart_items && cartDetails.cart_items.none)? cartDetails.cart_items.none.items : [];
+				items = items.concat((cartDetails.cart_items && cartDetails.cart_items.yearly)? cartDetails.cart_items.yearly.items : [])
+				return items;
+			}
+			data.items = createCartJSON(cartDetails);
+			data.length = Object.keys(data.items).length;
+		}
+		data.items = getVraDetails(data.items, data.length);
+		var reqForDispCols = gs.getProperty("glide.sc.request_for.columns");
+		data.reqForDispCols = reqForDispCols || "name";
+		data.reqForQuery = gs.getProperty("glide.sc.request_for.query");
+	} catch (e) {
+		CASLogger.error('Exception caught inside  CAS_cart widget: '+ e);
+	}
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>Navdeep</sys_created_by>
+        <sys_created_on>2019-08-02 07:37:40</sys_created_on>
+        <sys_id>d1d81609db0bb300291d61ca0b96193f</sys_id>
+        <sys_mod_count>180</sys_mod_count>
+        <sys_name>CAS_cart</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_d1d81609db0bb300291d61ca0b96193f</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-01-13 10:22:06</sys_updated_on>
+        <template><![CDATA[<div class="main-container">
+  <div class="cart-main-container" ng-if="c.data.length">
+    <div class="cas-clr-row">
+      <div class="cas-clr-col">
+        <h2 class="wdg-header">
+          <span>Your Cart</span>
+          <span class="cas-label cas-label-info cas-badge-count">{{c.data.length}} items</span>
+        </h2>
+      </div>
+    </div>
+    <div class="cas-clr-row">
+      <div class="cas-clr-col-12">
+        <table class="cas-table cas-table-noborder">
+          <thead>
+            <tr>
+              <th class="cas-left" style="padding-left:32px;">Item details</th>
+              <th class="cas-left">Created by</th>
+              <th class="cas-left">Updated by</th>
+              <th class="cas-left">Created on</th>
+              <th class="cas-left">vRA name</th>
+              <th class="cas-left"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr  ng-repeat="item in c.data.items">
+              <td class="cas-left wdg-item-name">
+                <cas-clr-icon class="wdg-item-logo" shape="cas-logo" size="25" role="none"></cas-clr-icon>
+                {{item.name}}
+              </td>
+              <td class="cas-left">{{item.created_by}}</td>
+              <td class="cas-left">{{item.updated_by}}</td>
+              <td class="cas-left">{{item.created_on | date:"MM/dd/yyyy"}}</td>
+              <td class="cas-left">{{(item.vra_name) ? item.vra_name : 'Not Available'}}</td>
+              <td class="cas-left" style="text-align:center" onclick="$('.action-modal, .action-modal-backdrop').show();" ng-click="cartModal(2,item.sys_id);"><cas-clr-icon shape="trash" color="#e12200" size="17" class="is-error" role="none"></cas-clr-icon></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <form class="cas-clr-form cas-clr-form-horizontal">
+        <div class="cas-clr-col-12">
+          <a class="cas-btn cas-btn-primary"
+             onclick="$('.action-modal, .action-modal-backdrop').show()"
+             ng-click="cartModal(1,'');">Checkout</a>
+          <a class="cas-btn cas-btn-primary-outline" href="{{data.link.organizationsPage}}">Continue Shopping</a>
+          <a class="cas-btn cas-btn-danger-outline"
+             onclick="$('.action-modal, .action-modal-backdrop').show()" 
+             ng-click="cartModal(0,'');">Clear Cart</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="empty-cart-main-container" ng-if="!c.data.length">
+    <div class="empty-cart-container">
+      <div class="empty-cart-icon"><i class="fa fa-shopping-cart" aria-hidden="true"></i></div>
+      <div class="empty-cart-heading">{{data.emptyCartMessage.heading}}</div>
+      <div class="empty-cart-description">{{data.emptyCartMessage.descriptive}}</div>
+      <a href="{{data.link.organizationsPage}}" class="button empty-cart-button">{{data.emptyCartMessage.button}}</a>
+    </div>
+  </div>
+</div>
+
+<!-----------------modal--------------------------->
+<div class="cas-modal action-modal" style="display: none">
+  <div class="cas-modal-dialog" role="dialog" aria-hidden="true">
+    <div class="cas-modal-content">
+      <div class="cas-modal-header">
+        <button aria-label="Close" class="cas-close" type="button" onclick="$('.action-modal, .action-modal-backdrop').hide()">
+          <cas-clr-icon aria-hidden="true" shape="close" color="#565656" size="25" role="none"></cas-clr-icon>
+        </button>
+        <h3 class="cas-modal-title">{{c.data.modalTitle}}</h3>
+      </div>
+      <div class="cas-modal-body">
+        <div ng-if="c.data.modalBody">{{c.data.modalBody}}</div>
+        <form ng-if="!c.data.modalBody">
+          <div class="form-group">
+            <label for="requested-for">${Request For} <i class="fa fa-info-circle" uib-tooltip="${Request for yourself or on behalf of another person}" tooltip-placement="right" tooltip-append-to-body="true"></i></label>
+            <sn-record-picker id="requested-for"
+                              field="c.requestedFor"
+                              table="'sys_user'"
+                              ng-change="changeShippingInfo()"
+                              display-field="'name'" 
+                              display-fields="c.data.reqForDispCols" 
+                              value-field="'sys_id'" 
+                              search-fields="'name'"
+                              default-query="c.data.reqForQuery"
+                              page-size="100"
+                              options="{allowClear : false}"
+                              sn-disabled="false">
+            </sn-record-picker>
+          </div>
+          <div class="form-group">
+            <label for="deliver-to" ng-click="c.showDeliveryAddr = !c.showDeliveryAddr" tabindex="0">${Delivery Information} <span class="text-muted"> ${(Optional)}</span>
+              <i ng-class="c.showDeliveryAddr ? 'fa fa-minus-square-o' : 'fa fa-plus-square-o'" aria-expanded="{{c.showDeliveryAddr}}" class="m-t-xs accordion-toggle pull-left"></i>
+            </label>
+            <textarea class="form-control" ng-if="c.showDeliveryAddr" ng-model="c.deliverTo"  id="deliver-to" ng-model-options="{ updateOn: 'blur' }" ng-change="changeShippingInfo()" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="special-instructions" ng-click="c.showSpecialInstructions = !c.showSpecialInstructions" tabindex="0">${Special Instructions} <span class="text-muted"> ${(Optional)}</span>
+              <i ng-class="c.showSpecialInstructions ? 'fa fa-minus-square-o' : 'fa fa-plus-square-o'" aria-expanded="{{c.showSpecialInstructions}}" class="m-t-xs pull-left accordion-toggle"></i>
+            </label>
+            <textarea class="form-control" ng-if="c.showSpecialInstructions" ng-model="c.special_instructions" id="special-instructions" ng-model-options="{ updateOn: 'blur' }" ng-change="changeShippingInfo()" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="cas-modal-footer">
+        <button class="cas-btn cas-btn-outline" type="button" onclick="$('.action-modal, .action-modal-backdrop').hide()">Cancel</button>
+        <button class="cas-btn cas-btn-primary" type="button" ng-click="modalSubmit(c.data.modalType);" onclick="$('.action-modal, .action-modal-backdrop').hide()">{{c.data.modalType == 0 || c.data.modalType == 2 ? 'Ok' : 'Checkout'}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="cas-modal-backdrop action-modal-backdrop" aria-hidden="true" style="display: none;"></div>
+<!-----------------modal ends here----------------->
+]]></template>
+    </sp_widget>
+</record_update>

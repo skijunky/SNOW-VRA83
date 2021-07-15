@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope,$location) {
+	/* widget controller */
+	var c = this;
+	$scope.dataValue = {};
+	$scope.fields = [];
+	c.data.inputdata.forEach(function(e) {
+		$scope.fields.push(e.name);
+		$scope.dataValue[e.name] = parseInt(e.value);
+	})   
+
+	  c3.generate({
+			bindto: "#requestChart",
+		size: {
+			height: 200,
+			width: 400
+		},
+		data: {
+			json: [ $scope.dataValue ],
+			keys: {
+				value: $scope.fields
+			},
+			onclick: function () { 
+				//alert(arguments['0'].id+" value = "+arguments['0'].value); 
+				var order;
+				if(arguments['0'].id=='Closed Incomplete'){
+					order=5;
+				}else if(arguments['0'].id=='Closed Complete'){
+					order=4;
+					
+				}else if(arguments['0'].id=='Work in Progress'){
+					order=2;
+					arguments['0'].id='In Progress';
+				}else if(arguments['0'].id=='Open'){
+					order=1;
+				}
+				$location.search({'id':c.data.req_page,'filter':arguments['0'].id,'table':c.data.req_table,'order':order,'myFlag':!c.data.hasAdminRole})
+			},
+			type:'donut'
+		},
+		legend: {
+			position: 'right'
+		},
+		donut:{
+			title:c.data.total_records,
+			label: {
+				show: false
+			}
+
+		},
+			tooltip: {
+        format: {
+            value: function (value) {
+                var format = d3.format(',');
+                return format(value);
+            }
+        }
+			},
+		color: {
+			pattern:c.data.pattern//['#FF9C32', '#F54F47', '#85C81A', '#FAFAFA']
+		},
+		onrendered: function () {
+			var data = this.api.data.shown.call(this.api);
+			var total = data.reduce(function (sTotal, t) {
+				return sTotal + t.values.reduce(function (subTotal, b) { return subTotal + b.value }, 0);
+			}, 0);
+			d3.select(this.config.bindto + " .c3-chart-arcs-title").text(total);
+
+		}
+
+		});
+
+
+$scope.redirect=function(url){
+		$location.url(url);
+	}
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.no-margin {
+  margin: 0;
+}
+.cas-card-block {
+  text-align: center;
+}
+.cas-card-block, .cas-card-header {
+  border-bottom: 1px solid #eee;
+}
+.cas-card-block.with-row {
+  padding: 0;
+}
+.cas-badge-count {
+ // margin: auto 8px;
+  font-weight: 200;
+  font-size: 12px;
+}
+.chart{
+  border: 1px solid red; 
+  width:auto; 
+  height:200px; 
+  position: relative;
+}
+
+.cas-card-block &amp;gt; div.cas-card-row:not(:last-child) {
+  border-bottom: 1px solid #eee;
+}
+.cas-card-block &amp;gt; div.cas-card-row {
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+}
+
+span.details, time {
+  color: #919FA8;
+  font-size: 12px;
+	margin:0px 4px;
+}
+.cas-label.cas-label-success, .cas-label.cas-label-info {
+  background-color: #fff;
+}
+
+.cas-card .cas-btn-link {
+  min-width: 0;
+  padding: 0;
+}
+
+.c3-chart-arcs-title{
+font-size:2rem;
+  fill:#737373;
+}
+
+
+/*
+.cas-card-block &amp;gt; .value {
+//  font-family: sas-serif;
+  //font-size: 2rem;
+ // margin: 25px 0;
+  display: block;
+}*/
+/*a.link-visited:link, a:visited {
+color: #5659b9;
+text-decoration: none;
+}*/
+
+a.link-normal:link, a:link {
+  color: #0079b8;
+  text-decoration: none;
+}
+.fix-height{
+ height:80vh;
+}
+.fix-height-header{
+	//height:9%; 7vh;
+  height: 50px;
+}
+.fix-height-chart{
+	height: 225px;//32vh;
+  //overflow: auto;
+}
+.fix-height-block{
+	height: calc(80vh - 325px);//34vh;
+  overflow: auto;
+}
+.fix-height-footer{
+   height: 50px;
+   position: relative;
+   bottom: -4px;
+}
+
+.item{
+text-overflow:ellipsis;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+.item-name{
+  display: block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.content-container{
+  height: calc(100vh - 40px);
+  width: 100%;
+}
+
+.content-area{
+  //margin: auo;
+	//margin-top: 18%;
+  text-align: centre;
+  //width: 48%;
+}
+
+.btn-primary{
+	margin: 10px;
+	text-transform: uppercase;
+}
+
+.deploy-text__subtitle{
+  padding-bottom: 25px;
+}
+ 
+
+.request-new{
+  padding:20px;
+  position:absolute;
+  top:55px;
+  margin-top:10%;
+}
+
+.cas-card-row{
+display:flex;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_request_summary_report</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_request_summary_report</name>
+        <option_schema>[{"name":"group_by","section":"other","label":"Group by","type":"string"},{"name":"record_limit","section":"other","label":"Record Limit","type":"integer"},{"name":"view_all_link","section":"other","label":"View All Link","type":"string"}]</option_schema>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object */
+	/* e.g., data.table = $sp.getValue('table'); */
+	try{	
+	var daoUtil= new CASDaoUtil()
+	var appUtil=new CASAppUtil();
+	
+	data.req_table=appUtil.configuration.table.requests;
+	
+	data.hasAdminRole=gs.hasRole('admin');
+		
+	data.req_page=appUtil.configuration.page.activitiesCard;
+	
+		
+	var filter=(data.hasAdminRole)?'cat_item.sc_catalogsLIKE533fe9dfdb2233006adb48703996191b':'cat_item.sc_catalogsLIKE533fe9dfdb2233006adb48703996191b^request.requested_forDYNAMIC90d1921e5f510100a9ad2572f2b477fe';
+	
+	data.inputdata=daoUtil.getReportData(appUtil.configuration.table.requests,options.group_by,filter);
+	
+	data.arr=daoUtil.fetchRequestReportList(appUtil.configuration.table.requests,options.record_limit,options.group_by,filter);
+	
+	data.total_records=daoUtil.getTotalRecordCount(appUtil.configuration.table.requests,filter);
+	
+		data.pattern=[];
+		
+	for(var i=0;i<data.inputdata.length;i++){
+	//	g.error(data.inputdata[i].name)
+		if(data.inputdata[i].name=='Open'){
+			data.pattern.push('#ff9c32');
+		}else if(data.inputdata[i].name=='Closed Complete'){
+			data.pattern.push('#85c81a');
+		}else if(data.inputdata[i].name=='Closed Incomplete'){
+			data.pattern.push('#f54f47');
+		}else if(data.inputdata[i].name=='Work in Progress'){
+			data.pattern.push('#49afd9');
+		}
+	}
+
+		//check if admin role
+	if(data.hasAdminRole){
+		data.view_all_link=options.view_all_link+'&myFlag=false';
+	}else{
+		data.view_all_link=options.view_all_link;
+	}
+		
+	}
+	
+	
+	catch(e){
+		
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-18 09:24:28</sys_created_on>
+        <sys_id>8114b89cdb0c4010ff7c2946489619fa</sys_id>
+        <sys_mod_count>237</sys_mod_count>
+        <sys_name>CAS_request_summary_report</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_8114b89cdb0c4010ff7c2946489619fa</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-23 10:12:21</sys_updated_on>
+        <template><![CDATA[<div  class="cas-card no-margin fix-height">
+  <div class="cas-card-header fix-height-header">
+    Requests Summary
+  </div> 
+
+  <div class="cas-card-block fix-height-chart" ng-show="c.data.arr.length!=0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.8/c3.css">
+    <div id="requestChart">
+    </div>
+  </div>
+  <div class="cas-card-block with-row fix-height-block" ng-if="c.data.arr.length!=0">
+    <div ng-click="redirect(item.link)" class="cas-card-row" ng-repeat="item in c.data.arr">
+      <span>{{item.name}}</span>
+      <span class="details">• </span>
+      <div class="item"><sn-time-ago timestamp="item.createdAt" /></div>
+      <span class="details">• </span>
+      <span class="cas-label cas-badge-count" ng-class="{'cas-label-danger':item.status=='Closed Incomplete','cas-label-warning':item.status=='Open','cas-label-success':item.status=='Closed Complete','cas-label-info':item.status=='Work in Progress'}">{{item.status}}</span>
+    </div> 
+  </div>
+  <div class="cas-card-footer" ng-if="c.data.arr.length!=0">
+    <a href="{{c.data.view_all_link}}" class="cas-btn cas-btn-sm cas-btn-link">View All</a>
+    <span style="float:right;">
+      <span ng-if="c.options.record_limit>=c.data.total_records">{{c.data.total_records}}</span>
+      <span ng-if="c.options.record_limit<c.data.total_records">{{c.options.record_limit}}</span>
+      of {{c.data.total_records}} requests
+    </span>
+  </div>
+
+
+  <div class="request-new" ng-if="c.data.arr.length==0">
+    <div class="content-area" align="center">
+      <cas-clr-icon shape="plus" size="40"></cas-clr-icon>
+      <h3>Request for a deployment to get started</h3><br/>
+      <div class="deploy-text__subtitle">Deployments can be requested from catalog. You can monitor the status of submitted requests, keep track of your deployed resources, and manage those resources using actions.</div>
+      <a href="?id=vra_organizationspage" class="btn btn-primary" style="color:#FFFFFF">Request From Catalog</a>
+    </div>
+
+  </div>
+</div>
+]]></template>
+    </sp_widget>
+</record_update>

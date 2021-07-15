@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope) {
+	var c = this;
+	var data = JSON.parse(JSON.stringify(c.data));
+	$scope.page.g_form.getField(data.field_id).duallist_data = c.data;
+	var dirty = false;
+	var interval = 0;
+	
+	$scope.page.g_form.setMandatory(data.field_id, false);
+	
+	interval = setInterval(function(){
+		var multiselectContainerElement = $("#"+'multiselect_container'+c.data.field_id)[0];
+		if(multiselectContainerElement){
+			clearInterval(interval);
+			if(data.all_options.type=="scriptAction" || data.default_value.type=="scriptAction"){
+				getData();
+			}
+			else{
+				initialize();
+			}
+		}
+	}, 1000);
+	
+	
+	function getData(){
+		var getDataInterval=0;
+		clearInterval(getDataInterval);
+		getDataInterval = setInterval(function(){
+			var all_options;
+			var default_value;
+			if(data.all_options.type=="scriptAction"){
+				all_options = $scope.page.g_form.getField(data.field_id).all_options_onload;
+			}
+			else{
+				all_options = data.all_options;
+			}
+			if(data.default_value.type=="scriptAction"){
+				default_value = $scope.page.g_form.getField(data.field_id).default_value_onload;
+			}
+			else{
+				default_value = (data.default_value||[]);
+			}
+			
+			all_options = (all_options||[]);
+			default_value = (default_value||'');
+			if(all_options.length){
+				if(default_value){
+					all_options = all_options.map(function(option){
+						return typeof option.label == 'undefined'?{value:option,label:option}:option;
+					})
+					data.all_options = all_options;
+					data.default_value = default_value;
+					clearInterval(getDataInterval);
+					initialize();
+				}
+			}
+		},1000);
+
+	}
+	
+	function initialize(){
+		$('#data_json'+c.data.field_id).val(JSON.stringify(data.options));
+		//handelling read only---------------------------------------
+		if(data.constraints.read_only){
+			$("#multiselect-container"+c.data.field_id).css("display","none");
+			$("#read_only"+c.data.field_id).css("display","block");
+			data.selected_options = (getOptionsFromValues(data.default_value) ||[]);
+			var selected_options ='';
+			var tableRows = "";
+			data.selected_options.forEach(function(option){
+				selected_options+='<tr><td>'+option.label+'</td></tr>';
+			});
+			$("#read_only"+data.field_id+" tbody").html(selected_options);
+			updateAnswer(data.default_value);
+		}
+		else{
+			fillData([].concat(data.default_value), true);
+		}
+		
+		$("#multiselect"+data.field_id).change(function () {
+			var selected_values = $("#multiselect"+data.field_id).val();
+			if(selected_values)fillData([].concat(selected_values), false);
+		}).change();
+	}
+
+
+	//value to option
+	function getOptionFromValue(value){
+		return (data.all_options || []).filter(function(item){
+			return item.value == value;
+		})[0];
+	}
+	function getOptionsFromValues(values){
+		return (values || []).map(function(value){
+			return getOptionFromValue(value);
+		});
+	}
+
+
+	//option to value
+	function getValuesFromOptions(options){
+		return (options || []).map(function(option){
+			return option.value;
+		});
+	}
+
+
+	//option selection and removal
+	function selectOptions(id){
+		var values = $("#"+ id).val();
+		if(!values)return;
+		var selectedValues = (values.concat(getValuesFromOptions(data.selected_options)) || []);
+		refillDuallist(selectedValues);
+	}
+	function unselectOptions(id){
+		var selectedValues = getValuesFromOptions(data.selected_options);
+		var values = $("#"+ id).val();
+		if(!values)return;
+		values.forEach(function(value){
+			selectedValues.splice(selectedValues.indexOf(value),1);
+		});
+		refillDuallist(selectedValues);
+	}
+	function selectAllOptions(id){
+		var values = $("#"+ id +" option").map(function(){
+			return this.value;
+		}).get();
+		if(!values)throw "Something went wrong while selecting all option";
+		var selectedValues = values.concat(getValuesFromOptions(data.selected_options))
+		refillDuallist(selectedValues);
+	}
+	function unselectAllOptions(id){
+		var selectedValues = [];
+		refillDuallist(selectedValues);
+	}
+
+
+	//adds optin to a select element
+	function addOptionsToSelectElement(id,options){
+		(options || []).forEach(function(option){
+			var optionElement = new Option(option.label, option.value);
+			if(option.selected)$(optionElement).attr('selected', true);
+			else $(optionElement).attr('selected', false);
+			$(optionElement).html(option.label);
+			$("#"+id).append(optionElement);
+		});
+	}
+
+	//refills dual list data
+	function fillData(selectedValues, isDefault){
+		var selected_options = getOptionsFromValues(selectedValues);
+		var unselected_options = (data.all_options || []).filter(function(option, index){
+			return !selectedValues.filter(function(value,index){return option.value==value;}).length;
+		});
+		
+		selected_options = selected_options.filter(function(option){
+			return option;
+		});
+		
+		unselected_options = unselected_options.filter(function(option){
+			return option;
+		});
+		
+		selected_options.sort(function(a,b){
+			if( b.label >a.label)return -1;
+			if(a.label>b.label)return 1;
+			return 0;
+		});
+		
+		data.minMaxFulfilled = true;
+		if(data.constraints['max-value']){
+			if(selected_options.length>data.constraints['max-value']){
+				$("#error-message"+data.field_id).text("Maximum value can be "+ data.constraints["max-value"]);
+				data.minMaxFulfilled = false;
+			}
+
+		}
+		if(data.constraints['min-value']){
+			if(data.constraints['min-value'] > selected_options.length){
+				$("#error-message"+data.field_id).text("Minimum value can be "+ data.constraints["min-value"]);
+				data.minMaxFulfilled = false;
+			}
+		}
+
+		if(data.minMaxFulfilled) $("#error-message"+data.field_id).text(" ");
+		
+		data.selected_options = selected_options;
+		data.unselected_options = unselected_options;
+		
+		if(isDefault){
+			$("#multiselect"+ data.field_id).empty();
+			data.selected_options.forEach(function(option){
+				option.selected = true;
+			});
+			data.fill_data = data.selected_options.concat(data.unselected_options);
+			data.fill_data.sort(function(a,b){
+				if( b.label >a.label)return -1;
+				if(a.label>b.label)return 1;
+				return 0;
+			});
+			addOptionsToSelectElement("multiselect"+data.field_id,data.fill_data);
+		}
+		
+		updateAnswer(getValuesFromOptions(data.selected_options));
+	}
+
+	//updates answer to the hidden text field
+	function updateAnswer(answer){
+		if(!answer)return;
+		if(answer.length){
+			$("#answer"+data.field_id).val(JSON.stringify(answer));
+			$scope.page.g_form.clearOptions(data.field_id);
+			$scope.page.g_form.addOption(data.field_id, answer, answer);
+			$scope.page.g_form.setValue(data.field_id, answer);
+			$scope.page.g_form.getField(data.field_id).answer = answer;
+			if(data.minMaxFulfilled)$("#multiselect"+data.field_id).css("border","");
+			else $("#multiselect"+data.field_id).css("border","1px solid #c83c36");
+		}
+		else{
+			$("#answer"+data.field_id).val("[]");
+			$scope.page.g_form.clearOptions(data.field_id);
+			$scope.page.g_form.addOption(data.field_id, [], []);
+			if(data.constraints.required){
+				$("#multiselect"+data.field_id || !data.minMaxFulfilled).css("border","1px solid #c83c36");
+			}
+			$scope.page.g_form.getField(data.field_id).answer = answer;
+		}
+	}
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.cas-multiselect-table-container{&#13;
+ 	 padding:0;height:auto&#13;
+}&#13;
+&#13;
+.cas-multiselect-table{&#13;
+ 	margin-top: 0px;&#13;
+  margin-bottom: 0px;&#13;
+}&#13;
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_multiselect</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_Multiselect</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	data.options = options;
+	data.all_options = (options.valueList ||[]);
+	if(typeof data.all_options[0] != "object" && !data.all_options.id){
+		data.all_options = data.all_options.map(function(item){
+			return {"value":item,"label":item};
+		});
+	}
+	data.default_value = (options["default"]||[]);
+	data.field_id = options.field_id;
+	data.constraints = options.constraints;
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-09-22 09:40:56</sys_created_on>
+        <sys_id>4d509e572f9b5810f1663e0ef699b66e</sys_id>
+        <sys_mod_count>22</sys_mod_count>
+        <sys_name>CAS_Multiselect</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_4d509e572f9b5810f1663e0ef699b66e</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-10-26 07:18:19</sys_updated_on>
+        <template><![CDATA[<div id="{{'multiselect_container'+c.data.field_id}}">
+  <div>
+    <span id="{{'error-message'+c.data.field_id}}" style="font-size:15px;font-weight:300;color:#c83c36"></span>
+  </div>
+  <div class="row" id="{{'multiselect-container'+c.data.field_id}}" style="margin:0" >  
+    <div style="width:100%">
+      <select name="from" id="{{'multiselect'+c.data.field_id}}" class="form-control" size="8" multiple="multiple">      
+      	<option value="">Loading...</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="row" id="{{'read_only'+c.data.field_id}}" style="display:none;margin:0">
+    <div>
+      <div  class="form-control cas-multiselect-table-container" >
+        <table  class="table table-compact cas-multiselect-table" >
+          <tbody >
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <input type="text" id="{{'answer'+c.data.field_id}}" style="visibility:hidden"/>
+  <input type="text" id="{{'all_options'+c.data.field_id}}" style="visibility:hidden"/>
+  <input type="text" id="{{'default_value'+c.data.field_id}}" style="visibility:hidden"/>
+  <input type="text" id="{{'data_json'+c.data.field_id}}" style="visibility:hidden"/>
+  <script>
+  </script>
+</div>]]></template>
+    </sp_widget>
+</record_update>

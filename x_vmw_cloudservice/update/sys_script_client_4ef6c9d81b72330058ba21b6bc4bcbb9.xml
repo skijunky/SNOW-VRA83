@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script_client">
+    <sys_script_client action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <applies_extended>false</applies_extended>
+        <condition/>
+        <description/>
+        <field>select_projects</field>
+        <global>true</global>
+        <isolate_script>true</isolate_script>
+        <messages/>
+        <name>onChangeProjectsHideItems</name>
+        <order>10</order>
+        <script><![CDATA[function onChange(control, oldValue, newValue, isLoading, isTemplate) {
+   if (isLoading) {
+      return;
+   }
+	
+	
+	//CAS Word is renamed to vRA.
+      if(newValue=="")
+		{
+			g_form.clearValue("select_catalog_items");
+			return;
+		}
+		
+	
+
+	var ga = new GlideAjax('vRAOnChangeHideItems');
+	ga.addParam('sysparm_name', 'updateItems');
+	ga.addParam('source_sys_id', newValue);
+	ga.addParam('child_sys_id', g_form.getValue('select_catalog_items'));
+	ga.addParam('target_tablename','sc_cat_item_category' );
+	ga.addParam('target_field', 'sc_category');
+	ga.getXML(ProjectDetails);
+	//CASLogger.error("sysparm_name","source_sys_id","child_sys_id","target_tablename","target_field");
+  
+	function ProjectDetails(response)
+	{
+		var answer = response.responseXML.documentElement.getAttribute("answer");
+		
+		g_form.setValue("select_catalog_items",answer);
+	}
+
+}]]></script>
+        <sys_class_name>sys_script_client</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-18 07:41:59</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>4ef6c9d81b72330058ba21b6bc4bcbb9</sys_id>
+        <sys_mod_count>39</sys_mod_count>
+        <sys_name>onChangeProjectsHideItems</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_client_4ef6c9d81b72330058ba21b6bc4bcbb9</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-05-13 15:03:38</sys_updated_on>
+        <table>x_vmw_cloudservice_cas_catalog_entitlement</table>
+        <type>onChange</type>
+        <ui_type>0</ui_type>
+        <view/>
+    </sys_script_client>
+</record_update>

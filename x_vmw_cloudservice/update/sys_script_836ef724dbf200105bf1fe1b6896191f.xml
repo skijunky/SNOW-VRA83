@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>true</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_register_cas_organization</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>Endpoint Email Notification</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async.*/) {
+
+	
+	try{
+		
+		var appUtil = new CASAppUtil();
+		var value = gs.getProperty(appUtil.configuration.properties.vraEndpointEmailNotification);
+		
+		if(value == 'true'){
+			
+			CASLogger.debug("Inside BR Endpoint Email Notification for Insert & Delete Operation");
+		
+			//getting the Created By User's Email ID.
+			var CreatedBy = new GlideRecordSecure(appUtil.configuration.table.users_table);
+			CreatedBy.addEncodedQuery('user_name='+current.sys_created_by);
+			CreatedBy.query();
+
+			////getting the Updates By User's Email ID
+			//var UpdatedBy = new GlideRecordSecure(appUtil.configuration.table.users_table);
+			//UpdatedBy.addEncodedQuery('user_name='+current.sys_updated_by);
+			//UpdatedBy.query();
+
+			if(CreatedBy.next()) var Creator_email = CreatedBy.email;
+			//if(UpdatedBy.next()) var Updator_email = UpdatedBy.email;
+
+			if(current.operation() == 'insert'){
+
+				gs.eventQueue('x_vmw_cloudservice.email_for_endpoint_re', current, Creator_email);
+
+			}else if(current.operation() == 'delete'){
+
+				gs.eventQueue('x_vmw_cloudservice.email_for_endpoint_de', current, Creator_email,gs.getUserName());
+				//if(Creator_email == Updator_email) gs.eventQueue('x_vmw_cloudservice.email_for_endpoint_de', current, Creator_email);
+				//else gs.eventQueue('x_vmw_cloudservice.email_for_endpoint_de', current, Creator_email, Updator_email);
+
+			}
+		}
+		
+		
+	}catch(e){
+		CASLogger.error("Exception caught inside BR: Endpoint Insert & Delete Email Notification "+e);
+	}
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-02-03 11:40:09</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>836ef724dbf200105bf1fe1b6896191f</sys_id>
+        <sys_mod_count>55</sys_mod_count>
+        <sys_name>Endpoint Email Notification</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_836ef724dbf200105bf1fe1b6896191f</sys_update_name>
+        <sys_updated_by>prateek</sys_updated_by>
+        <sys_updated_on>2020-04-01 07:44:28</sys_updated_on>
+        <template/>
+        <when>before</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=836ef724dbf200105bf1fe1b6896191f"/>
+</record_update>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>Entitlement_Deletion_email_script</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript( /* GlideRecord */ current, /* TemplatePrinter */ template,
+    /* Optional EmailOutbound */
+    email, /* Optional GlideRecord */ email_action,
+    /* Optional GlideRecord. */
+    event) {
+
+    try {
+
+        CASLogger.debug("Inside EmailScript : Entitlement Email Notification for Delete Operation");
+		
+		var appUtil = new CASAppUtil();
+		
+        //parse the string into JSON Object.
+        var entRecord = JSON.parse(event.parm2);
+		
+		//get the Updated Time & Date
+		var updatedTime = (new GlideDateTime()).toString();
+		
+		//convert the dateTime to GMT datetime
+		var newCreatedOn = appUtil.getGMTDateTime(entRecord.sys_created_on, 'GMT');
+		var newUpdatedOn = appUtil.getGMTDateTime(updatedTime, 'GMT');
+
+
+        //set the subject of an email notification.
+        email.setSubject("vRealize Automation - Entitlement " + entRecord.name + " has been Deleted.");
+
+        template.print(
+            "<div style='height: inherit; width: 100%; padding: 4px; text-align: center; background-color: #ffffbf; margin: 10px 0px 20px; font-family: arial; font-weight: 400; font-size: 19px;'><strong>Entitlement Details</strong></div><div style='margin: 10px 0px 10px 0px;font-family: arial; font-size: 14.5px;'><p>Hi "+ entRecord.sys_created_by +",</p><p>The Entitlement has been Deleted with following details.</p><br/></div><table style='font-family: arial; border-collapse: collapse; width: 100%; margin-top: -30px; height: 120px;'><tbody><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Entitlement Name</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + entRecord.name + "<br /></strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Description</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" +(entRecord.description == '' ? '-' : entRecord.description)+ "</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Endpoint Name</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + entRecord.endpoint + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Deployment Actions</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + (entRecord.deployment_actions == '' ? '-' : entRecord.deployment_actions) + "</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Machine Actions</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + (entRecord.machine_actions == '' ? '-' : entRecord.machine_actions) + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Projects</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + entRecord.projects + "</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Catalog Items</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + (entRecord.catalog_items == '' ? '-' : entRecord.catalog_items) + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Created By</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + entRecord.sys_created_by + "</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Deleted By</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + entRecord.sys_updated_by + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Created On</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + newCreatedOn + "</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 31.9635%; height: 15px;'>Deleted On</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px; width: 67.8843%; height: 15px;'><strong>" + newUpdatedOn + "</strong></td></tr></tbody></table>"
+        );
+
+    } catch (e) {
+        CASLogger.error("Exception caught inside EmailScript : Entitlement Delete Email Notification " + e);
+    }
+
+})(current, template, email, email_action, event);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>prateek</sys_created_by>
+        <sys_created_on>2020-02-17 07:23:43</sys_created_on>
+        <sys_id>5179874ddb430010a9870d53ca961994</sys_id>
+        <sys_mod_count>49</sys_mod_count>
+        <sys_name>Entitlement_Deletion_email_script</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_email_5179874ddb430010a9870d53ca961994</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-04-30 11:59:28</sys_updated_on>
+    </sys_script_email>
+</record_update>

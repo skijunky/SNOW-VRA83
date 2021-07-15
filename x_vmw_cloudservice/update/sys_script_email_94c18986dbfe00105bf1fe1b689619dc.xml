@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>Resource_Sharing_Updation_email_script</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript( /* GlideRecord */ current, /* TemplatePrinter */ template,
+    /* Optional EmailOutbound */
+    email, /* Optional GlideRecord */ email_action,
+    /* Optional GlideRecord */
+    event) {
+
+    // Add your code here
+    try {
+
+        CASLogger.debug("Inside EmailScript : Resource Sharing Email Notification for Update Operation");
+		
+		var appUtil = new CASAppUtil();
+
+		if(current.users != ''){
+					
+			var recievers = event.parm2.toString();
+			var recieversArr = recievers.split(',');
+			var userRecievers = '';
+			
+			//triggering mails in BCC to the Entitled Users..
+			if(recieversArr[0] == 'user' || recieversArr[0] == 'user&group'){
+				userRecievers = (recieversArr[1] == '') ? current.users.toString().split(',') : recieversArr;
+			}else{
+				userRecievers = current.users.toString().split(',');
+			}
+
+			var user = new GlideRecordSecure(appUtil.configuration.table.users_table);
+			user.addQuery("sys_id", userRecievers);
+			user.addQuery("email", "!=", "");
+			user.addQuery("active=true");
+			user.addQuery("sys_id", "!=", event.parm1);
+			user.query();
+
+			while (user.next()) {
+				email.addAddress("bcc", user.email + '', user.getDisplayValue() + '');
+			}
+			
+		}
+
+		if(current.groups != ''){
+			
+			var recievers = event.parm2.toString();
+			var recieversArr = recievers.split(',');
+			var groupRecievers = '';
+			
+			//triggering mails in BCC to the Entitled Groups..
+			if(recieversArr[0] == 'group' || recieversArr[0] == 'user&group'){
+				groupRecievers = (recieversArr[1] == '') ? current.groups.toString().split(',') : recieversArr;
+			}else{
+				groupRecievers = current.groups.toString().split(',');
+			}
+
+			var group = new GlideRecordSecure(appUtil.configuration.table.group_users_member);
+			group.addQuery("group", groupRecievers);
+			group.query();
+
+			var preGroup = '';
+
+			while (group.next()) {
+				//email trigger for Group Email ID.
+				if(group.group.active == true){
+					if(preGroup != group.group.name){
+						if (group.group.email != '' && group.group.email != event.parm1){
+							email.addAddress("bcc", group.group.email + '', group.group.name + '');
+						} 
+						preGroup=group.group.name;
+					}
+
+					//email trigger for Group's Members Email ID
+					if (group.user.email != '' && group.user.email != event.parm1 && group.user.active == true) email.addAddress("bcc", group.user.email + '', group.user.name + '');
+			
+				}
+			}
+			
+		}
+
+
+
+        template.print(
+            "<div style='height: inherit; width: 100%; padding: 4px; text-align: center; background-color: #ffffbf; margin: 10px 0px 20px 0px; font-family: arial; font-weight: 400; font-size: 19px;'><strong>Deployment Sharing Details</strong></div><div style='margin: 10px 0px 10px 0px; font-family: arial; font-size: 14.5px;'><p>Hi,</p><p>The following Deployments which was shared with you have been updated successfully.</p><br/></div><table style='font-family: arial; border-collapse: collapse; width: 100%;'><tbody><!--<tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 2px; font-size: 12px;'>Resource Sharing</td></tr>--><!--<tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;'>Name</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;'><strong>" + current.name + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;'>Description</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;'><strong>" + (current.description == '' ? '-' : current.description) + "</strong></td></tr>--><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;'>Deployments</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;'><strong>" + current.getDisplayValue('deployments') + "</strong></td></tr><!--<tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;'>Created By</td><td style='border: 1px solid #ffffff; text-align: left; padding: 5px; font-size: 12px;'><strong>" + current.sys_created_by + "</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;'>Created On</td><td style='border: 1px solid #dddddd; text-align: left; padding: 5px; font-size: 12px;'><strong>" + current.sys_created_on + "</strong></td></tr><tr style='background-color: #ffffff;'><td style='border: 1px solid #ffffff; text-align: left; padding: 2px; font-size: 12px;'>Updated By</td><td style='border: 1px solid #ffffff; text-align: left; padding: 2px; font-size: 12px;'><strong>" + current.sys_updated_by + "</strong></td></tr><tr style='background-color: #dddddd;'><td style='border: 1px solid #dddddd; text-align: left; padding: 2px; font-size: 12px;'>Updated On</td><td style='border: 1px solid #dddddd; text-align: left; padding: 2px; font-size: 12px;'><strong>" + current.sys_updated_on + "</strong></td></tr>--></tbody></table><!--<p>&nbsp;</p><p>${mail_script:fetch_instance_url}</p><p>&nbsp;</p<p>&nbsp;</p>-->"
+        );
+
+    } catch (e) {
+        CASLogger.error("Exception caught inside EmailScript : Resource Sharing Email Notification for Update Operation " + e);
+    }
+
+})(current, template, email, email_action, event);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>prateek</sys_created_by>
+        <sys_created_on>2020-02-07 13:52:00</sys_created_on>
+        <sys_id>94c18986dbfe00105bf1fe1b689619dc</sys_id>
+        <sys_mod_count>54</sys_mod_count>
+        <sys_name>Resource_Sharing_Updation_email_script</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_email_94c18986dbfe00105bf1fe1b689619dc</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-05-01 15:48:43</sys_updated_on>
+    </sys_script_email>
+</record_update>

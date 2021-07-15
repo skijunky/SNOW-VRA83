@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope, $filter,spUtil,$location) {
+	/* widget controller. */
+	var c = this;
+	$scope.actionCardIndex = -1;
+	$scope.actionIndex = -1;
+	//------------------------------selectAction method--------
+	//USAGE: For for assigning user selected action from Actions Array
+	//PARAMS: action--> object of selected action
+	//VALUE: action--> OBJECT
+	$scope.selectAction = function(action, parentIndex, index,actionType,id,dep_sysID){
+		c.data.day2FormWidget='';
+		$scope.actionCardIndex = parentIndex;
+		$scope.actionIndex = index;
+		c.data.currentAction = action;
+		c.data.actionId=id;
+		c.data.depSysId = dep_sysID;
+		$scope.actionType = actionType;
+		c.data.actionTypes=$scope.actionType;
+		//if(action.label == 'Create Snapshot' || action.label == 'Change Lease' || action.label == 'Add Disk'|| action.label == 'Remove Disk' || action.label == 'Update'){
+		if($scope.hasForm(action.label)){
+			c.data.action='day2action';
+			c.server.update().then(function(){
+				c.data.action='';
+			});
+		}
+	};
+	
+	$scope.redirect=function(url){
+		//alert(url)
+		$location.url(url);
+	}
+
+			$scope.$on('sp_loading_indicator', function(e, value) {
+			c.data.loaderShow=value;
+   });
+
+	$scope.filterSearch = function(passedSearch) {
+		var query = '';
+		if (passedSearch != '') {
+			query = 
+				'nameLIKE' + passedSearch + '^NQ' +
+				'short_descriptionLIKE' + passedSearch + '^NQ' +
+				'statusLIKE' + passedSearch + '^NQ' +
+				'u_projectLIKE' + passedSearch + '^NQ' +
+				'vra_ownerLIKE' + passedSearch + '^NQ' +
+				'expires_onLIKE' + passedSearch + '^NQ' +
+				'created_atLIKE' + passedSearch + '^NQ';
+		} 
+		var passingObj={'query':query};
+		$scope.$broadcast('setPaginationDataEvent', passingObj);
+		if(query==''){
+			$scope.redirect('?id=vra_deploymentslistpage');
+		}
+	}
+	
+	spUtil.recordWatch($scope,'x_vmw_cloudservice_vra_action_request','',function(name,data){
+		c.data.action='updateJSON';
+		c.server.update().then(function(){
+			c.data.action='';
+		})
+	})
+
+	$scope.$on("getPaginationDataEvent", function (evt, response) {
+		c.data.lists = response.itemsArray;
+		$scope.totalRecords = response.totalRecords;
+	});
+
+	$scope.setOrder = function (passedOrder) {
+		var passingObj = {};
+		passingObj = {orderBy : passedOrder.name, orderByAsc: passedOrder.ascending};
+		$scope.$broadcast('setPaginationDataEvent', passingObj);
+	}
+
+	//---------submitAction method--------
+	//USAGE: For for submitting action into action request table
+	//PARAMS: reason--> reason entered by user
+	//VALUE: reason--> STRING
+	$scope.submitAction = function(reason) {
+		c.data.reason = reason;
+		c.data.action = 'submit';
+		c.server.update().then(function(){
+			c.data.lists[$scope.actionCardIndex].actionValid = false;
+			c.data.action = undefined;
+			$scope.redirect('?id=vra_deploymentslistpage');
+		});
+	}
+
+$scope.hasForm=function(label){
+		if(label == 'Create Snapshot'||
+			 label == 'Change Lease' ||
+			 label == 'Add Disk'||
+			 label == 'Remove Disk' ||
+			 label == 'Update' ||
+			 label=='Delete Snapshot' ||
+			 label=='Resize' ||
+			 label=='Revert To Snapshot'){
+			return true;
+		}
+		return false;
+	}
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.cas-clr-col-8 &gt; h2 {
+  margin-top: 0;
+  line-height: 1.475rem;
+}
+
+.header-tool-container {
+  display: flex;
+}
+.wdg-btn-link {
+  padding: 0 .4rem;
+  min-width: 30px;
+  fill: #0078b8;
+  &amp;:hover  {
+    fill: #004d8a;
+  }
+}
+.loader-container {
+  position: relative;
+  z-index: 2000 !important;
+  top:0;
+  left:0;
+  background-color: rgba(0,0,0,0);
+  overflow: hidden;
+  color:#ffffff;
+  text-align:center;
+}
+
+.wdg-action {
+  width: 10px;
+  &amp;:hover {
+    cursor: pointer;
+  }
+}
+.cas-disabled {
+  fill: #565656;
+  cursor: not-allowed;
+  opacity: .4;
+  background-color: transparent;
+  border-color: transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  &amp;:hover {
+    fill: #565656;
+  }
+}
+.wdg-badge-count {
+  vertical-align: middle;
+}
+
+.wdg-search {
+  width: calc(100% - 1px);
+}
+.cas-table td, .cas-table th {
+
+}
+.left {
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
+.wdg-table-name {
+  max-width: 1.2rem;
+  span {
+    vertical-align: middle;
+  }
+}
+.wdg-table-desc {
+  max-width: 2rem;
+}
+.cas-dropdown {
+  position: absolute;
+}
+tbody {
+  display:block;
+  height: calc(100vh - 260px);
+  overflow:auto;
+}
+thead, tbody tr {
+  display:table;
+  width:100%;
+  table-layout:fixed;/* even columns width , fix width of table too*/
+}
+tbody tr {
+  position: relative;
+}
+.cas-disabled {
+  pointer-events: none;
+}
+.cas-modal-body {
+  min-height: 20vh;
+}
+
+.cas-clr-textarea {
+  width: 100%;
+}
+.pagination-wrapper {
+  background-color: #fafafa;
+  padding: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 5px 25px 3px 0px;
+}
+.icon-wrapper {
+  span {
+    vertical-align: middle;
+  }
+}
+
+.wdg-dropdown {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 0px;
+  margin-bottom: -3px;
+}
+.dropdown-menu {
+  padding: .5rem 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: .125rem;
+  box-shadow: 0 1px 0.125rem rgba(115,115,115,.25);
+}
+.cas-dropdown-item {
+  a {
+    color: #575757;
+  }
+  padding: 10px 1rem;
+  &amp;:hover {
+    cursor: pointer;
+    background-color: #ededed;
+    color: #575757;
+    text-decoration: none;
+  }
+}
+
+.empty-message-container {
+  height: calc(100vh - 157.4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  span {
+    span {
+      display: inline-flex;
+      margin: auto;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+}
+
+
+.clearSearch{
+  position:relative;
+  right:15px;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_deploymentslist</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_deploymentsList</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	try {
+		CASLogger.debug('Inside CAS_deploymentsList widget')
+		var daoUtil = new CASDaoUtil();
+		var appUtil = new CASAppUtil();
+		data.loaderShow=false;
+
+		data.filterText='';
+		if (!input) {
+			var paramObject = {};
+			var query = '';
+			paramObject.organizationSysId = $sp.getParameter('org_id') ? $sp.getParameter('org_id') : null;
+			paramObject.projectSysId = $sp.getParameter('proj_id') ? $sp.getParameter('proj_id') : null;
+			var urlPage = $sp.getParameter('id');
+			var organizationName = $sp.getParameter('org_name');
+			var projectName = $sp.getParameter('proj_name');
+
+			data.filteredLabel = '';
+			data.link = {
+				list: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+appUtil.configuration.page.deploymentList,
+				card: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+appUtil.configuration.page.deploymentCard,
+				badgeLink: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + urlPage,
+				additionalLink: '&proj_id=' + paramObject.projectSysId + '&org_id=' + paramObject.organizationSysId +'&list=true&showP=true'
+			}
+
+			if (projectName) {
+				data.filteredLabel = projectName + ' (' + organizationName + ')';
+			} else if (organizationName) {
+				data.filteredLabel = 'All (' + organizationName + ')';
+			}
+
+			if (paramObject && paramObject.projectSysId) {
+				query += 'u_project='+paramObject.projectSysId + '^';
+			} else if (paramObject && paramObject.organizationSysId) {
+				query += 'u_project.organization='+paramObject.organizationSysId + '^';
+			}
+			var filter = $sp.getParameter('filter');
+			//gs.addErrorMessage(filter);
+			data.filterQuery=filter;
+			if (filter) {
+				if(filter=='expires_on!=NULL^ORDERBYexpires_on^expired=false'){
+					query += '^'+filter;
+					data.filteredLabel = 'Expiring Soon';
+				}else{
+					query += '^status=' + filter;
+					data.filteredLabel = filter +'';
+				}
+			}
+			if (paramObject && paramObject.query) {
+				query += paramObject.query;
+			}
+
+
+			
+
+
+			data.lists = daoUtil.fetchPortalDeployments(paramObject);
+
+			var paginationOptionSchema = {
+				windowSize: 20,
+				table:appUtil.configuration.table.deployments,
+				method: 'fetchPortalDeployments',
+				query: query
+			}
+			data.widgetScript = $sp.getWidget('cas_pagination', paginationOptionSchema);
+		}
+		if (input && input.action == 'submit') {
+			data.reason = input.reason;
+			data.currentAction = input.currentAction;
+			var paramObj = {
+				reason: data.reason,
+				actionId: data.currentAction.actionId,
+				state : 'Ready',
+				deployment_id:input.depSysId+'',
+				body: JSON.stringify({})
+			}
+			var response = daoUtil.createActionRequest(paramObj);
+			if (response) {
+				gs.addInfoMessage('Action submitted from portal');
+			}
+		}
+		if(input && input.action=='day2action'){
+			//gs.addErrorMessage(input.actionId)
+			data.actionId=input.actionId
+			data.actionType=input.actionTypes;
+			var day2options={
+				sysId:data.actionId,
+				actionType:data.actionType,
+				dep_sysId:input.depSysId+''
+			};
+			data.day2FormWidget = $sp.getWidget('cas_day2action_form',day2options);
+		}
+
+	}catch (e) {
+		CASLogger.error('Exception caught inside CAS_deploymentsList widget: '+e);
+	}	
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>navdeep</sys_created_by>
+        <sys_created_on>2019-08-23 11:44:41</sys_created_on>
+        <sys_id>87bad3ffdb137300ff7c29464896190f</sys_id>
+        <sys_mod_count>224</sys_mod_count>
+        <sys_name>CAS_deploymentsList</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_87bad3ffdb137300ff7c29464896190f</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-05-14 13:03:42</sys_updated_on>
+        <template><![CDATA[<div class="cas-content-area">
+  <div class="cas-clr-row">
+    <div class="cas-clr-col-8">
+      <h2>
+        <span>Deployments</span>
+        <span class="cas-label cas-label-info wdg-badge-count">{{totalRecords}} {{((totalRecords > 0) ? 'Items': 'Item' )}}</span>
+        <span class="cas-label cas-label-light-blue wdg-badge-count" ng-if="c.data.filteredLabel != ''">{{c.data.filteredLabel}}<a href="{{c.data.link.badgeLink}}"><cas-clr-icon class="wdg-badge-close" shape="close" size="13"></cas-clr-icon></a></span>
+      </h2>
+    </div>
+    <div class="cas-clr-col-4 header-tool-container" style="display:flex">
+      <cas-clr-icon size="16" shape="search"></cas-clr-icon>
+      <input type="text" placeholder="Search" 
+             class="wdg-search cas-clr-input"
+             ng-model="c.data.filterText" 
+             ng-model-options="{ debounce: 500 }" 
+             ng-change="filterSearch(c.data.filterText)" />
+      <span class="clearSearch" ng-show="c.data.filterText!=''" ng-click="filterSearch('');c.data.filterText='';"><i class="fa fa-times" aria-hidden="true"></i></span>
+      <a class="wdg-btn-link cas-disabled" href="{{c.data.link.list}}&filter={{c.data.filterQuery}}">
+        <cas-clr-icon shape="view-list" size="20" role="none"></cas-clr-icon>
+      </a>
+      <a class="wdg-btn-link cas-toggle-view" href="{{c.data.link.card}}&filter={{c.data.filterQuery}}">
+        <cas-clr-icon shape="view-cards" size="20" role="none"></cas-clr-icon>
+      </a>
+    </div>
+  </div>
+  
+  <div class="empty-message-container" ng-if="!c.data.lists.length">
+    <span><cas-clr-icon shape="sad-face" color="#717171" size="30"></cas-clr-icon>
+      <p>No record found</p>
+    </span>
+  </div>
+  
+  <div class="cas-clr-row" ng-show="c.data.lists.length">
+    <div class="cas-clr-col-12">
+      <table class="cas-table">
+        <thead>
+          <tr>
+            <th class="left wdg-action"></th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'name', ascending : ascFlag});">Name</th>
+            <!--<th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'short_description', ascending : ascFlag});">Description</th>-->
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'status', ascending : ascFlag});">Status</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'created_at', ascending : ascFlag});">Provisioned on</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'expires_on', ascending : ascFlag});">Expires on</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: '', ascending : ascFlag});">Resources</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'u_project', ascending : ascFlag});">Project</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'vra_owner', ascending : ascFlag});">Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="list in c.data.lists | filter: {name : filterText}">
+            <td class="left wdg-action">
+              <div class="dropdown cas-dropdown">
+                <!--<button class="cas-btn cas-btn-link" type="button" >-->
+                  <span class="dropdown-toggle wdg-dropdown cas-dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><cas-clr-icon shape="ellipsis-vertical" size="15" color="#989898" role="none"></cas-clr-icon></span>
+                <!--</button>-->
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <div class="cas-dropdown-item" ng-click="redirect(list.shareLink+'&order=12')"  ng-class="{'cas-disabled' : list.shareable=='false'}">
+                    Share
+                  </div>
+                  
+                  <div class="cas-dropdown-item" ng-repeat="action in list.actions" 
+                       ng-click="selectAction(action, $parent.$index, $index,'deployment',action.actionId,list.sysId)" 
+                          onclick="$('.action-modal, .action-modal-backdrop').show()" 
+                        ng-class="{'cas-disabled' : (!action.valid || (list.actionValid == false))}">
+                          {{action.label}}
+                  </div>
+                </div>
+              </div>
+              <!--
+<div class="cas-dropdown wdg-deployment-action-cas-dropdown cas-bottom-righ   t" onclick="toggleAction(this)">
+<button class="cas-dropdown-toggle cas-btn cas-btn-link" type="button">
+Actions
+<cas-clr-icon shape="angle" size="10" color="#0077b7"  dir="down" role="none"></cas-clr-icon>
+</button>
+<div class="cas-dropdown-menu">
+<a href="{{card.shareLnk}}&order=12" class="cas-dropdown-item">Share</a>
+<button class="cas-dropdown-item" 
+ng-click="selectAction(action)" 
+ng-class="{'cas-disabled' : !action.valid}"
+onclick="$('.action-modal, .action-modal-backdrop').show()" 
+ng-repeat="action in card.actions">{{action.label}}</button>
+</div>
+</div>-->
+              <!--
+              <div class="cas-dropdown" onclick="toggleAction(this)">
+                <span><cas-clr-icon shape="ellipsis-vertical" size="15" color="#989898" role="none"></cas-clr-icon></span>
+                <div class="cas-dropdown-menu">
+                  <a href="{{list.shareLink}}&order=12" class="cas-dropdown-item">Share</a>
+                  <button class="cas-dropdown-item" 
+                          ng-click="selectAction(action)" 
+                          onclick="$('.action-modal, .action-modal-backdrop').show()" 
+                          ng-class="{'cas-disabled' : !action.valid}"
+                          ng-repeat="action in list.actions">{{action.label}}</button>
+                </div>
+              </div>-->
+            </td>
+            <td class="left wdg-table-name" title="{{list.name}}">
+              <cas-clr-icon shape="cas-logo" size="15" color="rgb(47, 132, 0)" size="15" role="none"></cas-clr-icon>
+              <a href="{{list.link}}{{c.data.link.additionalLink}}">{{list.name}}</a>
+            </td>
+            <!--<td class="left wdg-table-desc" title="{{list.description}}">
+{{list.description}}
+</td>-->
+            <td class="left icon-wrapper" title="{{list.status}}">
+              <span ng-if="list.status == 'In Progress'" class="cas-spinner cas-spinner-inline"></span>
+              <cas-clr-icon ng-if="list.status == 'CREATE_FAILED'" shape="close-circle" size="17" color="red" class="is-success" role="none"></cas-clr-icon>
+              <cas-clr-icon ng-if="list.status == 'CREATE_SUCCESSFUL'" shape="success-standard" size="17" color="green" class="is-success" role="none"></cas-clr-icon>
+              <cas-clr-icon ng-if="list.status == 'Powered Off'" shape="info-standard" size="17" color="orange" class="is-success" role="none"></cas-clr-icon>
+              {{list.status}}
+            </td>
+            <td class="left" title="{{list.provisionedOn | date:'dd/MM/yyyy HH:mm:ss a'}}">{{list.provisionedOn | date:"dd/MM/yyyy HH:mm:ss a"}}</td>
+            <td class="left" title="{{list.expiresOn | date:'dd/MM/yyyy HH:mm:ss a'}}">{{list.expiresOn | date:"dd/MM/yyyy HH:mm:ss a"}}</td>
+            <td class="left" title="{{list.resources}}">{{list.resources}}</td>
+            <td class="left" title="{{list.project}}">{{list.project}}</td>
+            <td class="left" title="{{list.owner}}">{{list.owner}}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td class="pagination-wrapper"> 
+              <sp-widget widget="c.data.widgetScript"></sp-widget>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-----------------modal--------------------------->
+<div class="cas-modal action-modal" style="display: none">
+  <div class="cas-modal-dialog" role="dialog" aria-hidden="true">
+    <div class="cas-modal-content">
+      <div class="cas-modal-header">
+        <button aria-label="Close" class="cas-close" type="button" ng-click="c.data.reason=''" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">
+          <cas-clr-icon aria-hidden="true" shape="close" color="#565656" size="25" role="none"></cas-clr-icon>
+        </button>
+        <h3 class="cas-modal-title">{{c.data.currentAction.label}}</h3>
+      </div>
+      <div class="cas-modal-body">
+        <div ng-if="hasForm(c.data.currentAction.label)">
+                    <!--c.data.currentAction.label == 'Create Snapshot' || c.data.currentAction.label == 'Change Lease' || c.data.currentAction.label == 'Add Disk'|| c.data.currentAction.label == 'Remove Disk' || c.data.currentAction.label == 'Update'"-->
+         <div ng-if="data.day2FormWidget!=''">
+             <sp-widget widget="data.day2FormWidget"/>
+            </div> 
+            <div class="loader-container" ng-if="c.data.loaderShow">
+              <span class="cas-spinner loadtext">
+                Loading...
+              </span>
+            </div>
+          </div>
+<div ng-if="!(hasForm(c.data.currentAction.label))" >
+        <!--<div ng-if=    "!(c.daa.currentAction.label == 'Create Snaphot' || c.data.currentAction.label == 'Change Lease' || c.data.currentAction.label == 'Add Disk'|| c.data.currentAction.label == 'Remove Disk' || c.data.currentAction.label == 'Update')">-->
+  <div>
+    Are you sure you want to {{c.data.currentAction.label}} ?
+  </div>        
+  <form class="cas-clr-form cas-clr-form-horizontal">
+            <div class="cas-clr-form-control cas-no-margin">
+              <label for="reason" class="cas-clr-control-label cas-clr-col-md-5">Reason</label>
+              <div class="cas-clr-control-container cas-clr-col-md-7">
+                <div class="cas-clr-input-wrapper">
+                  {{reason}}
+                  <textarea placeholder="Reason" ng-model="c.data.reason" class="cas-clr-textarea"></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="cas-modal-footer" ng-if="!(hasForm(c.data.currentAction.label))">
+                                           <!--(c.data.currentAction.label == 'Create Snapshot' || c.data.currentAction.label == 'Change Lease' || c.data.currentAction.label == 'Add Disk'|| c.data.currentAction.label == 'Remove Disk' || c.data.currentAction.label == 'Update')">-->
+        <button class="cas-btn cas-btn-outline" type="button" onclick="$('.cas-modal, .cas-modal-backdrop').hide()" ng-click="c.data.reason=''">Cancel</button>
+        <button class="cas-btn cas-btn-primary" type="button" ng-click="submitAction(c.data.reason)" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="cas-modal-backdrop action-modal-backdrop" aria-hidden="true" style="display: none;"></div>
+<!-----------------modal ends here----------------->
+
+
+
+<script>
+  function toggleAction (element) {
+    if ($(element).hasClass('cas-open')) {
+      $('.wdg-action .cas-dropdown').removeClass('cas-open');
+    } else {
+      $('.wdg-action .cas-dropdown').removeClass('cas-open');
+      $(element).addClass('cas-open');
+    }
+  }
+</script>
+]]></template>
+    </sp_widget>
+</record_update>

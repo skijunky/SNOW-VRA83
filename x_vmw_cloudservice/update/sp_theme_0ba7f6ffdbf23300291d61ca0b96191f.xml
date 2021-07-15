@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_theme">
+    <sp_theme action="INSERT_OR_UPDATE">
+        <css_variables>$fontStack: "FontAwesome","metropolis", "helvetica", "arial", "san-serif";&#13;
+$fontColor: #cdcdcd;&#13;
+$fontWeightedColor: #dedede;&#13;
+$fontLinkColor: #bb78c8;&#13;
+$bgColor: #12100e;&#13;
+$bgSecondColor : #181415;&#13;
+$bgThirdColor : #1f1819;&#13;
+$badgeBgColor : #352b2e;&#13;
+$fontHoverColor: #ffffff;&#13;
+$errorColor: #cf6679;&#13;
+$dangerColor: #cf6679;&#13;
+$primaryColor: #bb78c8;&#13;
+$pageBgColor: #292520;&#13;
+$hoverBgColor: #251c24;&#13;
+$activeBgColor: #7f5188;&#13;
+$sliderHoverBgColor: #292520;&#13;
+$activeColor: #4caf50;&#13;
+$filterColor: #757575;&#13;
+$borderColor: #221f1c;&#13;
+$cardFontColor: #888888;&#13;
+$cardBgColor: #1d1a17;&#13;
+$selectedBgColor: #bb78c8;&#13;
+$shadowPrimaryColor: #bb78c8;&#13;
+$shadowSecondaryColor: rgba(255, 255, 255, 0.2);&#13;
+$hoverShadowPrimaryColor: #bb78c8;&#13;
+$hoverShadowSecondaryColor: #ffffff;&#13;
+$selectedFontColor : #ffffff;&#13;
+$sliderBorderColor: #bb78c8;&#13;
+$emptyMsgHeadingColor: #565656;&#13;
+$emptyMsgIconBgColor: #dedede;&#13;
+$emptyMsgDescriptionFontColor: #787878;&#13;
+$paginationFontColor: #787878;&#13;
+$fontSize1 : 1.8rem;&#13;
+$fontSize2: 1.6rem;&#13;
+$fontSize3 : 1.4rem;&#13;
+$mainHeight: 87.5rem;&#13;
+$cardHeight: 15.1rem;&#13;
+$contentHeight: 75.3rem;&#13;
+$height: 74.1rem;&#13;
+$listingBreakPoint: 770px;&#13;
+$transitionTime : .2s;&#13;
+&#13;
+$firstBreakPoint : 1192px;&#13;
+$secondBreakPoint: 1025px;&#13;
+$xs: 550px;&#13;
+$sm: 768px;&#13;
+$md: 1024px;</css_variables>
+        <footer display_value="CAS_footer">9f80af95dbe2330086f22706ca961979</footer>
+        <footer_fixed>false</footer_fixed>
+        <header display_value="CAS_header">5e0caa4ddb22330086f22706ca9619d2</header>
+        <name>CAS_dark</name>
+        <navbar_fixed>false</navbar_fixed>
+        <sys_class_name>sp_theme</sys_class_name>
+        <sys_created_by>Navdeep</sys_created_by>
+        <sys_created_on>2019-07-29 12:40:08</sys_created_on>
+        <sys_id>0ba7f6ffdbf23300291d61ca0b96191f</sys_id>
+        <sys_mod_count>66</sys_mod_count>
+        <sys_name>CAS_dark</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>protected</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_theme_0ba7f6ffdbf23300291d61ca0b96191f</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-20 11:35:08</sys_updated_on>
+    </sp_theme>
+</record_update>

@@ -1,0 +1,3035 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function ($rootScope, $scope, $window, spUtil,$location, $q) {
+	/* widget controller. */
+	var c = this;
+	// jslog(c.data.json.containers);
+	// jslog(c.data.dataGridWidget);
+
+	$scope.project = '';
+    $scope.isSubmitable = false;
+    $scope.valuePickerArrHash = [];
+    $scope.dateError = '';
+    $scope.data.isPosting = false;
+    $scope.data.submitted = false;
+    $scope.isArrayEmpty = true;
+    $scope.isArray = false;
+    $scope.fieldDependencyObj = {};
+    $scope.dependentFields = {}
+    $scope.isDuallistValid = true;
+    $scope.fieldOnchangeOnDefault = {};
+    $scope.readOnlyFields = [];
+    $scope.mandatoryFields = ['u_version','u_deployment_name','u_project'];
+    $scope.dataGridLoader = false;
+    $scope.projectOnChange = false;
+    $scope.currentScriptCount = 0;
+    $scope.hiddenOnChangeFields = [];
+    $scope.updatedContainers = c.data.json.containers;
+    $scope.finishAllScript = false;
+    $scope.setVersionDisabled = false;
+    $scope.setVersionSpinner = false;
+    c.data.version = c.data.json.answer['u_version'];
+
+	String.prototype.customReplace = function(str, newstr) {
+    	return this.split(str).join(newstr);
+	};
+	
+	$scope.previous = function () {
+		$window.history.back();
+	}
+
+	//test function
+	$scope.test = function (val) {
+		
+	}
+
+	//function for checking the visibility of Tab at inital stage
+	$scope.checkForHiddenTab = function () {
+
+		for (var i = 0; i < c.data.json.containers.length; i++) {
+			if (c.data.json.containers[i].visible == 'true') {
+				return i;
+			}
+		}
+
+	}
+
+	//for changing the status of Datagrd spinner.
+	$scope.$on('datagrid_loader_status', function (evt, field_name) {
+// 		jslog("event for datagrid")
+		c.data.json.containers.forEach(function (container) {
+			container.fields_arr.forEach(function (field) {
+				if (field.name == field_name && field.datatype == 'DataGrid') {
+					field.spinner = false;
+				}
+			})
+		})
+	})
+
+	$('[data-toggle="tooltip"]').tooltip();
+
+	//for starting the loader when URL changes
+	$scope.$on('$locationChangeStart', function (event, next, current) {
+		if (current != next) {
+			$rootScope.$broadcast('sp_loading_indicator_for_catalog_submit', true);
+		}
+	});
+
+	//function for creating dependency array of fields
+	function createDependentArr() {
+
+		//creating the fieldDependencyObj , which contain the only dependent field as a 'key' and its dependecy as an Array of fields.
+		for (var i = 0; i < c.data.json.clientScripts.length - 1; i++) {
+			Object.keys(c.data.json.clientScripts[i].dep).map(function (field) {
+				$scope.fieldDependencyObj[field] = [];
+				c.data.json.clientScripts[i].dep[field].forEach(function (dependentField) {
+					Object.keys(dependentField).map(function (innerField) {
+						if (innerField != '$type') {
+							if (c.data.json.clientScripts[i].version != '') {
+								$scope.fieldDependencyObj[field].push(innerField + '__' + dependentField[innerField].replaceAll(/[^a-zA-Z0-9]/g,'_') + '__' + c.data.json.clientScripts[i].version);
+							} else {
+								$scope.fieldDependencyObj[field].push(innerField + '__' + dependentField[innerField].replaceAll(/[^a-zA-Z0-9]/g,'_'));
+							}
+
+						}
+					});
+				})
+			});
+		}
+
+		//creating the dependentFields object, which contain the all the fields as a 'key' and value as array of dependent fields
+		c.data.json.containers.forEach(function (container) {
+			container.fields_arr.forEach(function (field) {
+				$scope.dependentFields[field.name] = [];
+				$scope.dependentFields['u_project'] = [];
+				Object.keys($scope.fieldDependencyObj).map(function (key) {
+					$scope.fieldDependencyObj[key].forEach(function (item) {
+
+						var itemField = item.split('__')[1] + '__' + item.split('__')[2];
+						if (itemField == field.name) {
+							$scope.dependentFields[field.name].push(key);
+						}
+
+						if (item.split('__')[1] == 'project') {
+							$scope.dependentFields['u_project'].push(key);
+						}
+					});
+				});
+
+
+
+				//fill the readOnly Field array.
+				if (field.read_only == true) {
+					$scope.readOnlyFields.push(field.name);
+				}
+
+
+
+			});
+		});
+
+
+
+
+		c.data.readOnlyFields = $scope.readOnlyFields;
+//console.log($scope.fieldDependencyObj);
+//console.log($scope.dependentFields);
+
+		// jslog($scope.readOnlyFields);
+	}
+	createDependentArr();
+
+	//password Pattern functionality	
+	$scope.setRegex = function (pattern) {
+		if (pattern == "") {
+			return false;
+		} else {
+			var newPattern = '^' + pattern + '$';
+			return newPattern;
+		}
+	}
+
+	$scope.resetAllFields = function () {
+		if ($scope.currentScriptCount == 0) {
+			
+
+			$scope.setVersionDisabled = false;
+			$scope.setVersionSpinner = false;
+			c.data.json.default_fields[3].spinner = false;
+			c.data.json.default_fields[3].read_only = false;
+
+			c.data.json.containers = $scope.updatedContainers;
+
+			c.data.json.containers.forEach(function (container) {
+				container.fields_arr.forEach(function (field) {
+					if ($scope.readOnlyFields.indexOf(field.name) == -1) {
+						field.read_only = false;
+					}
+
+					if(field.datatype != 'DataGrid'){
+						field.spinner = false;
+					}
+					
+					Object.keys(c.data.json.answer).map(function (key) {
+						if (key == field.name) {
+							if (field.type == 6) {
+								c.data.json.answer[key] = field.value;
+							} else if (field.type == 5) {
+								c.data.json.answer[key] = field.selected;
+							}
+
+						}
+					});
+				});
+			});
+
+			if ($scope.hiddenOnChangeFields.length > 0 && !$scope.finishAllScript) {
+				// jslog('ye dusri baar chal gaya')
+				processArray($scope.hiddenOnChangeFields);
+				$scope.finishAllScript = true;
+			}
+// 			jslog('All Scripts are over');
+			// jslog($scope.updatedContainers);
+		}
+	}
+
+	$scope.$watch('currentScriptCount', $scope.resetAllFields, true);
+
+
+	//onChange script execution of the fields
+	$scope.executeOnChangeScript = function (field_name, field_value, catalogField) {
+		var onChangeParameters = {};
+		var scripts = [];
+
+
+// 		jslog('onChange ' + catalogField.display_name + ' ' + field_name);
+
+		if ((!$scope.projectOnChange || field_name != 'u_project') && ($scope.dependentFields[field_name] != undefined && $scope.dependentFields[field_name].length > 0)) {
+
+
+			// $scope.projectOnChange = true;
+			$scope.currentScriptCount++;
+// 			jslog('return count '+$scope.currentScriptCount);
+
+			//setting the field's read_only & spinner to true.
+			catalogField.spinner = true;
+			catalogField.read_only = true;
+
+			$scope.setVersionDisabled = true;
+			$scope.setVersionSpinner = true;
+
+			//creating the parameter of the dependent fields
+			$scope.dependentFields[field_name].forEach(function (dep) {
+				if ((dep.split('__')[1] == c.data.json.answer['u_version']) || c.data.json.default_fields[0].arr[0].value == 'undefined') {
+
+					var field, name, value = '';
+					onChangeParameters[dep] = [];
+					onChangeParameters[dep]['executeReady'] = true;
+					$scope.fieldDependencyObj[dep].forEach(function (item) {
+
+						field = item.split('__')[1];
+						name = item.split('__')[0];
+
+						if (field.startsWith('`') && field.endsWith('`')) {
+							value = field.customReplace('`', '');
+							onChangeParameters[dep].push({
+								'name': name,
+								'value': value
+							});
+						} else {
+
+							if (field == 'project') {
+								field = 'u_project';
+								var answerJSONField = field;
+								value = c.data.json.answer[answerJSONField];
+							} else {
+								var answerJSONField = field + '__' + c.data.json.answer['u_version'];
+								value = (c.data.json.answer[answerJSONField] == undefined) ? null : c.data.json.answer[answerJSONField];
+							}
+
+							onChangeParameters[dep].push({
+								'name': name,
+								'value': value
+							});
+							// if(c.data.json.answer[answerJSONField] != ''){
+							// 	onChangeParameters[dep].push({'name': name,'value':c.data.json.answer[answerJSONField]});
+							// }else{
+							// 	onChangeParameters[dep]['executeReady'] = false;
+							// }
+
+						}
+					});
+				}
+			});
+// 			jslog(onChangeParameters);
+
+
+			//creating the dependent script array for the selected field 
+			Object.keys(onChangeParameters).map(function (field) {
+
+				if (onChangeParameters[field].executeReady) {
+
+					for (var i = 0; i < c.data.json.clientScripts.length - 1; i++) {
+						c.data.json.clientScripts[i].OnChange.forEach(function (script) {
+							if (script.field_name == field) {
+								script.parameter = onChangeParameters[field].filter(function (param) {
+									return param;
+								});
+								scripts.push(script);
+							}
+						});
+					}
+
+				}
+			});
+
+// 			jslog(scripts);
+
+			//for null field on onChange
+			if (scripts.length <= 0) {
+				function recFunction(recField) {
+					c.data.json.containers.forEach(function (container) {
+						container.fields_arr.forEach(function (field) {
+							if ($scope.dependentFields[recField].includes(field.name)) {
+								if (field.arr) {
+									field.arr = [];
+								}
+
+								field.spinner = false;
+								field.value = '';
+
+								if ($scope.readOnlyFields.indexOf(field.name) == -1) {
+									field.read_only = false;
+								}
+
+
+								if ($scope.dependentFields[field.name].length > 0) {
+									recFunction(field.name);
+								} else {
+									return;
+								}
+							}
+						});
+
+					})
+				}
+
+				recFunction(field_name);
+			}
+
+
+			//starting the spinner of the field.
+			c.data.json.containers.forEach(function (container) {
+				container.fields_arr.forEach(function (field) {
+					scripts.forEach(function (script) {
+						if (field.name == script.field_name) {
+							field.spinner = true;
+							field.read_only = true;
+						}
+					});
+
+				});
+			});
+
+			c.data.onChangeScript = scripts;
+			c.data.readOnlyFields = $scope.readOnlyFields;
+// 			c.data.action = 'field_onChange';
+
+			serverObject = {
+				onChangeScript : scripts,
+				readOnlyFields : $scope.readOnlyFields,
+				action : 'field_onChange',
+				json : c.data.json,
+				selectedContainer : c.data.selectedContainer
+			}
+
+			c.server.get(serverObject).then(function (res) {
+				$onChangeScript = [];
+
+				$scope.currentScriptCount--;
+// 				jslog('return count '+$scope.currentScriptCount);
+				if (field_name == 'u_project') {
+					res.data.json.default_fields[3].spinner = false;
+					res.data.json.default_fields[3].read_only = false;
+				}
+
+				//for setting the read_only to false after the onchange complete.
+				c.data.json.containers.forEach(function (container) {
+					container.fields_arr.forEach(function (field) {
+
+						if (field_name == field.name) {
+
+							if ($scope.readOnlyFields.indexOf(field_name) == -1) {
+								field.read_only = false;
+							}
+
+							field.spinner = false;
+						}
+						scripts.forEach(function (script) {
+							if (script.field_name == field.name) {
+								$scope.updateAnswer[script.field_name] = field.value;
+							}
+						})
+					});
+				});
+
+				catalogField.spinner = false;
+				catalogField.read_only = false;
+
+
+				res.data.json.containers.forEach(function (container, index) {
+					container.fields_arr.forEach(function (field, fieldIndex) {
+						scripts.forEach(function (script) {
+							if (script.field_name == field.name) {
+								$scope.updatedContainers[index].fields_arr[fieldIndex] = field;
+							}
+						})
+					})
+				})
+
+				c.data.json.containers = $scope.updatedContainers;
+
+// 				jslog(c.data.json.containers);
+				//setting the container executed flag to true
+				c.data.json.clientScripts[c.data.selectedContainer].executed = true;
+
+// 				jslog("onChange is executed");
+			});
+
+		}
+
+
+		// jslog(scripts);
+		// jslog(onChangeParameters);
+	}
+
+	//script execution common for onload and onchange
+	$scope.executeScript = function (scripts, eventType, selected_field) {
+		c.data.action = eventType;
+		c.data.scripts = scripts;
+		$rootScope.$broadcast('sp_loading_indicator_for_catalog_submit', true);
+		$rootScope.$broadcast('version_loader_indicator', true);
+		c.server.update().then(function () {
+			if (c.data.json.default_fields[0].arr[0].value != 'undefined') {
+				c.data.json.answer['u_version'] = c.data.json.default_fields[0].arr[0].value;
+				c.data.version = c.data.json.answer['u_version'];
+				$rootScope.$broadcast('version_loader_indicator', false);
+				
+				//creating the hidden onChange field array
+				c.data.json.containers.forEach(function (container) {
+					container.fields_arr.forEach(function (field) {
+						if ((field.visible == false || container.visible == 'false') && c.data.json.answer['u_version'] == field.versions.replace(',', '')) {
+							if ($scope.dependentFields[field.name].length > 0) {
+								$scope.hiddenOnChangeFields.push(field);
+							}
+						}
+						//fill the mandatory Fields array.
+						if ((field.mandatory == true || field.mandatory == 'true') && field.visible == true && c.data.json.answer['u_version'] == field.versions.customReplace(',','')) {
+							$scope.mandatoryFields.push(field.name);
+						}
+					})
+				})
+			}else{
+				$scope.mandatoryFields = ['u_project','u_deployment_name'];
+				//creating the hidden onChange field array
+				c.data.json.containers.forEach(function (container) {
+					container.fields_arr.forEach(function (field) {
+						if ((field.mandatory == true || field.mandatory == 'true') && field.visible == true && c.data.json.answer['u_version'] == field.versions.customReplace(',','')) {
+							$scope.mandatoryFields.push(field.name);
+						}
+					})
+				})
+				c.data.version = 'undefined';
+			 	$rootScope.$broadcast('version_loader_indicator', false);
+			}
+
+			c.data.json.answer['u_project'] = c.data.json.default_fields[3].arr[0].value;
+			if (c.data.json.answer['u_project'] != '') {
+				$scope.executeOnChangeScript('u_project', c.data.json.default_fields[3].arr[0].value, c.data.json.default_fields[3]);
+			}
+
+			//creating the hidden onChange field array
+
+			$rootScope.$broadcast('sp_loading_indicator_for_catalog_submit', false);
+		});
+	}
+
+	$scope.projectonChange = function () {
+		if (c.data.json.answer['u_project'] != '' && ($scope.dependentFields['u_project'] != undefined && $scope.dependentFields['u_project'].length > 0)) {
+
+			$scope.setVersionDisabled = true;
+			$scope.setVersionSpinner = true;
+
+			$scope.finishAllScript = false;
+			$scope.executeOnChangeScript('u_project', c.data.json.default_fields[3].arr[0].value, c.data.json.default_fields[3]);
+		}
+
+		//refereshing the mandatory fields Array 
+		$scope.mandatoryFields = ['u_deployment_name','u_project','u_version'];
+
+		//refereshing the hidden onChange Fields Array
+		$scope.hiddenOnChangeFields = [];
+		c.data.json.containers.forEach(function (container) {
+			container.fields_arr.forEach(function (field) {
+				if ((field.visible == false || container.visible == 'false') && c.data.json.answer['u_version'] == field.versions.replace(',', '')) {
+					if ($scope.dependentFields[field.name].length > 0) {
+						$scope.hiddenOnChangeFields.push(field);
+					}
+					
+				}
+
+				
+                // fill the mandatory Fields array.
+                if ((field.mandatory == true || field.mandatory == 'true') && field.visible == true && c.data.json.answer['u_version'] == field.versions.replace(',','')) {
+                    $scope.mandatoryFields.push(field.name);
+                }
+			})
+		})
+	}
+
+	//triggering the onLoad scripts after the project value is available
+	$scope.triggerOnLoad = function () {
+		
+		if ($scope.project != '') {
+// 			jslog(c.data.version);			
+			$scope.executeFieldScripts();
+		}
+	}
+
+	//watch for the change in catalog item project field.
+	$scope.$watch('project', $scope.triggerOnLoad, true);
+
+	//execute the onLoad & onChange client script of the fields
+	$scope.executeFieldScripts = function () {
+		c.data.action = 'field_onLoad';
+// 	jslog('onLoad started');
+		//running the OnLoad Scripts of the Form Field except valuePicker 
+		if (c.data.json.clientScripts[c.data.json.clientScripts.length - 1] != 0) {
+			if (!c.data.json.clientScripts[c.data.selectedContainer].executed) {
+
+				c.data.json.clientScripts[c.data.selectedContainer].executed = true;
+				c.data.fieldScripts = c.data.json.clientScripts[c.data.selectedContainer].OnLoad.filter(function (script, index) {
+					return script.field_type != "ValuePicker"
+				});
+
+				if (c.data.fieldScripts.length > 0) {
+
+
+					$scope.setVersionDisabled = true;
+					$scope.setVersionSpinner = true;
+
+
+					//starting the spinner of the field.
+					c.data.json.containers.forEach(function (container) {
+						container.fields_arr.forEach(function (field) {
+							c.data.fieldScripts.forEach(function (script) {
+								if (field.name == script.field_name) {
+									field.spinner = true;
+									field.read_only = true;
+									// jslog(field.name);
+								}
+							});
+						});
+					});
+
+					$scope.currentScriptCount++;
+					// var test ={ obj : c.data.fieldScripts };
+					c.server.update().then(function () {
+						// c.data.json.clientScripts[c.data.selectedContainer].executed = true;
+						$scope.currentScriptCount--;
+
+						c.data.json.containers.forEach(function (container, index) {
+							container.fields_arr.forEach(function (field, fieldIndex) {
+								c.data.fieldScripts.forEach(function (script) {
+									if (script.field_name == field.name) {
+										$scope.updatedContainers[index].fields_arr[fieldIndex] = field;
+									}
+								})
+							})
+						})
+
+						c.data.json.containers = $scope.updatedContainers;
+
+// 						jslog('scripts ended');
+					});
+				}
+
+				//executing the Onchange scripts which are on Default Value of the fields
+				// Object.keys($scope.dependentFields).map(function(field){
+				// 	if($scope.dependentFields[field].length > 0){
+				// 		c.data.json.containers.forEach(function(container, index){
+				// 			container.fields_arr.forEach(function(innerField){
+				// 				if(innerField.name == field && ($scope.dependentFields[innerField.name].length > 0) && c.data.json.answer[innerField.name] != '' && c.data.selectedContainer == index){
+				// 					$scope.executeOnChangeScript(field,c.data.json.answer[field],innerField);
+				// 				}
+				// 			});
+
+				// 		});
+				// 	}
+				// });
+
+				processArray(c.data.json.containers[c.data.selectedContainer].fields_arr);
+
+				if ($scope.hiddenOnChangeFields.length > 0 && $scope.currentScriptCount == 0) {
+					// jslog('ye pehli baar chal gaya')
+					processArray($scope.hiddenOnChangeFields);
+					$scope.finishAllScript = true;
+
+				}
+
+			}
+		}
+
+
+
+		//initializing the valuePicker Scripts Arr
+		c.data.valuePickerScript = c.data.json.clientScripts[c.data.selectedContainer].OnLoad.filter(function (script, index) {
+			return script.field_type == "ValuePicker"
+		})
+	}
+
+	function delayedLog(field) {
+		$scope.executeOnChangeScript(field.name, field.value, field);
+	}
+
+	function processArray(array) {
+		array.forEach(function(field){
+			if (!field.runOnce && ($scope.dependentFields[field.name].length > 0)) {
+				delayedLog(field);
+				field.runOnce = true;
+			}
+		})
+	}
+
+	function setSubmittable(){
+        if($scope.mandatoryFields.length > 0){
+            $scope.isSubmitable = true;
+					
+            Object.keys(c.data.json.answer).forEach(function(field){
+               $scope.mandatoryFields.forEach(function(mandField){
+                    if(field == mandField && c.data.json.answer[field] == ''){
+                        $scope.isSubmitable = false;
+                    }
+                })
+            })
+					
+						/*if(c.data.json.answer['u_version'] == '' || c.data.json.answer['u_project'] == '' || c.data.json.answer['u_deployment_name'] == ''){
+							$scope.isSubmitable = false;
+						}
+
+						c.data.json.containers.forEach(function(container){
+							container.fields_arr.forEach(function(field){
+								$scope.mandatoryFields.forEach(function(mandField){
+									if(field.name == mandField && c.data.json.answer[field.name] == '' && field.type != '7'){
+										$scope.isSubmitable = false;
+									}
+
+									if(field.name == mandField && field.type == '7' && (c.data.json.answer[field.name] == '' || c.data.json.answer[field.name] == false || c.data.json.answer[field.name] == 'false')){
+										$scope.isSubmitable = false;
+									}
+								})
+							})
+						})*/
+        }
+    }
+
+	//execute the onChange client script of the value picker fields
+	$scope.valuePickerClientScript = function (field_name, catalogField) {
+		var runScript = true;
+		// jslog($scope.valuePickerArrHash);
+		if ($scope.valuePickerArrHash.length > 0) {
+			$scope.valuePickerArrHash.forEach(function (field) {
+				if (field.field_name == field_name) {
+					if (field.isArrFilled) {
+						runScript = false;
+					}
+				}
+			})
+		}
+
+		if (runScript) {
+
+			if (c.data.json.clientScripts[c.data.json.clientScripts.length - 1] != 0) {
+				c.data.action = 'valuePicker_clientScript';
+				c.data.valuePickerScript.forEach(function (script) {
+					if (script.field_name == field_name) {
+
+						//starting the spinner of the field
+						catalogField.spinner = true;
+						catalogField.read_only = true;
+
+						c.data.currentScript = script;
+						c.server.update().then(function (res) {
+							$scope.valuePickerArrHash.push(res.valuePickerArrHash);
+							// jslog('value picker script ended');
+						});
+					}
+				})
+
+			}
+		}
+
+	}
+
+	//updating data.json.answer on change of a field value
+	$scope.updateAnswer = function (field_id, field_value, field_type, field) {
+		//	alert("old "+field_value);
+		if (field_type == 'array') {
+			$scope.isArray = true;
+			var blank_index = field_value.indexOf("");
+			if (blank_index != -1) {
+				field_value.splice(blank_index, 1);
+			}
+			if (field_value.length == 0) {
+				$scope.isArrayEmpty = true;
+			} else {
+				$scope.isArrayEmpty = false;
+			}
+		}
+		if (field_type == 'date') {
+
+			var selectedDate = new Date(field_value);
+			var minDate = new Date(field.date_min);
+			var maxDate = new Date(field.date_max);
+			//var now = new Date();
+
+			if (selectedDate < minDate && (selectedDate.toLocaleDateString() != minDate.toLocaleDateString())) {
+				$scope.dateError = 'Please select a valid min date.';
+			} else if (selectedDate > maxDate && (selectedDate.toLocaleDateString() != maxDate.toLocaleDateString())) {
+				$scope.dateError = 'Please select a valid max date.';
+			} else {
+				$scope.dateError = '';
+			}
+			field_value = new Date(field_value).toISOString();
+
+		}
+
+		if (field_id == 'u_project') {
+			$scope.project = field_value;
+		}
+
+		if ((typeof field_value != 'undefined')) {
+            if (field_value != null) {
+                c.data.json.answer[field_id] = field_value.toString();  
+                setSubmittable();   
+            } else {
+                c.data.json.answer[field_id] = '';
+            }
+        }else{
+            c.data.json.answer[field_id] = '';
+            setSubmittable();
+        }
+	}
+
+	$scope.setSelectedContainer = function (version) {
+		var temp = c.data.json.containersHash.filter(function (container) {
+			return (container.label == 'General' && container.version == version + ',');
+		});
+		c.data.selectedContainer = c.data.json.containersHash.indexOf(temp[0]);
+
+	}
+
+	//=====================Dual Lst Changes=============================
+
+
+	//remove multiple elements from arr----------------------------------------
+	function removeMultiple(elements, arr) {
+		var obj = {
+			"retained": arr,
+			"removed": []
+		};
+		(elements || []).forEach(function (element) {
+			(obj.retained || []).forEach(function (item, index) {
+				if (element == item.value) {
+					obj.removed.push(obj.retained.splice(index, 1)[0]);
+				}
+			});
+		});
+		return obj;
+	}
+
+	function updateDualListAnswer(field) {
+		var values = field.selected_options.map(function (item) {
+			return item.value
+		})
+		$scope.updateAnswer(field.name, values.toString(), field.field_type);
+		if (field.mandatory) $scope.validateDuallist(values);
+	}
+
+	//move items from left to right-----------------------------------------------------
+	$scope.validateDuallist = function (selected_options) {
+		if (!selected_options.length) $scope.isDuallistValid = false;
+		else $scope.isDuallistValid = true;
+	}
+
+	$scope.selectDualListOption = function (field, selectAll) {
+		var items = [];
+		if (selectAll) {
+			var values = [];
+			var options = $('#unselected_options' + field.fieldId + ' option');
+			var optionElements = $.map(options, function (option) {
+				values.push(option.value);
+				return option;
+			});
+			optionElements.forEach(function (item) {
+				$(item).attr('selected', 'selected')
+			});
+			//jslog("values", values);
+			items.push(values);
+		} else $("#unselected_options" + field.fieldId).each(function () {
+			items.push($(this).val());
+		});
+		//jslog(items[0])
+		if (selectAll) field.value = [].concat(items[0]);
+		var obj = removeMultiple(items[0], field.unselected_options);
+		field.selected_options = field.selected_options.concat(obj.removed).sort(function (a, b) {
+			if (a.label < b.label) return -1;
+			if (a.label > b.label) return 1;
+			return 0;
+		});
+
+		updateDualListAnswer(field);
+		//jslog("value", field.value)
+	}
+
+	//move items from right to left-----------------------------------------------------
+	$scope.removeDualListOption = function (field, selectAll) {
+		var items = [];
+		if (selectAll) {
+			var options = $('#selected_options' + field.fieldId + ' option');
+			var values = $.map(options, function (option) {
+				return option.value;
+			});
+			items.push(values);
+		} else {
+			$("#selected_options" + field.fieldId).each(function () {
+				items.push($(this).val());
+			});
+		}
+		var obj = removeMultiple(items[0], field.selected_options);
+		field.unselected_options = field.unselected_options.concat(obj.removed).sort(function (a, b) {
+			if (a.label < b.label) return -1;
+			if (a.label > b.label) return 1;
+			return 0;
+		});
+
+		updateDualListAnswer(field);
+		// jslog("field_unselect", field.value);
+
+	}
+
+	//----------------------------------------------------------------------------------------------------------
+
+	$scope.getArrayFromString = function (str) {
+		var arr = str.split('').filter(function (c) {
+			return c != '[' && c != ']' && c != '"'
+		}).join('').split(",");
+		//jslog(arr);
+		return arr;
+	}
+
+	$scope.formatDate = function (dateString) {
+		return new Date(dateString).toLocaleString().replace(",", "");
+	}
+
+	$scope.getDepenedentFields = function (field_name) {
+
+		if ($scope.fieldDependencyObj.hasOwnProperty(field_name)) {
+			var depFields = 'Depends on : ';
+			c.data.json.containers.forEach(function (container) {
+				container.fields_arr.forEach(function (field) {
+					$scope.fieldDependencyObj[field_name].forEach(function (innerField) {
+						var x = innerField.split('__')[1] + '__' + innerField.split('__')[2];
+						if (field.name == x) {
+							depFields += field.display_name + ', ';
+						}
+					})
+				})
+			});
+
+			$scope.fieldDependencyObj[field_name].forEach(function (innerField) {
+				var x = innerField.split('__')[1];
+				if (x == 'project') {
+					depFields += 'Project, ';
+				}
+			})
+
+			return depFields.replace(/,\s*$/, "");
+		} else {
+			return;
+		}
+
+	}
+
+	//=====================End Dual List Changes ====================
+
+	//=====================ValuePicker Changes=============================
+
+
+	$scope.searchValuePicker = function (field, formField) {
+
+		if (!field.selected && field.mandatory) formField.$setValidity('Valuepicker_empty', false);
+		else formField.$setValidity('Valuepicker_empty', true);
+		if (field.read_only) return;
+		var searchString = $("#" + field.fieldId).val();
+		if (!searchString) {
+			if (field.selected && field.mandatory) {
+				formField.$setValidity('required', true)
+			}
+			field.search_results = [].concat(field.arr);
+			return;
+		} else field.search_results = field.arr.filter(function (item) {
+			return item.label.toLowerCase().includes(searchString.toLowerCase())
+		});
+		$('#valuepickerDropdown' + field.fieldId).show();
+	}
+
+	$scope.selectValuePickerOption = function (option, field, formField) {
+		$("#" + field.fieldId).val(option.label).trigger('input');
+		field.search_results = [];
+		field.selected = option;
+		$('#valuepickerDropdown' + field.fieldId).hide();
+		if (field.selected && field.mandatory && formField) formField.$setValidity('Valuepicker_empty', true);
+		$scope.updateAnswer(field.name, option.value, field.field_type);
+		// jslog("selected field from value picker", field.selected)
+	}
+
+	$scope.clearValuePicker = function (field) {
+		field.value = "";
+		field.selected = "";
+		$scope.updateAnswer(field.name, "", field.field_type);
+	}
+
+	$scope.onBlur = function (field) {
+		$('#valuepickerDropdown' + field.fieldId).hide();
+
+	}
+
+	$scope.valuePickerOnFocus = function (field) {
+		//$('#valuepickerDropdown' + field.fieldId).toggle();
+	}
+
+	//=====================End Value Picker Changes ====================
+
+	$scope.$on("getDatagridJSON", function (evt, data) {
+		c.data.json.answer[data.field] = JSON.parse(JSON.stringify(data.JSON));
+	});
+
+	function setValuePickerAnswer() {
+
+		c.data.json.containers.forEach(function (container) {
+			container.fields_arr.forEach(function (field) {
+				if (field.datatype == 'ValuePicker') {
+					var answerObj = {
+						id: '',
+						type: '',
+						label: ''
+					};
+
+					var type = (field.valueClientScript != '') ? field.valueClientScript.split('__')[5] : '';
+
+					if (type != '') {
+						if (field.value != '') {
+
+							if (field.selected != '') {
+								answerObj.id = field.selected.value;
+							} else {
+								field.arr.forEach(function (item) {
+									if (item.label == field.value) {
+										answerObj.id = item.value;
+									}
+								})
+							}
+
+							answerObj.type = type;
+							answerObj.label = field.value;
+						} else {
+							answerObj.id = '';
+							answerObj.type = type;
+							answerObj.label = '';
+						}
+
+						c.data.json.answer[field.name] = JSON.stringify(answerObj);
+					}
+				}
+			});
+		});
+	}
+
+	function setDataGridAnswer() {
+		c.data.json.containers.forEach(function (container) {
+			container.fields_arr.forEach(function (field) {
+				if (field.datatype == 'DataGrid') {
+					var answerObj = c.data.json.answer[field.name];
+					c.data.json.answer[field.name] = JSON.stringify(answerObj);
+				}
+			});
+		});
+	}
+
+	function setNumberAnswer(){
+		Object.keys(c.data.json.answer).map(function(field){
+			if(typeof c.data.json.answer[field] != 'string'){
+				c.data.json.answer[field] = JSON.stringify(c.data.json.answer[field]);
+			}
+		})
+	}
+
+	//submission of a form.
+	$scope.submit = function (x) {
+		x.$submitted = true;
+		if (($scope.isArray && $scope.isArrayEmpty)) {
+            return;
+        }
+        if($scope.mandatoryFields.length > 0 && !$scope.isSubmitable){
+            return;
+        }
+
+
+		if (x.$valid && $scope.dateError == '' && $scope.isDuallistValid) {
+			c.data.action = "submit";
+			setDataGridAnswer();
+			setValuePickerAnswer();
+			setNumberAnswer();
+			// jslog(c.data.json.answer);
+
+			$rootScope.$broadcast('sp_loading_indicator_for_catalog_submit', true);
+
+			$scope.data.isPosting = true;
+			$scope.data.submitted = true;
+
+			c.server.update().then(function () {
+				c.data.action = "";
+				if (c.data.twostep == 'true' || c.data.twostep == true) {
+					$window.location.href = c.data.link.cart;
+				} else {
+					$window.location.href = c.data.link.activitiesList;
+				}
+			})
+		} else {
+			//jslog("duallist validation", $scope.isDuallistValid)
+			return;
+		}
+	}
+	//jslog(c.data.json.containers);
+
+	setTimeout(function(){
+		spUtil.update($scope);
+	}, 500000);
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/*&#13;
+19-start  -done&#13;
+20-end    -done&#13;
+5 - select box  -done&#13;
+2 -  multi line  -done&#13;
+6 - single line  -done&#13;
+10 -date time  -&#13;
+7- checkbox   -&#13;
+*/&#13;
+.fullwidth{&#13;
+  width: 100%;&#13;
+}&#13;
+/*select.fullwidth{&#13;
+  -webkit-appearance: menulist;&#13;
+  -moz-appearance: menulist;&#13;
+}*/&#13;
+.labelflex{&#13;
+  flex: 0 0 20% !important;&#13;
+}&#13;
+.contentflex{&#13;
+  flex: 0 0 40% !important;&#13;
+}&#13;
+ul{&#13;
+  padding:5px !important;&#13;
+}&#13;
+.cas-content-area{&#13;
+  padding:0.7rem !important;&#13;
+  padding-top:0 !important;&#13;
+  padding-bottom:0 !important;&#13;
+}&#13;
+&#13;
+.cas-clr-input.ng-touched.ng-invalid{&#13;
+  border-bottom:1px solid #c92100;&#13;
+}&#13;
+&#13;
+.cas-clr-subtext {&#13;
+  display: block;&#13;
+  font-size: .458333rem;&#13;
+  line-height: .5rem;&#13;
+  color: #c92100;&#13;
+  margin-top: .2rem;&#13;
+}&#13;
+&#13;
+&#13;
+.cas-clr-textarea-wrapper {&#13;
+    display: block;&#13;
+}&#13;
+&#13;
+.info-error{&#13;
+  svg{&#13;
+    fill:#c92100;&#13;
+  }&#13;
+}&#13;
+&#13;
+select.ng-invalid.ng-invalid-required.ng-submitted{&#13;
+  border-bottom:1px solid #c92100;&#13;
+}&#13;
+input.ng-invalid.ng-invalid-required.ng-submitted{&#13;
+  border-bottom:1px solid #c92100;&#13;
+}&#13;
+/*&#13;
+.info-tooltip + .tooltip &gt; .tooltip-inner {&#13;
+background-color: #ffffff;&#13;
+color:#000000;&#13;
+}*/&#13;
+&#13;
+&#13;
+&#13;
+.cas-alert.cas-alert-danger {&#13;
+  background: #f5dddb;&#13;
+  color: #575757;&#13;
+  border: 1px solid #f8b5b4;&#13;
+}&#13;
+&#13;
+.cas-alert {&#13;
+  font-size: .541667rem;&#13;
+  letter-spacing: normal;&#13;
+  line-height: .75rem;&#13;
+  position: relative;&#13;
+  box-sizing: border-box;&#13;
+  display: flex;&#13;
+  flex-direction: row;&#13;
+  width: auto;&#13;
+  border-radius: .125rem;&#13;
+  margin-top: .25rem;&#13;
+  background: #e0f0f6;&#13;
+  color: #575757;&#13;
+  border: 1px solid #45afd9;&#13;
+}&#13;
+&#13;
+.cas-alert-text {&#13;
+  font-size: .541667rem;&#13;
+  letter-spacing: normal;&#13;
+  line-height: .75rem;&#13;
+  display: inline-block;&#13;
+  flex-grow: 1;&#13;
+  flex-shrink: 1;&#13;
+  flex-basis: 98%;&#13;
+  max-width: 98%;&#13;
+  margin-right: .5rem;&#13;
+  text-align: left;&#13;
+  padding-top: 5px;&#13;
+}&#13;
+&#13;
+.cas-alert-item {&#13;
+  display: flex;&#13;
+  flex-wrap: nowrap;&#13;
+  flex-basis: 100%;&#13;
+  min-height: .75rem;&#13;
+  padding: .2rem;&#13;
+}&#13;
+&#13;
+.cas-alert-item:last-child {&#13;
+  margin-bottom: 0;&#13;
+}&#13;
+&#13;
+.cas-alert-icon-wrapper {&#13;
+  flex: 0 0 1.04166667rem;&#13;
+  align-self: start;&#13;
+  padding-top: .04166667rem;&#13;
+  height: .75rem;&#13;
+}&#13;
+&#13;
+&#13;
+/*.cas-clr-form{&#13;
+overflow-y:auto;&#13;
+height:770px;&#13;
+}*/&#13;
+&#13;
+.form-wrapper-single-container{&#13;
+  margin-top:0;&#13;
+  overflow-y:auto;&#13;
+  height:calc(100vh - 240px);&#13;
+}&#13;
+&#13;
+&#13;
+.form-wrapper-multiple-container{&#13;
+  margin-top:0;&#13;
+  overflow-y:auto;&#13;
+  height:calc(100vh - 280px);&#13;
+}&#13;
+h2{&#13;
+  margin-top:0.5rem !important;&#13;
+}&#13;
+.cas-clr-col-12{&#13;
+  padding-left:0.2rem !important;&#13;
+  padding-right:0.2rem !important;&#13;
+  margin-bottom:10px;&#13;
+}&#13;
+&#13;
+.angle-down{&#13;
+position: relative;&#13;
+    right: 20px;&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper {&#13;
+    position: relative&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper .cas-clr-control-label {&#13;
+    font-weight: 400;&#13;
+    display: block&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper~.cas-clr-validate-icon {&#13;
+    margin-left: 0&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper~.cas-clr-subtext {&#13;
+    display: inline-block&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox],.cas-clr-radio-wrapper input[type=radio] {&#13;
+    position: absolute;&#13;
+    opacity: 0;&#13;
+    top: .25rem;&#13;
+    left: 0;&#13;
+    height: .8rem;&#13;
+    width: .8rem&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper label {&#13;
+    position: relative;&#13;
+    display: inline-block;&#13;
+    min-height: 1.2rem;&#13;
+    padding-left: 1.1rem;&#13;
+    margin-top: 0;&#13;
+    cursor: pointer;&#13;
+    line-height: 1.2rem;&#13;
+    color: #000;&#13;
+    color: var(--cas-clr-forms-checkbox-label-color,#000)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::before {&#13;
+    position: absolute;&#13;
+    top: -0.9rem;&#13;
+    left: 0;&#13;
+    content: "";&#13;
+    display: inline-block;&#13;
+    height: .8rem;&#13;
+    width: .8rem;&#13;
+    border: .05rem solid #b3b3b3;&#13;
+    border-color: var(--cas-clr-forms-border-color,#b3b3b3);&#13;
+    border-radius: .15rem;&#13;
+    border-radius: var(--cas-clr-forms-checkbox-border-radius,.15rem)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::after {&#13;
+    position: absolute;&#13;
+    content: "";&#13;
+    display: none;&#13;
+    height: .25rem;&#13;
+    width: .4rem;&#13;
+    border-left: .1rem solid;&#13;
+    border-bottom: .1rem solid;&#13;
+    border-color: #fff;&#13;
+    border-color: var(--cas-clr-forms-checkbox-mark-color,#fff);&#13;
+    top: -0.9rem;&#13;
+    left: .2rem;&#13;
+    -webkit-transform: translate(0,.2rem) rotate(-45deg);&#13;
+    transform: translate(0,.2rem) rotate(-45deg)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::before {&#13;
+    background: #0088c2;&#13;
+    background: var(--cas-clr-forms-checkbox-background-color,#0088c2);&#13;
+    border: 0&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::after {&#13;
+    display: inline-block&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox].cas-clr-indeterminate+label::before,.cas-clr-checkbox-wrapper input[type=checkbox]:indeterminate+label::before {&#13;
+    border: .05rem solid #0088c2;&#13;
+    border-color: var(--cas-clr-forms-checkbox-indeterminate-border-color,#0088c2)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper input[type=checkbox].cas-clr-indeterminate+label::after,.cas-clr-checkbox-wrapper input[type=checkbox]:indeterminate+label::after {&#13;
+    border-left: none;&#13;
+    border-bottom-color: #0088c2;&#13;
+    border-bottom-color: var(--cas-clr-forms-checkbox-indeterminate-border-color,#0088c2);&#13;
+    display: inline-block;&#13;
+    -webkit-transform: translate(0,.2rem);&#13;
+    transform: translate(0,.2rem)&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper.cas-clr-checkbox-inline {&#13;
+    display: flex;&#13;
+    flex-wrap: wrap;&#13;
+    align-content: flex-start&#13;
+}&#13;
+&#13;
+.cas-clr-checkbox-wrapper.cas-clr-checkbox-inline .cas-clr-control-label {&#13;
+    display: inline-block;&#13;
+    margin-right: .6rem;&#13;
+    width: auto&#13;
+}&#13;
+&#13;
+.cas-clr-error .cas-clr-checkbox-wrapper input[type=checkbox]+label::before {&#13;
+    border-color: #c21d00;&#13;
+    border-color: var(--cas-clr-forms-invalid-color,#c21d00)&#13;
+}&#13;
+&#13;
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper label {&#13;
+    cursor: not-allowed&#13;
+}&#13;
+&#13;
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]+label::before,.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::before {&#13;
+    background-color: #ccc;&#13;
+    background-color: var(--cas-clr-forms-checkbox-disabled-background-color,#ccc);&#13;
+    border: 0&#13;
+}&#13;
+&#13;
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::after {&#13;
+    border-left: .1rem solid #000;&#13;
+    border-bottom: .1rem solid #000;&#13;
+    border-left-color: var(--cas-clr-forms-checkbox-disabled-mark-color,#000);&#13;
+    border-bottom-color: var(--cas-clr-forms-checkbox-disabled-mark-color,#000)&#13;
+}&#13;
+&#13;
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked.cas-clr-indeterminate+label::after,.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked:indeterminate+label::after {&#13;
+    border-left: none&#13;
+}&#13;
+&#13;
+.cas-clr-form-compact .cas-clr-checkbox-wrapper {&#13;
+    max-width: 100%;&#13;
+    display: flex;&#13;
+    flex-wrap: wrap;&#13;
+    align-content: flex-start;&#13;
+    height: 1.2rem&#13;
+}&#13;
+&#13;
+.cas-clr-form-compact .cas-clr-checkbox-wrapper~.cas-clr-subtext {&#13;
+    margin-left: .3rem&#13;
+}&#13;
+&#13;
+.cas-clr-form-compact .cas-clr-checkbox-wrapper .cas-clr-control-label {&#13;
+    display: inline-block;&#13;
+    margin-right: .6rem;&#13;
+    width: auto;&#13;
+    margin-top: 0&#13;
+}&#13;
+&#13;
+//dual list&#13;
+.dual-list .list-group {&#13;
+    margin-top: 8px;&#13;
+}&#13;
+&#13;
+.list-left li, .list-right li {&#13;
+    cursor: pointer;&#13;
+}&#13;
+&#13;
+.list-arrows {&#13;
+    padding-top: 100px;&#13;
+}&#13;
+&#13;
+.list-arrows button {&#13;
+  margin-bottom: 20px;&#13;
+}&#13;
+.cas-dual-list{&#13;
+	height:150px;&#13;
+  background-color:#fff;&#13;
+  border-radius:.125rem;&#13;
+  padding-top:2px;&#13;
+  border:1px solid #ccc;&#13;
+}&#13;
+&#13;
+.cas-dual-list:hover{&#13;
+	background-color:#fff;&#13;
+}&#13;
+/*.btn{&#13;
+	line-height:1;&#13;
+  background-color: transparent;&#13;
+  margin:.25rem .5rem .25rem 0;&#13;
+}&#13;
+*/&#13;
+#right_button, #left_button, #right_all_button, #left_all_button{&#13;
+	line-height:1;&#13;
+  background-color: transparent;&#13;
+  margin:.25rem .5rem .25rem 0;&#13;
+}&#13;
+.cas-duallist-table-container{&#13;
+ 	 padding:0;height:auto&#13;
+}&#13;
+&#13;
+.cas-duallist-table{&#13;
+ 	margin-top: 0px;&#13;
+  margin-bottom: 0px;&#13;
+}&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+//radio-group&#13;
+.cas-radiocontainer {&#13;
+    flex: 1 1 100%;&#13;
+    margin-top: .25rem;&#13;
+    margin-bottom: .25rem;&#13;
+    position: relative;&#13;
+    display: block;&#13;
+}&#13;
+&#13;
+input[type="radio"i] {&#13;
+    background-color: initial;&#13;
+    cursor: default;&#13;
+    -webkit-appearance: radio;&#13;
+    box-sizing: border-box;&#13;
+    margin: 3px 3px 0px 5px;&#13;
+    padding: initial;&#13;
+    border: initial;&#13;
+}&#13;
+&#13;
+.cas-radio-group-container {&#13;
+    padding-left: 0;&#13;
+}&#13;
+&#13;
+.cas-radio-input-label {&#13;
+    margin-top: 0;&#13;
+    margin-bottom: 0;&#13;
+    position: relative;&#13;
+    min-height: 1rem;&#13;
+    padding-left: .916667rem;&#13;
+    cursor: pointer;&#13;
+    line-height: 1rem;&#13;
+    touch-action: manipulation;&#13;
+    font-size: .541667rem;&#13;
+    letter-spacing: normal;&#13;
+&#13;
+}&#13;
+&#13;
+.radio input[type=radio] {&#13;
+    position: absolute;&#13;
+    top: .1666665rem;&#13;
+    left: 0;&#13;
+    opacity: 0;&#13;
+    height: .666667rem;&#13;
+    width: .666667rem;&#13;
+    box-sizing: border-box;&#13;
+    padding: 0;&#13;
+    border-radius: 0;&#13;
+    touch-action: manipulation;&#13;
+    margin: 0;&#13;
+    overflow: visible;&#13;
+}&#13;
+&#13;
+input[type=radio]+label::before,&#13;
+input[type=radio]+label::before {&#13;
+    position: absolute;&#13;
+    top: .1666665rem;&#13;
+    left: 0;&#13;
+    content: '';&#13;
+    display: inline-block;&#13;
+    height: .666667rem;&#13;
+    width: .666667rem;&#13;
+    border: 1px solid #9a9a9a;&#13;
+    border-radius: 50%;&#13;
+}&#13;
+&#13;
+.radio input[type=radio]:checked+label::before,&#13;
+input[type=radio]:checked+label::before {&#13;
+    box-shadow: inset 0px 0px 0px 0.25rem #0095d3;&#13;
+    border: 0;&#13;
+}&#13;
+&#13;
+.radio input[type=radio]:focus+label::before,&#13;
+input[type=radio]:focus+label::before {&#13;
+    box-shadow: inset 0px 0px 0px 0.25rem #0095d3, 0px 0px 2px 2px #6bc1e3;&#13;
+    border: 0;&#13;
+}&#13;
+&#13;
+&#13;
+//value picker&#13;
+.cas-clr-valuepicker-wrapper{&#13;
+  position: relative;&#13;
+}&#13;
+&#13;
+.cas-valuepicker-options-wrapper{&#13;
+  position: absolute;&#13;
+	display: flex;&#13;
+  flex-direction: column;&#13;
+  top: 100%;&#13;
+  left: 0;&#13;
+  min-width: 5rem;&#13;
+  width:100%;&#13;
+  background: #fff;&#13;
+  border: 1px solid #ccc;&#13;
+  border-radius: .125rem;&#13;
+  box-shadow: 0 1px 0.125rem rgba(115,115,115,.25);&#13;
+  margin-top: .083333rem;&#13;
+  padding: .5rem 0;&#13;
+  z-index: 100;&#13;
+  display:none;&#13;
+ &#13;
+}&#13;
+&#13;
+.cas-valuepicker-options-container{&#13;
+  overflow: auto;&#13;
+  max-height: 330px;&#13;
+  display: block;&#13;
+  white-space: nowrap;&#13;
+  box-sizing: inherit;&#13;
+  visibility: visible;&#13;
+}&#13;
+&#13;
+.cas-valuepicker-option{&#13;
+  margin-top: 0;&#13;
+  margin-bottom: 0;&#13;
+  padding-top: .25rem;&#13;
+  padding-bottom: .25rem;&#13;
+  height: auto;&#13;
+  padding: .125rem 1rem;&#13;
+  color: #575757;&#13;
+  font-size: .583333rem;&#13;
+  font-weight: 400;&#13;
+  letter-spacing: normal;&#13;
+  background: 0 0;&#13;
+  border: 0;&#13;
+  cursor: pointer;&#13;
+  display: block;&#13;
+  line-height: inherit;&#13;
+  margin: 0;&#13;
+  width: 100%;&#13;
+  text-transform: none;&#13;
+  overflow: hidden;&#13;
+  text-overflow: ellipsis;&#13;
+  text-align: left;&#13;
+}&#13;
+&#13;
+.cas-valuepicker-option:hover{&#13;
+  background-color: #eee;&#13;
+  color: #565656;&#13;
+  text-decoration: none;&#13;
+}&#13;
+&#13;
+.cas-valuepicker-options-no-match{&#13;
+ 	margin: 0 auto;&#13;
+  margin-top: 0px;&#13;
+  margin-right: auto;&#13;
+  margin-bottom: 0px;&#13;
+  margin-left: auto;&#13;
+  box-sizing: inherit;&#13;
+}&#13;
+&#13;
+.cas-vlauepicker-options-footer{&#13;
+  border-top: 1px solid #eee;&#13;
+  padding: .5rem 1rem 0;&#13;
+  margin-top: .25rem;&#13;
+  margin-bottom: .25rem;&#13;
+  font-weight: 400;&#13;
+  font-size: .5rem;&#13;
+  letter-spacing: normal;&#13;
+  line-height: 1rem;&#13;
+  white-space: nowrap;&#13;
+  visibility: visible;&#13;
+  width:100%;&#13;
+}&#13;
+&#13;
+.spinner {&#13;
+	position: relative;&#13;
+	display: inline-block;&#13;
+	margin: 5px;&#13;
+	padding: 0;&#13;
+	background: url(data:image/svg+xml;charset=utf8,%3Csvg%20id%3D%22Layer_2%22%20data-name%3D%22Layer%202%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2072%2072%22%3E%0A%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3Cstyle%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20.cls-1%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20.cls-2%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20fill%3A%20none%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke-miterlimit%3A%2010%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke-width%3A%205px%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20.cls-1%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke%3A%20%23000000%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke-opacity%3A%200.15%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20.cls-2%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stroke%3A%20%230072a3%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%3C%2Fstyle%3E%0A%20%20%20%20%3C%2Fdefs%3E%0A%20%20%20%20%3Ctitle%3EPreloader_72x2%3C%2Ftitle%3E%0A%20%20%20%20%3Ccircle%20class%3D%22cls-1%22%20cx%3D%2236%22%20cy%3D%2236%22%20r%3D%2233%22%2F%3E%0A%20%20%20%20%3Cpath%20class%3D%22cls-2%22%20d%3D%22M14.3%2C60.9A33%2C33%2C0%2C0%2C1%2C36%2C3%22%3E%0A%20%20%20%20%3C%2Fpath%3E%0A%3C%2Fsvg%3E%0A);&#13;
+	text-indent: 100%;&#13;
+	overflow: hidden;&#13;
+	white-space: nowrap;&#13;
+  -webkit-animation: spin 0.5s linear infinite; /* Safari */&#13;
+  animation: spin 0.5s linear infinite;&#13;
+}&#13;
+&#13;
+.spinner.spinner-inline, .spinner.spinner-sm {&#13;
+	height: 0.8rem;&#13;
+	width: 0.8rem;&#13;
+	min-height: 0.8rem;&#13;
+	min-width: 0.8rem;&#13;
+}&#13;
+&#13;
+.field-ellipses{&#13;
+  overflow: hidden;&#13;
+  text-overflow: ellipsis;&#13;
+}&#13;
+&#13;
+.empty-message-container {&#13;
+  height: calc(100vh - 157.4px);&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  font-size: 19px;&#13;
+  span {&#13;
+    span {&#13;
+      display: inline-flex;&#13;
+      margin: auto;&#13;
+      position: relative;&#13;
+      left: 50%;&#13;
+      transform: translateX(-50%);&#13;
+    }&#13;
+  }&#13;
+}&#13;
+&#13;
+.ci-loader{&#13;
+  font-size: 40px;&#13;
+  position: absolute !important;&#13;
+  left: inherit !important;&#13;
+  margin-left: 10px !important;&#13;
+  margin-top: -5px !important;&#13;
+}&#13;
+&#13;
+.one {&#13;
+  opacity: 0;&#13;
+  -webkit-animation: dot 1.3s infinite;&#13;
+  -webkit-animation-delay: 0.0s;&#13;
+  animation: dot 1.3s infinite;&#13;
+  animation-delay: 0.0s;&#13;
+}&#13;
+&#13;
+.two {&#13;
+  opacity: 0;&#13;
+  -webkit-animation: dot 1.3s infinite;&#13;
+  -webkit-animation-delay: 0.2s;&#13;
+    animation: dot 1.3s infinite;&#13;
+    animation-delay: 0.2s;&#13;
+}&#13;
+&#13;
+.three {&#13;
+  opacity: 0;&#13;
+  -webkit-animation: dot 1.3s infinite;&#13;
+  -webkit-animation-delay: 0.3s;&#13;
+   animation: dot 1.3s infinite;&#13;
+   animation-delay: 0.3s;&#13;
+}&#13;
+&#13;
+@-webkit-keyframes dot {&#13;
+    0% { opacity: 0; }&#13;
+   50% { opacity: 0; }&#13;
+  100% { opacity: 1; }&#13;
+}&#13;
+&#13;
+@keyframes dot {&#13;
+    0% { opacity: 0; }&#13;
+   50% { opacity: 0; }&#13;
+  100% { opacity: 1; }&#13;
+}&#13;
+&#13;
+&#13;
+@-webkit-keyframes spin {&#13;
+  0% { -webkit-transform: rotate(0deg); }&#13;
+  100% { -webkit-transform: rotate(360deg); }&#13;
+}&#13;
+&#13;
+@keyframes spin {&#13;
+  0% { transform: rotate(0deg); }&#13;
+  100% { transform: rotate(360deg); }&#13;
+}&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+&#13;
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_catalogform</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+
+	//function for calling the onload or onchange scripts on null value or automatic change on the field
+	scope.bindField = function (field) {
+		// console.log('bind '+field.display_name )
+
+		if (field.readyOnChange && (scope.project != '' || controller.data.json.answer['u_project'] != '') && (scope.dependentFields[field.name].length > 0)) {
+			scope.executeOnChangeScript(field.name, field.value, field);
+			field.readyOnChange = false;
+
+		}
+
+	}
+
+
+}]]></link>
+        <name>cas_catalogForm</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function () {
+	/* populate the 'data' object */
+	/* e.g., data.table =  $sp.getVale('table') */
+	//test
+
+
+	var clientBridge = new vRACSClientSciptBridge();
+	var daoUtil = new CASDaoUtil();
+	var appUtil = new CASAppUtil();
+	data.newSelectedProject = '';
+	data.link = {
+		cart: "/" + gs.getProperty(appUtil.configuration.properties.portalPrefix) + "?id=" + appUtil.configuration.page.cart,
+		activitiesList: "/" + gs.getProperty(appUtil.configuration.properties.portalPrefix) + "?id=" + appUtil.configuration.page.activitiesList
+    }
+  
+
+	//fetching organization and catalog item id.
+	var orgId = $sp.getParameter('org_id');
+	data.catId = $sp.getParameter('cat_id');
+	var project_id = $sp.getParameter('proj_id') ? $sp.getParameter('proj_id') : 'NULL';
+	data.project_id = project_id;
+	
+
+	//Glide record for getting the Endpoint Object.
+	var orgGR = new GlideRecordSecure(appUtil.configuration.table.register_cas);
+	if(orgGR.get(orgId));
+
+	this.getVersions = function (fieldId) {
+		try {
+
+			CASLogger.debug('Inside the widget cas_catalogForm.getVersions');
+			var values = clientBridge['getVersions'](data.json.catalog_item_id);
+			var values_arr = (typeof values == 'object') ? values : JSON.parse(values);
+			data.isVersionUndefined = false;
+			if (values_arr[0].value == 'undefined') {
+				data.isVersionUndefined = true;
+			}
+			setChoices(fieldId, values_arr);
+
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.getVersions' + e);
+		}
+	}
+
+	this.getProjects = function (fieldId) {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.getProjects');
+			var values = clientBridge['getProjects'](data.json.catalog_item_id);
+			var values_arr = (typeof values == 'object') ? values : JSON.parse(values);
+			var temp_value_arr = values_arr;
+			//changes for the multiple project catalog item
+
+			if (!gs.hasRole("admin")) {
+				var ent = new GlideRecordSecure(appUtil.configuration.table.entitlement);
+				ent.addEncodedQuery('endpoint=' + orgId);
+				ent.addEncodedQuery('entitled_usersDYNAMIC90d1921e5f510100a9ad2572f2b477fe^ORentitled_groupsDYNAMICd6435e965f510100a9ad2572f2b47744^active=true');
+				ent.query();
+				values_arr = [];
+				while (ent.next()) {
+					var projects = ent.select_projects.split(',');
+					for (var i = 0; i < temp_value_arr.length; i++) {
+						if (project_id != 'NULL') {
+							if (temp_value_arr[i].projectSysId == project_id) {
+								data.newSelectedProject = temp_value_arr[i];
+								if (values_arr.length == 0) {
+									values_arr.push(temp_value_arr[i]);
+								}
+							}
+						} else if (projects.indexOf(temp_value_arr[i].projectSysId) != -1) {
+							//gs.addInfoMessage(temp_value_arr[i].label);
+							if (values_arr.length != 0) {
+								var countValues = [];
+								for (var j = 0; j < values_arr.length; j++) {
+									countValues.push(values_arr[j].projectSysId.toString());
+								}
+								if (countValues.indexOf(temp_value_arr[i].projectSysId) == -1) {
+									values_arr.push(temp_value_arr[i]);
+								}
+							} else {
+								values_arr.push(temp_value_arr[i]);
+							}
+						}
+					}
+				}
+			}
+
+			//gs.addInfoMessage(JSON.stringify(values_arr));
+			if (gs.hasRole("admin")) {
+				if (project_id != 'NULL') {
+					values_arr = [];
+					for (var i = 0; i < temp_value_arr.length; i++) {
+						//gs.addInfoMessage(values_arr[i]);
+						if (temp_value_arr[i].projectSysId == project_id) {
+							data.newSelectedProject = temp_value_arr[i];
+							if (values_arr.length == 0) {
+								values_arr.push(temp_value_arr[i]);
+							}
+							//gs.addInfoMessage(data.newSelectedProject.label);
+						}
+					}
+				}
+			}
+
+
+
+			//----changes over-----------
+
+			setChoices(fieldId, values_arr);
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.getProjects' + e);
+		}
+	}
+
+
+	//variable declarations
+	var options = [];
+	data.json = {};
+	data.json.containers = [];
+	data.json.containersHash = [];
+	data.json.scripts = {};
+	data.json.clientScripts = {};
+	data.json.answer = {};
+	data.json.catalog_item = '';
+	data.field_index = '';
+	data.json.default_fields = [];
+	data.dataGridWidget = [];
+	data.dataGridOptions2 = {};
+	data.valuePickerArrHash = {};
+
+	//initial call to fetch client scripts and populate catalog items data.json.
+	if (!input) {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.not_input.');
+			data.selectedContainer = 0;
+			data.version = '';
+			populateClientScripts();
+			populateDefaultField();
+			populateFieldArr();
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.not_input ' + e);
+		}
+	}
+
+	//populate the data.json.scripts with the catalog client scripts of that catalog item..
+	function populateClientScripts() {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.populateClientScripts');
+			data.json.scripts = daoUtil.fetchCatalogClientScripts(data.catId);
+			data.json.clientScripts = daoUtil.fetchCatalogFieldClientScripts(data.catId);
+			// gs.addInfoMessage(JSON.stringify(data.json.clientScripts));
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.populateClientScripts' + e);
+		}
+	}
+
+	//populating the data.json fields arr on the basis of containers
+	function populateFieldArr() {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.populateFieldArr');
+
+			var var_set = gs.getProperty(appUtil.configuration.properties.variableSetSysID);
+			var gr = new GlideRecordSecure(appUtil.configuration.table.variable);
+			gr.addEncodedQuery('cat_item=' + data.catId);
+			gr.addEncodedQuery('type!=' + 17);
+			gr.orderBy('order');
+			gr.query();
+			var sys = ''
+			var parent;
+			var i = 0;
+			while (gr.next()) {
+				//gs.addInfoMessage(gr.name.getDisplayValue());
+				if (gr.type == 19) {
+					parent = i;
+					data.json.containers.push({
+						"fields_arr": [],
+						"label": gr.question_text + '',
+						"containerId": gr.getUniqueValue() + '',
+						"order": parent,
+						"version": gr.x_vmw_cloudservice_versions.getDisplayValue(),
+						"visible": gr.x_vmw_cloudservice_field_visibility + ''
+					});
+					data.json.containersHash.push({
+						"label": gr.question_text + '',
+						"version": gr.x_vmw_cloudservice_versions.getDisplayValue()
+					});
+					i++;
+				} else if (gr.type != 19 && gr.type != 20 && gr.type != 5 && gr.type != 6 && gr.type != 3) {
+					field_id = gr.name + '';
+					data.json.containers[parent].fields_arr.push({
+						"name": (gr.name) ? gr.name + '' : '',
+						"display_name": (gr.question_text) ? gr.question_text + '' : '',
+						"type": (gr.type) ? gr.type + '' : '',
+						"default_value": (gr.default_value) ? gr.default_value + '' : '',
+						"tooltip_text": (gr.tooltip) ? gr.tooltip + '' : '',
+						"pattern_msg": (gr.x_vmw_cloudservice_pattern_message) ? gr.x_vmw_cloudservice_pattern_message + '' : '',
+						"help_text": (gr.example_text) ? gr.example_text + '' : '',
+						"mandatory": (gr.mandatory) ? gr.mandatory + '' : '',
+						"order": (gr.order) ? gr.order + '' : '',
+						"versions": (gr.x_vmw_cloudservice_versions) ? gr.x_vmw_cloudservice_versions + '' : '',
+						"fieldId": gr.getUniqueValue() + '',
+						"value": (gr.default_value) ? gr.default_value + '' : '',
+						//"scripts":(typeof data.json.scripts.onChange[gr.name]!=='undefined')?data.json.scripts.onChange[gr.name]:'',
+						"visible": (gr.x_vmw_cloudservice_field_visibility == 'false') ? false : true,
+						"field_type": (gr.x_vmw_cloudservice_cas_name) ? fetchFieldType(gr.x_vmw_cloudservice_cas_name) : 'text',
+						"scale_max": (gr.x_vmw_cloudservice_vra_maximum) ? gr.x_vmw_cloudservice_vra_maximum + '' : '',
+						"scale_min": (gr.x_vmw_cloudservice_vra_minimum) ? gr.x_vmw_cloudservice_vra_minimum + '' : '',
+						"date_max": (gr.x_vmw_cloudservice_cas_max_date) ? gr.x_vmw_cloudservice_cas_max_date + '' : '',
+						"date_min": (gr.x_vmw_cloudservice_cas_min_date) ? gr.x_vmw_cloudservice_cas_min_date + '' : '',
+						"read_only": (gr.x_vmw_cloudservice_field_readonly == 'true'),
+						"pattern": (gr.x_vmw_cloudservice_pattern) ? gr.x_vmw_cloudservice_pattern + '' : '',
+						"spinner": false,
+						"defaultClientScript": (gr.x_vmw_cloudservice_vra_default_value_client_script) ? gr.x_vmw_cloudservice_vra_default_value_client_script.getDisplayValue() : '',
+						"valueClientScript": (gr.x_vmw_cloudservice_vra_value_client_script) ? gr.x_vmw_cloudservice_vra_value_client_script.getDisplayValue() : ''
+					});
+					data.json.answer[gr.name] = (gr.default_value) ? gr.default_value + '' : '';
+				} else if (gr.type == 5) {
+					options = fetchOptions(gr.getUniqueValue());
+					var multiselectDefaultArr = '';
+					if (gr.x_vmw_cloudservice_datatype == 'Multiselect' && gr.default_value != '') {
+						multiselectDefaultArr = JSON.parse(gr.default_value);
+					}
+
+					var field_type = (gr.x_vmw_cloudservice_datatype == 'Multiselect') ? 'multiselect' : 'dropdown';
+					var is_array = (gr.x_vmw_cloudservice_datatype == 'Array' || gr.x_vmw_cloudservice_datatype == 'Multiselect') ? true : false;
+					if (gr.x_vmw_cloudservice_datatype == 'Duallist') {
+						var default_value = (gr.default_value) ? (gr.default_value + '').split('').filter(function (c) {
+							return c != '[' && c != ']' && c != '"'
+						}).join('').split(",") : '';
+						var selected = (default_value) ? default_value.map(function (value, index) {
+							return options.filter(function (option, index) {
+								return option.value == value
+							})[0]
+						}) : [];
+						var unselected = (default_value) ? options.filter(function (option, index) {
+							return !default_value.filter(function (value, index) {
+								return option.value == value
+							}).length
+						}) : options;
+						data.json.containers[parent].fields_arr.push({
+							"name": (gr.name) ? gr.name + '' : '',
+							"display_name": (gr.question_text) ? gr.question_text + '' : '',
+							"type": (gr.type) ? gr.type + '' : '',
+							"tooltip_text": (gr.tooltip) ? gr.tooltip + '' : '',
+							"pattern_msg": (gr.x_vmw_cloudservice_pattern_message) ? gr.x_vmw_cloudservice_pattern_message + '' : '',
+							"help_text": (gr.example_text) ? gr.example_text + '' : '',
+							"mandatory": (gr.mandatory) ? gr.mandatory + '' : '',
+							"value": (gr.default_value) ? (gr.default_value) : '',
+							"versions": (gr.x_vmw_cloudservice_versions) ? gr.x_vmw_cloudservice_versions + '' : '',
+							// "scripts":(typeof data.json.clientScripts.onChange[gr.name]!=='undefined')?data.json.scripts.onChange[gr.name]:'',
+							"order": (gr.order) ? gr.order + '' : '',
+							"fieldId": gr.getUniqueValue() + '',
+							"field_type": "duallist",
+							"is_duallist": true,
+							"arr": options,
+							"visible": (gr.x_vmw_cloudservice_field_visibility == 'false') ? false : true,
+							"selected": selected,
+							"datatype": (gr.x_vmw_cloudservice_datatype == 'Duallist') ? 'Duallist' : '',
+							"read_only": (gr.x_vmw_cloudservice_field_readonly == 'true'),
+							"selected_options": selected,
+							"unselected_options": unselected,
+							"is_array": is_array,
+							"spinner": false,
+							"defaultClientScript": (gr.x_vmw_cloudservice_vra_default_value_client_script) ? gr.x_vmw_cloudservice_vra_default_value_client_script.getDisplayValue() : '',
+							"valueClientScript": (gr.x_vmw_cloudservice_vra_value_client_script) ? gr.x_vmw_cloudservice_vra_value_client_script.getDisplayValue() : ''
+						});
+					} else if (gr.x_vmw_cloudservice_datatype == 'ValuePicker') {
+						var default_value = (gr.default_value) ? JSON.parse(gr.default_value + '') : '';
+
+						data.json.containers[parent].fields_arr.push({
+							"name": (gr.name) ? gr.name + '' : '',
+							"display_name": (gr.question_text) ? gr.question_text + '' : '',
+							"type": (gr.type) ? gr.type + '' : '',
+							"tooltip_text": (gr.tooltip) ? gr.tooltip + '' : '',
+							"pattern_msg": (gr.x_vmw_cloudservice_pattern_message) ? gr.x_vmw_cloudservice_pattern_message + '' : '',
+							"help_text": (gr.example_text) ? gr.example_text + '' : '',
+							"mandatory": (gr.mandatory) ? gr.mandatory + '' : '',
+							"value": (default_value) ? (default_value.label) : '',
+							"versions": (gr.x_vmw_cloudservice_versions) ? gr.x_vmw_cloudservice_versions + '' : '',
+							"order": (gr.order) ? gr.order + '' : '',
+							"fieldId": gr.getUniqueValue() + '',
+							"field_type": "ValuePicker",
+							"search_results": [],
+							"arr": options,
+							//"arr":[{"label":"dog","value":"dog"},{"label":"cat","value":"cat"},{"label":"cow","value":"cow"},{"label":"duck","value":"duck"},{"label":"hen","value":"hen"},{"label":"pig","value":"pig"},{"label":"goat","value":"goat"},{"label":"deer","value":"deer"},{"label":"wolf","value":"wolf"},{"label":"lynx","value":"lynx"},{"label":"mole","value":"mole"},{"label":"bat","value":"bat"},{"label":"frog","value":"frog"},{"label":"crab","value":"crab"},{"label":"clam","value":"clam"},{"label":"fish","value":"fish"},{"label":"swan","value":"swan"},{"label":"slug","value":"slug"},{"label":"eel","value":"eel"},{"label":"fox","value":"fox"},{"label":"lion","value":"lion"},{"label":"seal","value":"seal"},{"label":"orca","value":"orca"},{"label":"owl","value":"owl"},{"label":"dove","value":"dove"},{"label":"crow","value":"crow"},{"label":"bee","value":"bee"},{"label":"ant","value":"ant"},{"label":"fly","value":"fly"},{"label":"moth","value":"moth"},{"label":"wasp","value":"wasp"}],
+							"visible": (gr.x_vmw_cloudservice_field_visibility == 'false') ? false : true,
+							"selected": default_value ? {
+								value: default_value.value,
+								label: default_value.label
+							} : '',
+							"datatype": (gr.x_vmw_cloudservice_datatype == 'ValuePicker') ? 'ValuePicker' : '',
+							"read_only": (gr.x_vmw_cloudservice_field_readonly == 'true'),
+							"is_array": is_array,
+							"spinner": false,
+							"defaultClientScript": (gr.x_vmw_cloudservice_vra_default_value_client_script) ? gr.x_vmw_cloudservice_vra_default_value_client_script.getDisplayValue() : '',
+							"valueClientScript": (gr.x_vmw_cloudservice_vra_value_client_script) ? gr.x_vmw_cloudservice_vra_value_client_script.getDisplayValue() : ''
+						});
+					} else {
+						field_id = gr.name + '';
+						data.json.containers[parent].fields_arr.push({
+							"name": (gr.name) ? gr.name + '' : '',
+							"display_name": (gr.question_text) ? gr.question_text + '' : '',
+							"type": (gr.type) ? gr.type + '' : '',
+							"tooltip_text": (gr.tooltip) ? gr.tooltip + '' : '',
+							"pattern_msg": (gr.x_vmw_cloudservice_pattern_message) ? gr.x_vmw_cloudservice_pattern_message + '' : '',
+							"help_text": (gr.example_text) ? gr.example_text + '' : '',
+							"mandatory": (gr.mandatory) ? gr.mandatory + '' : '',
+							"value": (gr.x_vmw_cloudservice_datatype == 'Multiselect') ? (gr.default_value) ? multiselectDefaultArr : '' : (gr.default_value) ? gr.default_value + '' : '',
+							"versions": (gr.x_vmw_cloudservice_versions) ? gr.x_vmw_cloudservice_versions + '' : '',
+							"order": (gr.order) ? gr.order + '' : '',
+							"fieldId": gr.getUniqueValue() + '',
+							"arr": options,
+							"selected": (gr.x_vmw_cloudservice_datatype == 'Multiselect') ? (gr.default_value) ? multiselectDefaultArr : '' : (gr.default_value) ? gr.default_value + '' : '',
+							"visible": (gr.x_vmw_cloudservice_field_visibility == 'false') ? false : true,
+							"datatype": (gr.x_vmw_cloudservice_datatype == 'Duallist') ? gr.x_vmw_cloudservice_datatype + '' : '',
+							"field_type": field_type,
+							"read_only": (gr.x_vmw_cloudservice_field_readonly == 'true'),
+							"is_array": is_array,
+							"spinner": false,
+							"readyOnChange": false,
+							"runOnce": false,
+							"readyOnChangeEmpty": false,
+							"defaultClientScript": (gr.x_vmw_cloudservice_vra_default_value_client_script) ? gr.x_vmw_cloudservice_vra_default_value_client_script.getDisplayValue() : '',
+							"valueClientScript": (gr.x_vmw_cloudservice_vra_value_client_script) ? gr.x_vmw_cloudservice_vra_value_client_script.getDisplayValue() : ''
+						});
+					}
+					data.json.answer[gr.name] = (gr.x_vmw_cloudservice_datatype == 'Multiselect') ? (gr.default_value) ? multiselectDefaultArr.toString() : '' : (gr.default_value) ? gr.default_value + '' : '';
+				} else if (gr.type == 6) {
+					field_id = gr.name + '';
+					var field_type = fetchFieldType(gr.x_vmw_cloudservice_cas_name) + '';
+
+					if (gr.x_vmw_cloudservice_datatype == 'DataGrid') {
+						data.dataGridOptions2 = {
+							"name": (gr.name) ? gr.name + '' : '',
+							"display_name": (gr.question_text) ? gr.question_text + '' : '',
+							"type": (gr.type) ? gr.type + '' : '',
+							"versions": (gr.x_vmw_cloudservice_versions) ? gr.x_vmw_cloudservice_versions + '' : '',
+							"fieldId": gr.getUniqueValue() + '',
+							//"scripts":(typeof data.json.scripts.onChange[gr.name]!=='undefined')?data.json.scripts.onChange[gr.name]:'',
+							"visible": (gr.x_vmw_cloudservice_field_visibility == 'false') ? false : true,
+							"read_only": (gr.x_vmw_cloudservice_field_readonly == 'true'),
+							"default_value": (gr.default_value) ? JSON.parse(gr.default_value) : '',
+							"json": (gr.x_vmw_cloudservice_field_json) ? JSON.parse(gr.x_vmw_cloudservice_field_json) : '',
+							"defaultClientScript": (gr.x_vmw_cloudservice_vra_default_value_client_script) ? gr.x_vmw_cloudservice_vra_default_value_client_script.getDisplayValue() : '',
+							"project": data.json.answer['u_project'],
+							"pageSize": (gr.x_vmw_cloudservice_step) ? parseInt(gr.x_vmw_cloudservice_step) : ''
+						}
+					}
+
+					data.json.containers[parent].fields_arr.push({
+						"name": (gr.name) ? gr.name + '' : '',
+						"display_name": (gr.question_text) ? gr.question_text + '' : '',
+						"type": (gr.type) ? gr.type + '' : '',
+						"default_value": (gr.default_value && field_type == 'number') ? (gr.x_vmw_cloudservice_datatype == 'Decimal') ? parseFloat(gr.default_value) : parseInt(gr.default_value) : gr.default_value + '',
+						"tooltip_text": (gr.tooltip) ? gr.tooltip + '' : '',
+						"pattern_msg": (gr.x_vmw_cloudservice_pattern_message) ? gr.x_vmw_cloudservice_pattern_message + '' : '',
+						"help_text": (gr.example_text) ? gr.example_text + '' : '',
+						"mandatory": (gr.mandatory) ? gr.mandatory + '' : '',
+						"order": (gr.order) ? gr.order + '' : '',
+						"versions": (gr.x_vmw_cloudservice_versions) ? gr.x_vmw_cloudservice_versions + '' : '',
+						"fieldId": gr.getUniqueValue() + '',
+						"value": (gr.default_value && field_type == 'number') ? (gr.x_vmw_cloudservice_datatype == 'Decimal') ? parseFloat(gr.default_value) : parseInt(gr.default_value) : gr.default_value + '',
+						//"scripts":(typeof data.json.scripts.onChange[gr.name]!=='undefined')?data.json.scripts.onChange[gr.name]:'',
+						"visible": (gr.x_vmw_cloudservice_field_visibility == 'false') ? false : true,
+						"field_type": (gr.x_vmw_cloudservice_cas_name) ? field_type : 'text',
+						"datatype": (gr.x_vmw_cloudservice_datatype) ? gr.x_vmw_cloudservice_datatype + '' : '',
+						"scale_max": (gr.x_vmw_cloudservice_vra_maximum) ? gr.x_vmw_cloudservice_vra_maximum + '' : '',
+						"scale_min": (gr.x_vmw_cloudservice_vra_minimum) ? gr.x_vmw_cloudservice_vra_minimum + '' : '',
+						"read_only": (gr.x_vmw_cloudservice_field_readonly == 'true'),
+						"steps": (gr.x_vmw_cloudservice_step && field_type == 'number') ? gr.x_vmw_cloudservice_step + '' : (gr.x_vmw_cloudservice_datatype == 'Decimal') ? '0.01' : '1',
+						"pattern": (gr.x_vmw_cloudservice_pattern) ? gr.x_vmw_cloudservice_pattern + '' : '',
+						"dataGridOptions": (gr.x_vmw_cloudservice_datatype == 'DataGrid') ? data.dataGridOptions2 : '',
+						"dataGridWidget": (gr.x_vmw_cloudservice_datatype == 'DataGrid' && gr.x_vmw_cloudservice_vra_default_value_client_script.getDisplayValue() == '') ? $sp.getWidget('cas_datagrid', {"field": data.dataGridOptions2}) : '',
+						"defaultClientScript": (gr.x_vmw_cloudservice_vra_default_value_client_script) ? gr.x_vmw_cloudservice_vra_default_value_client_script.getDisplayValue() : '',
+						"valueClientScript": (gr.x_vmw_cloudservice_vra_value_client_script) ? gr.x_vmw_cloudservice_vra_value_client_script.getDisplayValue() : '',
+                        "onLoadTrigger": false,
+                        "spinner": (gr.x_vmw_cloudservice_datatype == 'DataGrid') ? true : false,
+						"runOnce": false,
+						"readyOnChange": false,
+						"readyOnChangeEmpty": false
+					});
+
+					data.json.answer[gr.name] = (gr.default_value) ? gr.default_value + '' : '';
+				} else if (gr.type == 3) {
+					options = fetchOptions(gr.getUniqueValue());
+					field_id = gr.name + '';
+					data.json.containers[parent].fields_arr.push({
+						"name": (gr.name) ? gr.name + '' : '',
+						"display_name": (gr.question_text) ? gr.question_text + '' : '',
+						"type": (gr.type) ? gr.type + '' : '',
+						"tooltip_text": (gr.tooltip) ? gr.tooltip + '' : '',
+						"pattern_msg": (gr.x_vmw_cloudservice_pattern_message) ? gr.x_vmw_cloudservice_pattern_message + '' : '',
+						"help_text": (gr.example_text) ? gr.example_text + '' : '',
+						"mandatory": (gr.mandatory) ? gr.mandatory + '' : '',
+						"value": (gr.default_value) ? gr.default_value + '' : '',
+						"versions": (gr.x_vmw_cloudservice_versions) ? gr.x_vmw_cloudservice_versions + '' : '',
+						"order": (gr.order) ? gr.order + '' : '',
+						"fieldId": gr.getUniqueValue() + '',
+						"arr": options,
+						"selected": (gr.default_value) ? gr.default_value + '' : '',
+						//"scripts":(typeof datjson.scripts.onChange[gr.name]!=='undefined')?data.json.scripts.onChange[gr.name]:'',
+						"visible": (gr.x_vmw_cloudservice_field_visibility == 'false') ? false : true,
+						"datatype": (gr.x_vmw_cloudservice_datatype == 'Duallist') ? gr.x_vmw_cloudservice_datatype + '' : '',
+						"field_type": (gr.attributes == 'array') ? 'array' : 'dropdown',
+						"read_only": (gr.x_vmw_cloudservice_field_readonly == 'true'),
+						"is_array": (gr.x_vmw_cloudservice_datatype == 'Array' || gr.x_vmw_cloudservice_datatype == 'Multiselect') ? true : false,
+						"spinner": false,
+						"defaultClientScript": (gr.x_vmw_cloudservice_vra_default_value_client_script) ? gr.x_vmw_cloudservice_vra_default_value_client_script.getDisplayValue() : '',
+						"valueClientScript": (gr.x_vmw_cloudservice_vra_value_client_script) ? gr.x_vmw_cloudservice_vra_value_client_script.getDisplayValue() : ''
+					});
+					data.json.answer[gr.name] = (gr.default_value) ? gr.default_value.getDisplayValue() + '' : '';
+				}
+
+
+				data.json.catalog_item = gr.cat_item.getDisplayValue();
+				data.json.catalog_item_id = gr.cat_item.sys_id + '';
+			}
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.populateFieldArr' + e);
+		}
+	}
+
+	//populating the data.json.defaultFields on the basis of default 
+	function populateDefaultField() {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.populateDefaultField');
+			var var_set = gs.getProperty(appUtil.configuration.properties.variableSetSysID);
+			var gr = new GlideRecordSecure(appUtil.configuration.table.variable);
+			gr.addEncodedQuery('variable_set=' + var_set);
+
+
+			gr.orderBy('order');
+			gr.query();
+			var sys = ''
+			while (gr.next()) {
+				if (gr.type == 5)
+					options = fetchOptions(gr.getUniqueValue());
+
+				field_id = gr.name + '';
+				data.json.default_fields.push({
+					"name": (gr.name) ? gr.name + '' : '',
+					"display_name": (gr.question_text) ? gr.question_text + '' : '',
+					"type": (gr.type) ? gr.type + '' : '',
+					"tooltip_text": (gr.tooltip) ? gr.tooltip + '' : '',
+					"pattern_msg": (gr.x_vmw_cloudservice_pattern_message) ? gr.x_vmw_cloudservice_pattern_message + '' : '',
+					"help_text": (gr.example_text) ? gr.example_text + '' : '',
+					"mandatory": (gr.mandatory) ? gr.mandatory + '' : '',
+					"value": (gr.default_value) ? gr.default_value + '' : '',
+					"versions": (gr.x_vmw_cloudservice_versions) ? gr.x_vmw_cloudservice_versions + '' : '',
+					"order": (gr.order) ? gr.order + '' : '',
+					"fieldId": gr.getUniqueValue() + '',
+					"arr": (gr.type == 5) ? options : '',
+					"selected": (gr.default_value) ? gr.default_value + '' : '',
+					"visible": (gr.x_vmw_cloudservice_field_visibility == 'false') ? false : true,
+					"datatype": (gr.x_vmw_cloudservice_datatype == 'Duallist') ? gr.x_vmw_cloudservice_datatype + '' : '',
+					"field_type": (gr.type == 5) ? 'dropdown' : 'text',
+					"read_only": (gr.x_vmw_cloudservice_field_readonly == 'true'),
+					"scale_max": (gr.x_vmw_cloudservice_vra_maximum) ? gr.x_vmw_cloudservice_vra_maximum + '' : '',
+					"scale_min": (gr.x_vmw_cloudservice_vra_minimum) ? gr.x_vmw_cloudservice_vra_minimum + '' : '',
+					"pattern": (gr.x_vmw_cloudservice_pattern) ? gr.x_vmw_cloudservice_pattern + '' : '',
+					"default_value": (gr.default_value) ? gr.default_value + '' : '',
+					"spinner": false
+				});
+
+				data.json.answer[gr.name] = (gr.default_value) ? gr.default_value.getDisplayValue() + '' : '';
+
+			}
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.populateDefaultField' + e);
+		}
+	}
+
+	//triggered on client events like script execution or submission.
+	if (input) {
+		// gs.addInfoMessage("input");
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.input');
+
+			data.json = input.json;
+			data.action = input.action;
+			data.readOnlyFields = input.readOnlyFields;
+			// gs.addInfoMessage(JSON.stringify(input.obj))
+			if (data.action == "submit") {
+				submitRequest();
+			} else if (data.action == 'field_onLoad') {
+				data.selectedContainer = input.selectedContainer;
+				// if(input.obj != undefined){
+				// 	for(var j=0;j<input.obj.length;j++){
+				// 		executeFieldScripts(input.obj[j]);
+				// 	}
+				// }
+				for (var j = 0; j < input.fieldScripts.length; j++) {
+					executeFieldScripts(input.fieldScripts[j]);
+				}
+
+			} else if (data.action == 'valuePicker_clientScript') {
+				data.selectedContainer = input.selectedContainer;
+				executeValuePickerScripts(input.currentScript);
+
+			} else if (data.action == 'field_onChange') {
+				data.selectedContainer = input.selectedContainer;
+				// gs.addInfoMessage(JSON.stringify(input.onChangeScript));
+				for (var j = 0; j < input.onChangeScript.length; j++) {
+					// gs.addInfoMessage(input.onChangeScript[j].field_name);
+					executeFieldScripts(input.onChangeScript[j]);
+				}
+
+			} else {
+				//script execution
+				data.scripts = input.scripts;
+				for (var k = 0; k < data.scripts.length; k++) {
+					executeScripts(data.scripts[k].description, data.action);
+				}
+			}
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.input' + e);
+		}
+	}
+
+	//submit the request while checking if two way checkout is true or not
+	function submitRequest() {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.submitRequest');
+
+			//preparing cat item json
+			var item = {
+				'sysparm_id': data.json.catalog_item_id,
+				'sysparm_quantity': '1',
+				'variables': data.json.answer
+			};
+			//checking two way checkout property
+			data.twostep = gs.getProperty("glide.sc.checkout.twostep", "true") == 'true';
+			if (data.twostep == 'true' || data.twostep == true) {
+				var cart = new sn_sc.CartJS();
+				var cartDetails = cart.addToCart(item);
+				gs.addInfoMessage("Catalog Item Added to cart. ");
+			} else {
+				//two checkout disabled
+				if (typeof item['sysparm_cart_name'] == 'undefined') {
+					item['sysparm_cart_name'] = '';
+				}
+				item['sysparm_cart_name'] = 'cart_' + data.json.catalog_item_id;
+				var cart2 = new sn_sc.CartJS('cart_' + data.json.catalog_item_id);
+				response = cart2.orderNow(item);
+				var req_id = response.request_id + '';
+
+				var gr = new GlideRecordSecure(appUtil.configuration.table.requests);
+				gr.addQuery("request", req_id);
+				gr.query();
+				if (gr.next()) {
+					data.req_id = gr.sys_id;
+				}
+				data.success = JSON.stringify(response);
+				gs.addInfoMessage("Catalog Item Submitted. ");
+			}
+			data.selectedContainer = input.selectedContainer;
+			input.json = data.json;
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.submitRequest' + e);
+		}
+
+	}
+
+	//populate type of a field from backend table response
+	function fetchFieldType(cas_name) {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.fetchFieldType');
+			var type = ''
+			if (cas_name) {
+				if (cas_name.startsWith("STR__")) {
+					type = "text";
+				} else if (cas_name.startsWith("INT__")) {
+					type = "number";
+				} else if (cas_name.startsWith("PSD__")) {
+					type = "password";
+				} else if (cas_name.startsWith("DATE__")) {
+					type = "date";
+				} else if (cas_name.startsWith("LAB__")) {
+					type = "label";
+				}
+			}
+			return type;
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.fetchFieldType');
+
+		}
+	}
+
+	//fetch options for a select box initially if they exist 
+	function fetchOptions(fieldId) {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.fetchOptions');
+			//gs.addInfoMessage('FIELD ID '+fieldId);
+			return daoUtil.fetchCatalogFieldOptions(fieldId);
+			/*
+			var choiceGR=new GlideRecord('question_choice');
+			choiceGR.addQuery('question='+fieldId);
+			choiceGR.query();
+			var choice_arr = [{"label":"","value":""}]
+			while(choiceGR.next()){
+				choice_arr.push({
+					"label":choiceGR.text+'',
+					"value":choiceGR.value+''
+				});
+			}
+			return choice_arr;
+		*/
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.fetchOptions' + e);
+		}
+	}
+
+	//execute the onLoad & onChange client script of the fields except Value Picker.
+	function executeFieldScripts(obj) {
+
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.executeFieldScripts');
+
+			if (typeof obj.parameter == 'string') {
+				obj.parameter = JSON.parse(obj.parameter);
+			}
+
+			// gs.addInfoMessage(JSON.stringify(obj)+ data.json.answer['u_project']+orgGR.mid_server.name);
+			var response = clientBridge.externalSourceApiCall(obj.uri, obj.datasource, obj.parameter, data.json.answer['u_project'], orgGR);
+			var responseData = JSON.parse(response).data;
+			var responseDataArr = [];
+			// gs.addInfoMessage(JSON.stringify(response) + obj.field_name);
+			// gs.addInfoMessage(JSON.stringify(JSON.parse(response).data));
+
+			if (responseData != undefined) {
+
+				if (typeof responseData == 'object') {
+					// gs.addInfoMessage(JSON.stringify(responseData));
+					if (responseData.length == 0) {
+						responseDataArr = [];
+					} else if (responseData[0].label == undefined) {
+						for (var i = 0; i < responseData.length; i++) {
+							responseDataArr.push({
+								"label": responseData[i],
+								'value': responseData[i]
+							});
+						}
+					} else {
+						responseDataArr = responseData;
+					}
+
+					if (obj.operation == 'Values') {
+						// gs.addInfoMessage(JSON.stringify(typeof JSON.parse(response).data)+" values" +obj.field_name);
+						setChoices(obj.field_name, responseDataArr, obj.operation);
+					}
+
+					if (obj.operation == "Default Values") {
+						// gs.addInfoMessage(JSON.stringify(typeof JSON.parse(response).data)+" Defualt Value"+JSON.stringify(JSON.parse(response).data)+' '+obj.field_name);
+						setChoices(obj.field_name, responseData, obj.operation);
+					}
+
+				} else {
+					setValue(obj.field_name, responseData);
+				}
+
+			} else {
+				data.isDataAvailable = false;
+				// gs.addInfoMessage(obj.field_name);
+				for (var j = 0; j < data.json.containers.length; j++) {
+					for (var i = 0; i < data.json.containers[j].fields_arr.length; i++) {
+						if (data.json.containers[j].fields_arr[i].name == obj.field_name) {
+							if (data.json.containers[j].fields_arr[i].arr) {
+								data.json.containers[j].fields_arr[i].arr = [];
+							}
+							data.json.containers[j].fields_arr[i].value = '';
+							data.json.containers[j].fields_arr[i].default_value = '';
+							data.json.containers[j].fields_arr[i].spinner = false;
+							data.json.answer[obj.field_name] = '';
+							data.json.containers[j].fields_arr[i].readyOnChange = true;
+							// gs.addInfoMessage(data.json.containers[j].fields_arr[i].spinner+' '+data.json.containers[j].fields_arr[i].display_name)
+							if (data.readOnlyFields.indexOf(obj.field_name) == -1) {
+								data.json.containers[j].fields_arr[i].read_only = false;
+							}
+						}
+					}
+				}
+
+			}
+
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.executeFieldScripts' + e);
+		}
+
+
+	}
+
+	//method for executing the ValuePicker onLoad Scripts.
+	function executeValuePickerScripts(obj) {
+
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.executeValuePickerScripts');
+
+			// gs.addInfoMessage(JSON.stringify(JSON.parse(obj.parameter)));
+			if (obj.uri != 'Nodata') {
+				var parameter = JSON.parse(obj.parameter);
+				var newParameter = [];
+				for (var i = 0; i < parameter.length; i++) {
+					newParameter.push({
+						'name': Object.keys(parameter[i])[1],
+						'value': parameter[i][Object.keys(parameter[i])[1]].replaceAll('`', '')
+					});
+				}
+
+				var response = clientBridge.externalSourceApiCall(obj.uri, obj.datasource, newParameter, data.json.answer['u_project'], orgGR);
+				var responseData = JSON.parse(response).data;
+
+				data.valuePickerArrHash = {
+					'field_name': obj.field_name,
+					'isArrFilled': true
+				};
+
+				if (obj.operation == "Default Values") {
+					setValue(obj.field_name, responseData);
+				}
+
+				if (obj.operation == "Values") {
+					setChoices(obj.field_name, responseData, obj.operation);
+				}
+
+
+			} else {
+
+				var response2 = clientBridge.externalSourceValuePickerApiCall(obj.refType, orgGR);
+				var responseData2 = JSON.parse(response2).items;
+
+				data.valuePickerArrHash = {
+					'field_name': obj.field_name,
+					'isArrFilled': true
+				};
+
+				if (obj.operation == "Default Values") {
+					setValue(obj.field_name, responseData2);
+				}
+
+				if (obj.operation == "Values") {
+					setChoices(obj.field_name, responseData2, obj.operation);
+				}
+
+
+			}
+
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.executeValuePickerScripts' + e);
+		}
+
+	}
+
+	//execute onLoad onChange scripts
+	function executeScripts(description, scriptType) {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.executeScripts');
+			var description_arr = description.split('__');
+			var functionName = description_arr[0] + '';
+			var fieldId = description_arr[1] + '';
+			var dependency_arr = [];
+			if (scriptType == 'onChange') {
+				dependency_arr = description_arr[2];
+				this[functionName](fieldId, dependency_arr);
+			} else if (scriptType == 'onLoad') {
+				this[functionName](fieldId);
+			}
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.executeScripts' + e);
+		}
+	}
+
+	//set the values of a select box dynamically - triggered usually from an onload and onchange scripts
+	function setChoices(id, values, operation) {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.setChoices');
+
+			if (id == 'u_version' || id == 'u_project') {
+				for (var i = 0; i < data.json.default_fields.length; i++) {
+					if (data.json.default_fields[i].name == id) {
+						data.json.default_fields[i].arr = values;
+					}
+				}
+			} else {
+				for (var j = 0; j < data.json.containers.length; j++) {
+					for (var i = 0; i < data.json.containers[j].fields_arr.length; i++) {
+						if (data.json.containers[j].fields_arr[i].name == id) {
+
+							if (operation == 'Values') {
+								// gs.addInfoMessage(JSON.stringify(id)+" Values "+JSON.stringify(values));
+								if (data.json.containers[j].fields_arr[i].datatype == "Duallist") {
+									data.json.containers[j].fields_arr[i].unselected_options = values;
+								}
+
+								if(data.json.containers[j].fields_arr[i].value == ''){
+									data.json.containers[j].fields_arr[i].selected = '';
+									data.json.answer[id] = '';
+								}
+			
+								
+								data.json.containers[j].fields_arr[i].arr = values;
+								data.json.containers[j].fields_arr[i].spinner = false;
+
+								// if(values == ''){
+								// 	data.json.containers[j].fields_arr[i].readyOnChangeEmpty = true;
+								// }else{
+								// 	data.json.containers[j].fields_arr[i].readyOnChange = true;
+								// }
+								data.json.containers[j].fields_arr[i].readyOnChange = true;
+
+								if (data.readOnlyFields.indexOf(id) == -1) {
+									data.json.containers[j].fields_arr[i].read_only = false;
+								}
+
+							} else if (operation == "Default Values") {
+
+								// gs.addInfoMessage(JSON.stringify(id)+" Default values "+JSON.stringify(values) + " "+data.json.containers[j].fields_arr[i].datatype);
+								if (data.json.containers[j].fields_arr[i].datatype != "Duallist" || data.json.containers[j].fields_arr[i].datatype != "DataGrid") {
+
+									data.json.containers[j].fields_arr[i].selected = values;
+									data.json.containers[j].fields_arr[i].value = values;
+
+									// if(values == ''){
+									// 	data.json.containers[j].fields_arr[i].readyOnChangeEmpty = true;
+									// }else{
+									// 	data.json.containers[j].fields_arr[i].readyOnChange = true;
+									// }
+
+									data.json.containers[j].fields_arr[i].readyOnChange = true;
+
+									if (data.readOnlyFields.indexOf(id) == -1) {
+										data.json.containers[j].fields_arr[i].read_only = false;
+									}
+
+									data.json.containers[j].fields_arr[i].spinner = false;
+									data.json.answer[id] = values.toString();
+
+								}
+
+								if (data.json.containers[j].fields_arr[i].datatype == "DataGrid") {
+
+									data.json.containers[j].fields_arr[i].dataGridOptions.default_value = values;
+									data.json.containers[j].fields_arr[i].dataGridWidget = $sp.getWidget('cas_datagrid', {
+										"field": data.json.containers[j].fields_arr[i].dataGridOptions
+									});
+
+								}
+
+								if (data.json.containers[j].fields_arr[i].datatype == "Duallist") {
+
+									var options = data.json.containers[j].fields_arr[i].arr;
+									var selected = (values) ? values.map(function (value, index) {
+										return options.filter(function (option, index) {
+											return option.value == value
+										})[0]
+									}) : [];
+									var unselected = (values) ? options.filter(function (option, index) {
+										return !values.filter(function (value, index) {
+											return option.value == value
+										}).length
+									}) : options;
+									// gs.addInfoMessage(JSON.stringify(options)+" "+unselected+' '+selected);
+									data.json.containers[j].fields_arr[i].selected = selected;
+									data.json.containers[j].fields_arr[i].selected_options = selected;
+									data.json.containers[j].fields_arr[i].unselected_options = unselected;
+
+									if (data.readOnlyFields.indexOf(id) == -1) {
+										data.json.containers[j].fields_arr[i].read_only = false;
+									}
+
+									data.json.containers[j].fields_arr[i].spinner = false;
+									data.json.answer[id] = values.toString();
+								}
+
+							}
+
+						}
+					}
+				}
+
+			}
+
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.setChoices' + e);
+		}
+	}
+
+	//set the values of a select box dynamically - triggered usually from an onload and onchange scripts
+	function setValue(id, value) {
+		try {
+			CASLogger.debug('Inside the widget cas_catalogForm.setValue');
+			 //gs.addInfoMessage(id+' '+value)
+			for (var j = 0; j < data.json.containers.length; j++) {
+				for (var i = 0; i < data.json.containers[j].fields_arr.length; i++) {
+					if (data.json.containers[j].fields_arr[i].name == id) {
+
+						if (data.json.containers[j].fields_arr[i].field_type == 'number') {
+							if (data.json.containers[j].fields_arr[i].datatype == 'Decimal') {
+								data.json.containers[j].fields_arr[i].default_value = parseFloat(value);
+								data.json.containers[j].fields_arr[i].value = parseFloat(value);
+
+								if (data.readOnlyFields.indexOf(id) == -1) {
+									data.json.containers[j].fields_arr[i].read_only = false;
+								}
+
+								data.json.containers[j].fields_arr[i].spinner = false;
+								data.json.answer[id] = value;
+							} else {
+								data.json.containers[j].fields_arr[i].default_value = parseInt(value);
+								data.json.containers[j].fields_arr[i].value = parseInt(value);
+
+								if (data.readOnlyFields.indexOf(id) == -1) {
+									data.json.containers[j].fields_arr[i].read_only = false;
+								}
+
+								data.json.containers[j].fields_arr[i].spinner = false;
+								data.json.answer[id] = value;
+							}
+						} else {
+							 //gs.addInfoMessage(id+' '+value);
+							if (data.json.containers[j].fields_arr[i].selected != undefined) {
+								data.json.containers[j].fields_arr[i].selected = value;
+							}
+
+							if (data.json.containers[j].fields_arr[i].type == 11) {
+								data.json.containers[j].fields_arr[i].display_name = value;
+							}
+
+							data.json.containers[j].fields_arr[i].default_value = value;
+							data.json.containers[j].fields_arr[i].value = value
+							data.json.containers[j].fields_arr[i].readyOnChange = true;
+
+
+							if (data.readOnlyFields.indexOf(id) == -1) {
+								data.json.containers[j].fields_arr[i].read_only = false;
+							}
+
+							data.json.containers[j].fields_arr[i].spinner = false;
+							data.json.answer[id] = value;
+
+						}
+					}
+				}
+			}
+
+
+		} catch (e) {
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.setValue' + e);
+		}
+	}
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-08-13 08:37:09</sys_created_on>
+        <sys_id>7000d728db533700291d61ca0b961931</sys_id>
+        <sys_mod_count>3962</sys_mod_count>
+        <sys_name>cas_catalogForm</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_7000d728db533700291d61ca0b961931</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-01-06 12:07:45</sys_updated_on>
+        <template><![CDATA[<div class="cas-content-area" >
+  <div ng-if="(catalogForm.$submitted && !c.data.isPosting && catalogForm.$invalid) || dateError!='' || (catalogForm.$submitted && isArrayEmpty && isArray) || (catalogForm.$submitted && !isDuallistValid)" class="cas-alert cas-alert-danger">
+    <div class="cas-alert-item">
+      <div class="cas-alert-icon-wrapper">
+        <cas-clr-icon shape="exclamation-circle" size="24" color="#c92100" title="{{field.tooltip_text}}" class="info-error"></cas-clr-icon>
+      </div>
+      <span class="cas-alert-text">  Correct the highlighted errors. </span>
+      <!--<button aria-label="Close" class="ose" type="button" ng-click="closeAlert()">
+<cas-clr-icohhape="cose" size="24b"></cas-clr-icon>
+</button>--rg  b(47, 132, 0)--->
+    </div>
+  </div>
+  <h2>
+    <div style="float:left; width:auto; margin-right:5px;margin-top:5px;">
+      <cas-clr-icon shape="vmw-app" size="35" color="#0077b8"></cas-clr-icon>
+    </div>
+    <span>{{c.data.json.catalog_item}}</span>
+  </h2>
+  
+  <!-- <div class="empty-message-container" ng-if="c.data.version == ''">
+    <span>
+      <p>
+        Catalog Item form is Loading<span class="ci-loader"><span class="one">.</span><span class="two">.</span><span class="three">.</span></span>
+      </p>
+    </span>
+  </div>  -->
+
+  <ul id="demoTabs" class="cas-nav" role="tablist" ng-if="c.data.json.containers.length>1 && c.data.version != ''" ng-init="c.data.selectedContainer = checkForHiddenTab()">
+    <li role="presentation" class="cas-nav-item"  ng-repeat="(key,value) in c.data.json.containers" ng-if="(value.version).split(',').includes(c.data.json.answer['u_version']) && (value.visible == 'true')" ng-click="c.data.selectedContainer=value.order;executeFieldScripts();">
+      <button id="tab1" class="cas-btn cas-btn-link cas-nav-link" aria-controls="panel1" aria-selected="true" type="button" ng-class="{'cas-active':key==c.data.selectedContainer}">{{value.label}}</button>
+    </li>
+  </ul>
+  <form class="cas-clr-form cas-clr-form-horizontal"  name="catalogForm"  novalidate>
+
+    <div ng-if="c.data.version != ''" >
+<!--
+
+19 - start  			-done
+20 - end    			-done
+5  - select box  	-done
+2  - multi line  	-done
+6  - single line  -done
+10 - date time   	-done
+7  - checkbox     -done
+11 - label				-done
+13 - radio group  -done
+
+-->
+        <div class="cas-clr-form-control cas-clr-col-12 form-wrapper-single-container" ng-class="{'form-wrapper-multiple-container' : c.data.json.containers.length>1}" ng-if="c.data.version != ''">
+        <div  ng-repeat="(key,value) in c.data.json.containers" ng-if="c.data.selectedContainer==value.order && (value.version).split(',').includes(c.data.json.answer['u_version'])" class="cas-clr-col-12 ">
+            
+            <!---- Default Catalog Item Form Field ---->
+            <div ng-if="(value.version).split(',').includes(c.data.json.answer['u_version']) && value.label == 'General'">
+            <div class="cas-clr-form-control" ng-init="defaultFields = c.data.json.default_fields"> 
+                
+                    <!--- Version field-------->
+                    <div ng-if="!(data.isVersionUndefined)" >
+                    <label for="{{defaultFields[0].fieldId}}" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2 labelflex">{{defaultFields[0].display_name}}<span ng-if="defaultFields[0].mandatory=='true'" style="color:red;margin-left:5px;">*</span></label>
+                    </div>
+                    <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="defaultFields[0].type==5 && !(data.isVersionUndefined)"  ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[defaultFields[0].fieldId].$invalid && (catalogForm[defaultFields[0].fieldId].$touched ||catalogForm.$submitted ) && defaultFields[0].mandatory=='true')}">
+                    <div ng-class="(!defaultFields[0].is_array) ? 'cas-clr-select-wrapper' : ''" class="fullwidth">   
+                        <select  ng-if="!defaultFields[0].is_array" name="{{defaultFields[0].fieldId}}" ng-disabled="setVersionDisabled" ng-required="(defaultFields[0].mandatory)" id="{{defaultFields[0].fieldId}}" ng-model="defaultFields[0].selected" ng-change="updateAnswer(defaultFields[0].name,defaultFields[0].selected,defaultFields[0].field_type);setSelectedContainer(defaultFields[0].selected);projectonChange();executeFieldScripts();" class="fullwidth" ng-init="(c.data.json.answer['u_version'] == '')?c.data.json.answer['u_version']=defaultFields[0].selected=defaultFields[0].arr[0].value:defaultFields[0].selected=c.data.json.answer['u_version']" > 
+                        <option title="{{defaultFields[0].tooltip_text}}"  ng-repeat="option in defaultFields[0].arr" ng-value="option.value" ng-click="defaultFields[0].selected=option.value;" >{{option.label}}</option>
+                        </select>
+                        <span ng-if="!defaultFields[0].is_array" class="angle-down"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                        <span ng-if="defaultFields[0].mandatory && isArrayEmpty && (catalogForm.$submitted || catalogForm.$touched) && defaultFields[0].field_type=='array'" class="cas-clr-subtext">No Selection made</span>
+                    </div>
+                    </div>
+                    <div>
+                    <span ng-if="setVersionSpinner && !(data.isVersionUndefined)" class="spinner spinner-sm"> Loading... </span>
+                    </div>
+                        </div>
+            <div class="cas-clr-form-control" ng-init="defaultFields = c.data.json.default_fields">
+
+                    <!-- Deployment Name field--------->
+                    <div>
+                    <label for="{{defaultFields[1].fieldId}}" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2 labelflex">{{defaultFields[1].display_name}}<span ng-if="defaultFields[1].mandatory=='true'" style="color:red;margin-left:5px;">*</span></label>
+                    </div>
+                    <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="defaultFields[1].type==6"  ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[defaultFields[1].fieldId].$invalid && (catalogForm[defaultFields[1].fieldId].$touched ||catalogForm.$submitted ) && defaultFields[1].mandatory=='true')}">
+                    <div class="cas-clr-textarea-wrapper">
+                    <input type="text" ng-minlength="{{(defaultFields[1].scale_min)?defaultFields[1].scale_min:''}}" ng-maxlength="{{(defaultFields[1].scale_max)?defaultFields[1].scale_max:''}}" name="{{defaultFields[1].fieldId}}" ng-disabled="defaultFields[1].read_only" ng-required="defaultFields[1].mandatory"  id="{{defaultFields[1].fieldId}}" ng-model="defaultFields[1].value" 
+                            ng-change="updateAnswer(defaultFields[1].name,defaultFields[1].value,defaultFields[1].field_type)" placeholder="{{defaultFields[1].help_text}}" value="{{defaultFields[1].default_value}}" class="cas-clr-input fullwidth"  />
+                    </div>
+                    <span ng-show="(catalogForm[defaultFields[1].fieldId].$touched || catalogForm.$submitted) && catalogForm[defaultFields[1].fieldId].$invalid && defaultFields[1].mandatory" class="cas-clr-subtext">Field is mandatory</span>
+                        <span ng-show="(defaultFields[1].field_type=='number'||defaultFields[1].field_type=='text') && catalogForm[defaultFields[1].fieldId].$invalid   && ((catalogForm[defaultFields[1].fieldId].$error.max && defaultFields[1].field_type=='number') ||(catalogForm[defaultFields[1].fieldId].$error.maxlength && defaultFields[1].field_type!='number')) && defaultFields[1].scale_max"   class="cas-clr-subtext">Max {{(defaultFields[1].field_type=='number')?'Value':'Length'}} should be {{defaultFields[1].scale_max}}</span>
+                        <span ng-show="(defaultFields[1].field_type=='number'||defaultFields[1].field_type=='text') && catalogForm[defaultFields[1].fieldId].$invalid && ((catalogForm[defaultFields[1].fieldId].$error.min && defaultFields[1].field_type=='number') ||(catalogForm[defaultFields[1].fieldId].$error.minlength && defaultFields[1].field_type!='number')) && defaultFields[1].scale_min" class="cas-clr-subtext">Min {{(defaultFields[1].field_type=='number')?'Value':'Length'}} should be {{defaultFields[1].scale_min}}</span>
+                        <span ng-show="catalogForm[defaultFields[1].fieldId].$error.pattern"  class="cas-clr-subtext">{{(defaultFields[1].pattern_msg)?defaultFields[1].pattern_msg:'Invalid Input!'}}</span>
+                    
+                    </div>
+                        <cas-clr-icon shape="exclamation-circle" size="24"
+                            data-toggle="tooltip"
+                            data-placement="right"
+                            class="info-tooltip"
+                            ng-if="(defaultFields[1].tooltip_text || (catalogForm[defaultFields[1].fieldId].$invalid && catalogForm[defaultFields[1].fieldId].$touched)||(catalogForm.$submitted&&catalogForm[defaultFields[1].fieldId].$invalid))" 
+                            title="{{defaultFields[1].tooltip_text}}"  
+                            ng-class="{'info-error': (!(c.data.submitted && catalogForm.$valid)  && ( (catalogForm[defaultFields[1].fieldId].$invalid && catalogForm[defaultFields[1].fieldId].$touched) || (catalogForm.$submitted && catalogForm[defaultFields[1].fieldId].$invalid)))}"></cas-clr-icon>
+    
+                        </div>
+            <div class="cas-clr-form-control" ng-init="defaultFields = c.data.json.default_fields">
+                    <!-- Description field-------->
+                    <div>
+                    <label for="{{defaultFields[2].fieldId}}" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2 labelflex">{{defaultFields[2].display_name}}<span ng-if="defaultFields[2].mandatory=='true'" style="color:red;margin-left:5px;">*</span></label>
+                    </div>
+                    <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="defaultFields[2].type==2"  ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[defaultFields[2].fieldId].$invalid && (catalogForm[defaultFields[2].fieldId].$touched ||catalogForm.$submitted ) && defaultFields[2].mandatory=='true')}">
+                    <div class="cas-clr-textarea-wrapper">
+                        <textarea name="{{defaultFields[2].fieldId}}" title="{{defaultFields[2].tooltip_text}}" ng-minlength="{{(defaultFields[2].scale_min && defaultFields[2].field_type=='text')?defaultFields[2].scale_min:''}}" ng-maxlength="{{(defaultFields[1].scale_min && defaultFields[1].field_type=='text')?defaultFields[1].scale_max:''}}" ng-disabled="defaultFields[2].read_only" ng-required="defaultFields[2].mandatory" class="cas-clr-textarea fullwidth" ng-model="defaultFields[2].value" ng-change="updateAnswer(defaultFields[2].name,defaultFields[2].value,defaultFields[2].field_type)" placeholder="{{defaultFields[2].help_text}}" value="{{defaultFields[2].default_value}}"></textarea>
+                        <span ng-show="(catalogForm[defaultFields[2].fieldId].$touched || catalogForm.$submitted) && catalogForm[defaultFields[2].fieldId].$invalid && defaultFields[2].mandatory" class="cas-clr-subtext">Field is mandatory</span>
+                        <span ng-show="(defaultFields[2].field_type=='number'||defaultFields[2].field_type=='text') && catalogForm[defaultFields[2].fieldId].$invalid   && ((catalogForm[defaultFields[2].fieldId].$error.max && defaultFields[2].field_type=='number') ||(catalogForm[defaultFields[2].fieldId].$error.maxlength && defaultFields[2].field_type!='number')) && defaultFields[2].scale_max"   class="cas-clr-subtext">Max {{(defaultFields[2].field_type=='number')?'Value':'Length'}} should be {{defaultFields[2].scale_max}}</span>
+                        <span ng-show="(defaultFields[2].field_type=='number'||defaultFields[2].field_type=='text') && catalogForm[defaultFields[2].fieldId].$invalid && ((catalogForm[defaultFields[2].fieldId].$error.min && defaultFields[2].field_type=='number') ||(catalogForm[defaultFields[2].fieldId].$error.minlength && defaultFields[2].field_type!='number')) && defaultFields[2].scale_min" class="cas-clr-subtext">Min {{(defaultFields[2].field_type=='number')?'Value':'Length'}} should be {{defaultFields[2].scale_min}}</span>
+                        <span ng-show="catalogForm[defaultFields[2].fieldId].$error.pattern"  class="cas-clr-subtext">{{(defaultFields[2].pattern_msg)?defaultFields[2].pattern_msg:'Invalid Input!'}}</span>          
+                    </div>
+                    </div>
+                                    <cas-clr-icon shape="exclamation-circle" size="24"
+                            data-toggle="tooltip"
+                            data-placement="right"
+                            class="info-tooltip"
+                            ng-if="(defaultFields[2].tooltip_text || (catalogForm[defaultFields[2].fieldId].$invalid && catalogForm[defaultFields[2].fieldId].$touched)||(catalogForm.$submitted&&catalogForm[defaultFields[2].fieldId].$invalid))" 
+                            title="{{defaultFields[2].tooltip_text}}"  
+                            ng-class="{'info-error': (!(c.data.submitted && catalogForm.$valid)  && ( (catalogForm[defaultFields[2].fieldId].$invalid && catalogForm[defaultFields[2].fieldId].$touched) || (catalogForm.$submitted && catalogForm[defaultFields[2].fieldId].$invalid)))}"></cas-clr-icon>
+    
+                        </div>
+            <div class="cas-clr-form-control" ng-init="defaultFields = c.data.json.default_fields">
+                <!-- Project field-------->
+                <div>
+                    <label for="{{defaultFields[3].fieldId}}" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2 labelflex">{{defaultFields[3].display_name}}<span ng-if="defaultFields[3].mandatory=='true'" style="color:red;margin-left:5px;">*</span></label>
+                    </div>
+                <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="defaultFields[3].type==5"  ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[defaultFields[3].fieldId].$invalid && (catalogForm[defaultFields[3].fieldId].$touched ||catalogForm.$submitted ) && defaultFields[3].mandatory=='true')}">
+                    <div ng-class="(!defaultFields[3].is_array) ? 'cas-clr-select-wrapper' : ''" class="fullwidth">   
+                    <select  ng-if="!defaultFields[3].is_array" name="{{defaultFields[3].fieldId}}" ng-disabled="defaultFields[3].read_only" ng-required="(defaultFields[3].mandatory)" id="{{defaultFields[3].fieldId}}" ng-model="defaultFields[3].selected" ng-change="updateAnswer(defaultFields[3].name,defaultFields[3].selected,defaultFields[3].field_type);projectOnChange=false;executeOnChangeScript(defaultFields[3].name,defaultFields[3].selected,defaultFields[3])" class="fullwidth" ng-init='defaultFields[3].selected=defaultFields[3].value;' > 
+                        <option title="{{defaultFields[3].tooltip_text}}"  ng-repeat="option in defaultFields[3].arr" ng-value="option.value" ng-click="defaultFields[3].selected=option.value;" ng-init="((defaultFields[3].selected != '') ? defaultFields[3].selected : (defaultFields[3].display_name == 'Project' && c.data.project_id != 'NULL' ) ? defaultFields[3].selected=c.data.newSelectedProject.value:defaultFields[3].selected=defaultFields[3].arr[0].value);updateAnswer(defaultFields[3].name,defaultFields[3].selected,defaultFields[3].field_type);">{{option.label}}</option>
+                    </select>
+                    <span ng-if="!defaultFields[3].is_array" class="angle-down"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                        <span ng-if="defaultFields[3].mandatory && isArrayEmpty && (catalogForm.$submitted || catalogForm.$touched) && defaultFields[3].field_type=='array'" class="cas-clr-subtext">No Selection made</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <span ng-if="defaultFields[3].spinner" class="spinner spinner-sm"> Loading... </span>
+                </div>
+            
+                </div> 
+            </div>
+            <!--- Default Field Ended ----------->
+            
+            <div  ng-repeat="field in value.fields_arr" ng-if="!(field.name == 'u_version' && data.isVersionUndefined) && field.visible">            
+            <div class="cas-clr-form-control" ng-if="((field.versions).split(',').includes(c.data.json.answer['u_version']))|| field.versions==''">
+                
+                <div ng-if="!(field.name == 'u_version' && data.isVersionUndefined)" >
+                <label for="{{field.fieldId}}" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2 labelflex" >{{field.display_name}}<span ng-if="field.mandatory=='true'" style="color:red;margin-left:5px;">*</span></label>
+                </div>
+                
+                <!-------------Single Line Text------------>
+                <div ng-init="field.dependents = getDepenedentFields(field.name)" data-toggle="tooltip" data-placement="top" title="{{field.dependents}}" class="cas-clr-control-container  cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==6 && field.field_type!='number' && field.datatype!='DataGrid'" ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[field.fieldId].$invalid && (catalogForm[field.fieldId].$touched ||catalogForm.$submitted ) && field.mandatory=='true')}" >
+                <div class="cas-clr-input-wrapper">
+                    <input type="{{field.field_type}}" ng-min="{{(field.scale_min && field.field_type!='text')?field.scale_min:''}}" ng-max="{{(field.scale_max && field.field_type!='text')?field.scale_max:''}}" ng-minlength="{{(field.scale_min && field.field_type=='text')?field.scale_min:''}}" ng-maxlength="{{(field.scale_min && field.field_type=='text')?field.scale_max:''}}"  ng-pattern="setRegex(field.pattern)" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value" 
+                        ng-change="updateAnswer(field.name,field.value,field_type);" placeholder="{{field.help_text}}" value="{{field.default_value}}" class="cas-clr-input fullwidth" ng-focus="field.focused=true;" ng-blur="catalogForm[field.fieldId].$dirty && executeOnChangeScript(field.name,field.value,field);field.focused=false;" ng-init="bindField(field)" />
+                    <clr-icon ng-show="field.focused && dependentFields[field.name].length" shape="circle-arrow right" size="16" role="none" style="width: 16px; height: 16px;margin-left:-20px;margin-bottom:-20px !important;display:inline-block;cursor: pointer;transform: rotate(90deg);">
+                    <svg version="1.1" class="has-solid " viewBox="0 0 36 36" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" focusable="false" role="img">
+                        <path fill="#007cbb" d="M18,2A16,16,0,1,0,34,18,16,16,0,0,0,18,2Zm8,15.57a1.43,1.43,0,0,1-2,0L19.4,13V27.14a1.4,1.4,0,0,1-2.8,0v-14l-4.43,4.43a1.4,1.4,0,0,1-2-2L18.08,7.7,26,15.59A1.4,1.4,0,0,1,26,17.57Z" class="clr-i-solid clr-i-solid-path-1"></path>
+                        <rect x="0" y="0" width="36" height="36" fill-opacity="0"/>
+                    </svg>
+                    </clr-icon>
+                    
+                    <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && catalogForm[field.fieldId].$invalid && field.mandatory  &&!(catalogForm[field.fieldId].$error.maxlength || catalogForm[field.fieldId].$error.minlength ) && !(catalogForm[field.fieldId].$error.pattern)" class="cas-clr-subtext">Field is mandatory</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && catalogForm[field.fieldId].$invalid   && ((catalogForm[field.fieldId].$error.max && field.field_type=='number') ||(catalogForm[field.fieldId].$error.maxlength && field.field_type!='number')) && field.scale_max"   class="cas-clr-subtext">Max {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_max}}</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && catalogForm[field.fieldId].$invalid && ((catalogForm[field.fieldId].$error.min && field.field_type=='number') ||(catalogForm[field.fieldId].$error.minlength && field.field_type!='number')) && field.scale_min" class="cas-clr-subtext">Min {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_min}}</span>
+                    <span ng-show="catalogForm[field.fieldId].$error.pattern"  class="cas-clr-subtext">{{(field.pattern_msg)?field.pattern_msg:'Invalid Input!'}}</span> 
+                </div>
+                </div>
+                
+                <!------------Numeric Fields----------->   
+                <div class="cas-clr-control-container  cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==6 && field.field_type=='number'" ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[field.fieldId].$invalid && (catalogForm[field.fieldId].$touched ||catalogForm.$submitted ) && field.mandatory=='true')}" >
+                <div class="cas-clr-input-wrapper">
+                    <input type="{{field.field_type}}" ng-if="field.datatype!='Decimal'" ng-min="{{(field.scale_min)?field.scale_min:''}}" ng-max="{{(field.scale_max)?field.scale_max:''}}" ng-pattern="setRegex(field.pattern)" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory"  step="{{field.steps}}" id="{{field.fieldId}}" ng-model="field.value" 
+                        ng-change="updateAnswer(field.name,field.value,field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}" class="cas-clr-input fullwidth" onkeypress='return event.charCode >= 48 && event.charCode <= 57' />
+                    <input type="{{field.field_type}}" ng-if="field.datatype=='Decimal'" ng-min="{{(field.scale_min)?field.scale_min:''}}" ng-max="{{(field.scale_max)?field.scale_max:''}}" ng-pattern="setRegex(field.pattern)" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory"  step="{{field.steps}}" id="{{field.fieldId}}" ng-model="field.value" 
+                        ng-change="updateAnswer(field.name,field.value,field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}" class="cas-clr-input fullwidth" />
+                    <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && catalogForm[field.fieldId].$invalid && field.mandatory  &&!(catalogForm[field.fieldId].$error.maxlength || catalogForm[field.fieldId].$error.minlength ) && !(catalogForm[field.fieldId].$error.pattern)" class="cas-clr-subtext">Field is mandatory</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && catalogForm[field.fieldId].$invalid   && ((catalogForm[field.fieldId].$error.max && field.field_type=='number') ||(catalogForm[field.fieldId].$error.maxlength && field.field_type!='number')) && field.scale_max"   class="cas-clr-subtext">Max {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_max}}</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && catalogForm[field.fieldId].$invalid && ((catalogForm[field.fieldId].$error.min && field.field_type=='number') ||(catalogForm[field.fieldId].$error.minlength && field.field_type!='number')) && field.scale_min" class="cas-clr-subtext">Min {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_min}}</span>
+                    <span ng-show="catalogForm[field.fieldId].$error.pattern"  class="cas-clr-subtext">{{(field.pattern_msg)?field.pattern_msg:'Invalid Input!'}}</span> 
+                </div>
+                </div>
+
+                <!-------------Password-------------->
+                <div class="cas-clr-control-container  cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==25" ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[field.fieldId].$invalid && (catalogForm[field.fieldId].$touched ||catalogForm.$submitted ) && field.mandatory=='true')}" >
+                <div class="cas-clr-input-wrapper">
+                    <input type="{{field.field_type}}" ng-minlength="{{(field.scale_min != 0) ? field.scale_min : ''}}" ng-maxlength="{{(field.scale_max != 0) ? field.scale_max : ''}}" ng-pattern="setRegex(field.pattern)" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value" 
+                        ng-change="updateAnswer(field.name,field.value,field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}" class="cas-clr-input fullwidth" />
+                    <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && catalogForm[field.fieldId].$invalid && field.mandatory  &&!(catalogForm[field.fieldId].$error.maxlength || catalogForm[field.fieldId].$error.minlength ) && !(catalogForm[field.fieldId].$error.pattern)" class="cas-clr-subtext">Field is mandatory</span>
+                    <span ng-show="catalogForm[field.fieldId].$error.maxlength"  class="cas-clr-subtext">Max Value of password should be {{field.scale_max}}</span>
+                    <span ng-show="catalogForm[field.fieldId].$error.minlength" class="cas-clr-subtext">Min Value of password should be {{field.scale_min}}</span>
+                    <span ng-show="catalogForm[field.fieldId].$error.pattern"  class="cas-clr-subtext">{{(field.pattern_msg)?field.pattern_msg:'Invalid Input!'}}</span> 
+                </div>
+                </div>
+
+                <!-------------TextArea----------->
+                <div ng-init="field.dependents = getDepenedentFields(field.name)" data-toggle="tooltip" data-placement="top" class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex"ng-if="field.type==2"  ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[field.fieldId].$invalid && (catalogForm[field.fieldId].$touched ||catalogForm.$submitted ) && field.mandatory=='true')}">
+                <div class="cas-clr-textarea-wrapper">
+                    <textarea name="{{field.fieldId}}" title="{{field.tooltip_text}}" ng-minlength="{{(field.scale_min && field.field_type=='text')?field.scale_min:''}}" ng-maxlength="{{(field.scale_min && field.field_type=='text')?field.scale_max:''}}" ng-pattern="setRegex(field.pattern)" ng-disabled="field.read_only" ng-required="field.mandatory" class="cas-clr-textarea fullwidth" ng-model="field.value" ng-change="updateAnswer(field.name,field.value,field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}" ng-init="textOnChange(field.name,field.value,field);"></textarea>
+                    <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && catalogForm[field.fieldId].$invalid && field.mandatory &&!(catalogForm[field.fieldId].$error.maxlength || catalogForm[field.fieldId].$error.minlength ) && !(catalogForm[field.fieldId].$error.pattern)" class="cas-clr-subtext">Field is mandatory</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && catalogForm[field.fieldId].$invalid && ((catalogForm[field.fieldId].$error.max && field.field_type=='number') ||(catalogForm[field.fieldId].$error.maxlength && field.field_type!='number')) && field.scale_max"   class="cas-clr-subtext">Max {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_max}}</span>
+                    <span ng-show="(field.field_type=='number'||field.field_type=='text') && catalogForm[field.fieldId].$invalid && ((catalogForm[field.fieldId].$error.min && field.field_type=='number') ||(catalogForm[field.fieldId].$error.minlength && field.field_type!='number')) && field.scale_min" class="cas-clr-subtext">Min {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_min}}</span>
+                    <span ng-show="catalogForm[field.fieldId].$error.pattern"  class="cas-clr-subtext">{{(field.pattern_msg)?field.pattern_msg:'Invalid Input!'}}</span>
+                </div>     
+                </div>
+
+                <!-------------Date & Time----------->
+                <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==10" ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[field.fieldId].$invalid && (catalogForm[field.fieldId].$touched ||catalogForm.$submitted ) && field.mandatory=='true')}" >
+                  <sp-date-picker field="field.value"  ng-if="!field.read_only"  name="{{field.fieldId}}" ng-required="field.mandatory||field.value==''"  id="{{field.fieldId}}" ng-model="field.value"  ng-change="updateAnswer(field.name,field.value,field.field_type,field)" data-date-format="yyyy-mm-dd" sn-include-time="true"></sp-date-picker>
+                  <input type="text" name="{{field.fieldId}}" ng-if="field.read_only" id="{{field.fieldId}}" value="{{formatDate(field.default_value)}}" class="cas-clr-input fullwidth" ng-disabled="true"/>
+                  <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && catalogForm[field.fieldId].$invalid && field.mandatory" class="cas-clr-subtext">Field is mandatory</span>
+                  <span ng-if="dateError" class="cas-clr-subtext">{{dateError}}{{(field.pattern_msg)?', '+field.pattern_msg:''}}</span>
+                </div>
+                
+                <!-------------Dual List Field----------->
+                <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==5 && !(field.name == 'u_version' && data.isVersionUndefined) && field.datatype=='Duallist'" ng-init="selectDualListOption(field)">
+                <div ng-class="(!field.is_array) ? 'cas-clr-select-wrapper' : ''" class="fullwidth" > 
+                    <div>
+                    <div class="row" ng-if="!field.read_only">  
+                        <div class="col-xs-5">
+                        <select name="{{'unselected_options' + field.fieldId}}" id="{{'unselected_options' + field.fieldId}}" class="cas-dual-list form-control" size="8" multiple="multiple" ng-disabled="field.read_only" ng-change="" ng-model="field.value">
+                            <option ng-repeat="option in field.unselected_options " id="{{field.fieldId+option.value}}" value="{{option.value}}">{{option.label}}</option>      
+                        </select>
+                        </div>
+
+
+                        <div class="col-xs-2">
+                        <button type="button" id="right_button" ng-click="selectDualListOption(field)" ng-disabled="field.read_only" class="btn btn-block"><cas-clr-icon shape="angle" size="16" dir="right" ></cas-clr-icon></button>
+                        <button type="button" id="left_button" ng-click="removeDualListOption(field)" ng-disabled="field.read_only" class="btn btn-block"><cas-clr-icon shape="angle" size="16" dir="left" ></cas-clr-icon></button>
+                        <button type="button" id="right_all_button" ng-click="selectDualListOption(field,true)" ng-disabled="field.read_only" class="btn btn-block"><cas-clr-icon shape="angle-double" size="16" dir="right" ></cas-clr-icon></button>
+                        <button type="button" id="left_all_button" ng-click="removeDualListOption(field, true)" ng-disabled="field.read_only" class="btn btn-block"><cas-clr-icon shape="angle-double" size="16" dir="left" ></cas-clr-icon></button>
+                        </div>
+
+
+                        <div class="col-xs-5">
+                        <select name="{{field.fieldId}}" id="{{'selected_options' + field.fieldId}}" class="cas-dual-list form-control" size="8"  multiple="multiple" value="{{field.selected_options}}" ng-disabled="field.read_only" ng-required="field.mandatory" ng-change="" ng-model="field.value">
+                            <option ng-repeat="option in field.selected_options" id="{{field.fieldId+option.value}}" value="{{option.value}}">{{option.label}}</option>
+                        </select>
+                        </div>
+                        
+                    </div>
+                    <div class="row" ng-if="field.read_only">
+                        <div  class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div  class="form-control cas-duallist-table-container" >
+                            <table  class="table table-compact cas-duallist-table" >
+                            <tbody >
+                                <tr ng-repeat="item in field.selected" >
+                                <td>{{item.label}}</td>
+                                </tr>
+                            </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+                    <br>
+                    </div>  
+                </div>
+                <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && field.mandatory && !field.selected_options.length" class="cas-clr-subtext">Field is mandatory</span>
+                <!--<span ng-show="catalogForm[field.fieldId].$error.pattern"  class="cas-clr-subtext">{{(field.pattern_msg)?field.pattern_msg:'Invalid Input!'}}</span>-->
+                </div>
+                
+                <!-------------Value Picker-------------->         
+                <div   class="cas-clr-control-container contentflex" ng-if="field.type==5 && !(field.name == 'u_version' && data.isVersionUndefined) && field.datatype=='ValuePicker'"  ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[field.fieldId].$invalid && (catalogForm[field.fieldId].$touched ||catalogForm.$submitted ) && field.mandatory=='true')}">
+                <div class="cas-clr-input-wrapper cas-clr-valuepicker-wrapper"  >
+                    <input ng-blur="onBlur(field)" ng-init="selectValuePickerOption(field.selected, field, catalogForm[field.fieldId])" type="{{field.field_type}}" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value"
+                        ng-change="searchValuePicker(field, catalogForm[field.fieldId])"  ng-focus="valuePickerOnFocus(field)" ng-click="valuePickerClientScript(field.name,field);"  placeholder="{{field.help_text}}"  class="cas-clr-input fullwidth" />
+                
+                    <clr-icon ng-show="field.value.length" ng-click="clearValuePicker(field);catalogForm[field.fieldId].$setTouched()" class="clear ng-star-inserted" shape="times-circle" size="16" role="none" style="width: 16px; height: 16px;margin-left:-20px;margin-bottom:-5px;display:inline-block;cursor: pointer;">
+                    <svg version="1.1" class="has-solid " viewBox="0 0 36 36" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" focusable="false" role="img">
+                        <path class="clr-i-outline clr-i-outline-path-1" d="M19.61,18l4.86-4.86a1,1,0,0,0-1.41-1.41L18.2,16.54l-4.89-4.89a1,1,0,0,0-1.41,1.41L16.78,18,12,22.72a1,1,0,1,0,1.41,1.41l4.77-4.77,4.74,4.74a1,1,0,0,0,1.41-1.41Z"></path>
+                        <path class="clr-i-outline clr-i-outline-path-2" stroke="black"  d="M18,34A16,16,0,1,1,34,18,16,16,0,0,1,18,34ZM18,4A14,14,0,1,0,32,18,14,14,0,0,0,18,4Z"></path>
+                        <path class="clr-i-solid clr-i-solid-path-1" fill="none" d="M18,2A16,16,0,1,0,34,18,16,16,0,0,0,18,2Zm8,22.1a1.4,1.4,0,0,1-2,2l-6-6L12,26.12a1.4,1.4,0,1,1-2-2L16,18.08,9.83,11.86a1.4,1.4,0,1,1,2-2L18,16.1l6.17-6.17a1.4,1.4,0,1,1,2,2L20,18.08Z"></path>
+                    </svg>
+                    </clr-icon>
+
+                    <div class="cas-valuepicker-options-wrapper" id="{{'valuepickerDropdown' + field.fieldId}}">
+                    <div ng-if="!field.search_results.length" class="cas-valuepicker-options-no-match">
+                        No matching values found
+                    </div>
+                    <div ng-if="field.search_results.length || catalogForm[field.fieldId].$dirty" class="cas-valuepicker-options-container">
+                        <div class="cas-valuepicker-option" ng-repeat="option in field.search_results" ng-mousedown="selectValuePickerOption(option, field, catalogForm[field.fieldId]);$event. stopPropagation();">{{option.label}}</div>
+                    </div>
+                    <div ng-if="field.search_results.length" class="cas-vlauepicker-options-footer">
+                        Showing {{field.search_results.length}} of {{field.search_results.length}} results.
+                    </div>
+                    </div>
+                    <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && catalogForm[field.fieldId].$invalid && field.mandatory  &&!(catalogForm[field.fieldId].$error.maxlength || catalogForm[field.fieldId].$error.minlength ) && !(catalogForm[field.fieldId].$error.pattern)" class="cas-clr-subtext">Field is mandatory</span>
+                    <span ng-show="catalogForm[field.fieldId].$error.pattern"  class="cas-clr-subtext">{{(field.pattern_msg)?field.pattern_msg:'Invalid Input!'}}</span>
+                </div>
+                </div>
+    
+                <!-------------Data Grid-----------> 
+                <div class="cas-clr-control-container  cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==6 && field.datatype=='DataGrid'" ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[field.fieldId].$invalid && (catalogForm[field.fieldId].$touched ||catalogForm.$submitted ) && field.mandatory=='true')}" >
+                <sp-widget widget="field.dataGridWidget"  />
+                </div>
+
+                <!-------------Dropdown & Array Field----------->
+                <div ng-init="field.dependents = getDepenedentFields(field.name)" data-toggle="tooltip" data-placement="top" title="{{field.dependents}}" class="cas-clr-control-container contentflex" ng-if="field.type==5 && !(field.name == 'u_version' && data.isVersionUndefined) && field.datatype!='Duallist'&& field.datatype!='ValuePicker'"  ng-class="{'cas-clr-error':(!(c.data.submitted && catalogForm.$valid) && catalogForm[field.fieldId].$invalid && (catalogForm[field.fieldId].$touched ||catalogForm.$submitted ) && field.mandatory=='true')}">
+                <div ng-class="(!field.is_array) ? 'cas-clr-select-wrapper' : ''" class="fullwidth">  
+                
+                    <select  ng-if="!field.is_array" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="(field.mandatory)" id="{{field.fieldId}}" ng-model="field.selected" ng-change="updateAnswer(field.name,field.selected,field_type);executeOnChangeScript(field.name,field.selected,field);" class="fullwidth" ng-init="field.selected=c.data.json.answer[field.name];bindField(field)" > 
+                    <option title="{{field.tooltip_text}}"  ng-repeat="option in field.arr" ng-value="(option.value.value)?option.value.value:option.value" ng-click="field.selected=(option.value.value)?option.value.value:option.value;" ng-init="">{{(option.label.id)?option.label.id:option.label}}</option>
+                    </select>
+                    
+                    <!--multiselect-->
+                    <select multiple ng-if="field.is_array && !field.read_only" name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory" id="{{field.fieldId}}" ng-model="field.selected" ng-change="updateAnswer(field.name,field.selected,field.field_type)" class="fullwidth" style="height:80px"> 	
+                    <option title="{{field.tooltip_text}}"  ng-repeat="option in field.arr" ng-value="option.value" >{{option.label}}</option>	
+                    </select>
+                    
+                    <!--multiselect read only-->
+                    <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex"  ng-if="field.is_array && field.read_only">
+                    <div class="row">
+                        <div  class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div  class="form-control cas-duallist-table-container" >
+                            <table  class="table table-compact cas-duallist-table" >
+                            <tbody >
+                                <tr ng-repeat="option in field.selected" >
+                                <td>{{option}}</td>
+                                </tr>
+                            </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                    
+                    <span ng-if="!field.is_array" class="angle-down"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                    <span ng-if="field.mandatory && isArrayEmpty && (catalogForm.$submitted || catalogForm.$touched) && field.field_type=='array'" class="cas-clr-subtext">No Selection made</span>
+                    <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && catalogForm[field.fieldId].$invalid && field.mandatory" class="cas-clr-subtext">Field is mandatory</span>
+                    <!-- <select  ng-if="field.name=='version'" name="{{field.fieldId}}" ng-required="field.mandatory" id="{{field.fieldId}}" ng-model="field.selected" ng-change="updateAnswer(field.name,field.selected,field_type);updateFieldVisibility(field.selected)" class="fullwidth"> 
+    <option title="{{field.tooltip_text}}"  ng-repeat="option in field.arr" ng-value="option.value" ng-click="field.selected=option.value;" >{{option.label}}</option>
+    </select>-->
+                    <!--DO NOT DELETE ---<select ng-if="field.scripts" name="{{field.fieldId}}" ng-required="field.mandatory" id="{{field.fieldId}}" ng-model="field.selected" ng-change="executeScript(c.data.json.scripts.onChange[field.name],'onChange');updateAnswer(field.name,field.selected,field_type);"  class="fullwidth"> 
+    <option  ng-repeat="option in field.arr" ng-value="option.value" ng-click="field.selected=option.value;">{{option.label}}</option>
+    </select>-->
+    <!--ng-init="((field.selected != '') ? field.selected : (field.display_name == 'Project' && c.data.project_id != 'NULL' ) ? field.selected=c.data.newSelectedProject.value:field.selected=field.arr[0].value);updateAnswer(field.name,field.selected,field.field_type);" -->
+                </div>
+                </div>
+
+                <!-------------Checkbox------------>
+                <div class="cas-clr-form-control cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==7">
+                <div class="cas-clr-control-container">
+                    <div class="cas-clr-checkbox-wrapper">
+                    <input class="cas-clr-checkbox" ng-init="field.value = field.value.toString() === 'true'? true : false; updateAnswer(field.name,field.value,field_type)"  ng-disabled="field.read_only" type="checkbox" name="{{field.fieldId}}" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value" 
+                            placeholder="{{field.help_text}}" ng-checked="field.value" ng-change="updateAnswer(field.name,field.value,field_type)"/> 
+                    <label class="cas-clr-control-label" for="{{field.fieldId}}"></label>
+                    </div>             
+                </div>
+                <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && catalogForm[field.fieldId].$invalid && field.mandatory" class="cas-clr-subtext" style="position:relative;left:-190px;display:block ruby;">Field is mandatory</span>
+                </div>
+                            
+                <!-------------Radio Group----------->
+                <div class="cas-clr-form-control cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==3" style="margin-top: auto;">
+                    <div class="radio-group ">
+                        <div class="cas-radiocontainer radio" ng-repeat="option in field.arr" ng-if="option.value!=''">
+                            <input class="cas-radio-input" value="{{option.value}}" ng-init="(c.data.json.answer[field.name] != '')?field.selected=c.data.json.answer[field.name]:field.value = false;updateAnswer(field.name,(field.selected||''),field_type)"  ng-disabled="field.read_only" type="radio" name="{{field.fieldId}}" ng-required="field.mandatory"  id="{{field.fieldId + option.label}}" ng-model="field.value" 
+                            placeholder="{{field.help_text}}" ng-checked="field.selected==option.value?true:false" ng-change="updateAnswer(field.name,option.value,field_type)"/> 
+                        <label class="cas-radio-input-label" for="{{field.fieldId + option.label}}" >{{option.label}}</label>
+                        </div>
+                    </div>
+                <span ng-show="(catalogForm[field.fieldId].$touched || catalogForm.$submitted) && catalogForm[field.fieldId].$invalid && field.mandatory" class="cas-clr-subtext">Field is mandatory</span>
+                </div>
+
+                <cas-clr-icon shape="exclamation-circle" 
+                            size="24"
+                            data-toggle="tooltip"
+                            data-placement="right"
+                            class="info-tooltip"
+                            ng-if="(field.tooltip_text || (catalogForm[field.fieldId].$invalid && catalogForm[field.fieldId].$touched)||(catalogForm.$submitted&&catalogForm[field.fieldId].$invalid) || (field.is_duallist && (catalogForm[field.fieldId].$touched || catalogForm.$submitted) && field.mandatory && !field.selected_options.length))" 
+                            title="{{field.tooltip_text}}"  
+                            ng-class="{'info-error': (!(c.data.submitted && catalogForm.$valid)  && ( (catalogForm[field.fieldId].$invalid && catalogForm[field.fieldId].$touched) || (catalogForm.$submitted && catalogForm[field.fieldId].$invalid))) || (field.is_duallist && (catalogForm[field.fieldId].$touched || catalogForm.$submitted) && (field.mandatory && !field.selected_options.length))}">
+                </cas-clr-icon>
+
+                <div>
+                <span ng-if="field.spinner" class="spinner spinner-sm"> Loading... </span>
+                </div>
+
+                    </div>
+            </div>
+
+        </div>
+        
+        </div>
+
+        <div class="cas-clr-form-control cas-clr-col-12">
+        <button type="button" class="cas-btn cas-btn-primary" ng-click="submit(catalogForm)" ng-disabled="!isSubmitable">submit</button>
+        <a class="cas-btn cas-btn-outline" ng-click="previous()">cancel</a>
+        </div>
+    </div>
+  </form>
+  <div ng-init="executeScript(c.data.json.scripts.onLoad,'onLoad')"></div>
+
+  <script>
+    $(document).ready(function(){
+      $('[data-toggle="tooltip"]').tooltip();   
+    });
+  </script>
+</div>]]></template>
+    </sp_widget>
+</record_update>

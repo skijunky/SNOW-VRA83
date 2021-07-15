@@ -1,0 +1,1430 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope, $window ,spUtil,$location) {
+	
+	try{
+		var c = this;
+		$scope.loading = false;
+		$scope.changingUrl = false;
+		$scope.navigation = c.data.navigation;
+		$scope.resourceSearchKey = "";
+		$scope.currentRoutesObj = {};
+		$scope.tabularTabs = ["Routes", "Network", "Storage","Resources"];
+		$scope.tabColumns = {
+			"Routes"		: ['port','protocol','instancePort','instanceProtocol','details'],
+			"Network"		: ['deviceIndex','name','address','assignment'],
+			"Storage"		: ['name','capacityGb','type','encrypted','controllerKey','controllerUnitNumber'],
+			"Resources" 	: ['logicalResourceId','physicalResourceId','resourceType']
+		};
+
+		$scope.setCurrentRoutesObj = function(detail, name){
+			
+			var exceptionalFeilds = ['healthCheckConfiguration','$$hashKey'];
+			var keysArr = Object.keys(detail).filter(function(item){
+				if(exceptionalFeilds.indexOf(item) == -1) return item ;
+			});
+			$scope.currentRoutesObj.keysArr = keysArr;
+			$scope.currentRoutesObj.detail = detail;
+			$scope.currentRoutesObj.name = name;
+
+		}
+		
+		$scope.updateDeploymentDetails = function(deploymentData, selectedResourceSysId){
+			$scope.deploymentDetails = {
+			header: {
+				name: deploymentData.name,
+				status: deploymentData.status,
+				actions: deploymentData.actions,
+				properties:{
+					catalogName: {
+						type: "text",
+						label: "Catalog Name",
+						value: deploymentData.catalogItem
+					},
+					owner: {
+						type: "text",
+						label: "Owner",
+						value: deploymentData.owner
+					},
+					project: {
+						type: "text",
+						label: "Project",
+						value: deploymentData.project
+					},
+					provisionedOn: {
+						type: "date",
+						label: "Provisioned On",
+						value: deploymentData.provisionedOn
+					},
+					lastUpdated: {
+						type: "date",
+						label: "Last Updated",
+						value: deploymentData.lastUpdated
+					},
+					expiresOn: {
+						type: "date",
+						label: "Expires On",
+						value: deploymentData.expiresOn
+					},
+					deploymentId: {
+						type: "text",
+						label: "Deployment Id",
+						value: deploymentData.deploymentId
+					},
+					endpoint: {
+						type: "text",
+						label: "Endpoint",
+						value: deploymentData.endpoint
+					}
+				}
+			},
+			resources:{
+				selected:(function(){
+					if(!deploymentData.relatedResources){
+						return null;
+					}
+
+					if(!selectedResourceSysId){
+						return deploymentData.relatedResources[0];
+					}
+					else{
+						return ((deploymentData.relatedResources || []).filter(function(resource){
+							return resource.sysId === selectedResourceSysId;
+						})[0] || null);
+					}
+				})(),
+				all:deploymentData.relatedResources,
+				visible: deploymentData.relatedResources
+			},
+			selectedResourceDetails:deploymentData.detailSection.map(function(detail,index){
+				detail.expand = index===0?true:false;
+				if($scope.tabularTabs.indexOf(detail.name) !== -1 && detail.items[0].value !== '-' && !Array.isArray(detail.items[0].value)){
+					detail.items[0].value = JSON.parse(detail.items[0].value);
+				}
+				return detail;
+			}),
+			selectedResourceActions:deploymentData.machineAction.length?deploymentData.machineAction:[{label:"No Action Available"}],
+			day2ActionInProgress: deploymentData.actionInProgress
+		}
+		}
+
+		spUtil.recordWatch(
+			$scope,'sc_req_item',
+			'',
+			function(response){
+					
+					var actionInProgress = $scope.deploymentDetails.day2ActionInProgress;
+					if(actionInProgress){
+						if(actionInProgress.actionRITMNumber === response.data.display_value){
+							c.server.get({response:response, action:"getActionRITM"}).then(function(responseData){
+								var actionRITM = responseData.data.actionRITM;if(actionRITM){
+									
+									if(actionRITM.actionStatus === "Closed Complete" || actionRITM.actionStatus === "Closed Incomplete" || actionRITM.actionStatus === "Closed Skipped"){
+									
+										$scope.deploymentDetails.day2ActionInProgress = null;
+										setTimeout(function(){
+											$scope.selectResource('');
+										},1000);
+									}
+								}
+							});
+						}
+					}
+					else{
+						c.server.get({response:response, action:"getActionRITM"}).then(function(responseData){
+							var actionRITM = responseData.data.actionRITM;
+							if(actionRITM){
+								if(actionRITM.actionStatus === "Closed Complete" || actionRITM.actionStatus === "Closed Incomplete" || actionRITM.actionStatus === "Closed Skipped"){
+									$scope.deploymentDetails.day2ActionInProgress = null;
+									setTimeout(function(){
+										$scope.selectResource('');
+									},1000);
+								}
+								else{
+									$scope.deploymentDetails.day2ActionInProgress = actionRITM;
+								
+								}
+							}
+						});
+					}
+			}
+		)
+
+
+		$scope.updateDeploymentDetails(c.data.mainJSON);
+
+		
+
+		$scope.selectResource = function(resourceSysId){
+			var inputAction = '';
+			$scope.loading = true;
+			
+			if(!resourceSysId){
+				inputAction = 'selectResource';
+			}
+			
+			c.server.get({selectedResourceSysId: resourceSysId, action : inputAction}).then(function(resp){
+				c.data = resp.data;
+				$scope.updateDeploymentDetails(c.data.mainJSON, c.data.machineId);
+			
+				$("#cas_sp_resource_details_scrollable").scrollTop(0);
+				$scope.loading = false;
+			});
+		}
+
+		$scope.searchResource = function(){
+			
+			var keyword = $("#cas_sp_resource_search_id").val() || '';
+			
+
+			$scope.deploymentDetails.resources.visible = $scope.deploymentDetails.resources.all.filter(function(resource){
+				return resource.name.toLowerCase().includes(keyword.toLowerCase())
+			});	
+		}
+
+		$scope.getFormattedDate = function(date){
+			var dateObj = new Date(parseInt(date));
+			return dateObj == "Invalid Date"?"-":dateObj.toLocaleString();
+		}
+
+		//for encryption of password values
+		$scope.encryptPassword = function(value){
+			if(typeof value == 'string'){
+				if(value.startsWith('((secret') && value.endsWith('))')){
+					value = '******';
+				}
+			}			
+			return value;		
+		}
+
+		 //search icon effect on focus of input
+		$('.cas_sp_resource_search_bar').focus(function(){
+			$('.icon').css('color','#212121');
+		});
+
+		//search icon effect on blur of input
+		$('.cas_sp_resource_search_bar').blur(function(){
+			$('.icon').css('color','#9e9e9e');
+		});
+		
+		function wait(ms){
+			var start = new Date().getTime();
+			var end = start;
+			while(end < start + ms) {
+				end = new Date().getTime();
+			}
+		}
+		
+	}catch(e){
+	
+		throw e.message;
+	}
+	
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.body, .padding-top{
+	padding: 0px !important;
+}
+   
+.cas_sp_full_page_loader{
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: white;
+    opacity: 0.85;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+  	font-size:20px;
+  	display: flex;
+  	flex-direction: column;
+  	align-items: center;
+  	justify-content: center;
+}
+
+.cas_sp_deployment_details_widget_container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+.cas_sp_deployment_details_notFound_container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: calc(100vh - 150px);
+  span {
+    span {
+      // display: inline-flex;
+      // margin: auto;
+      left: 50%;
+      position: relative;
+      transform: translateX(-50%);
+    }
+    p{
+      font-size: 24px;
+      color: #717171;
+    }
+  }
+  }
+  
+  .cas_sp_deployment_details_header{
+      padding: 5px;
+    width: 90%;
+  }
+  
+  .cas_sp_deployment_name{
+    font-size: 25px;
+    font-weight: 600;
+  }
+  
+  .cas_sp_deployment_overview_status{
+      border: 1px solid #62B618;
+      width: fit-content;
+      padding: 2px 5px;
+      border-radius: 50px;
+      margin: 5px 0px;
+      background-color: #DFF0D0;
+      color: #62B618;
+  }
+  
+  
+  .cas_sp_resource_details_name_action_container{
+    	display: flex;
+      padding: 5px 0px;
+    	align-items: baseline;
+  }
+  
+  .cas_sp_actions_label_container{
+    margin: 0px 20px;
+  }
+  
+  .cas_sp_action_button{
+      background-color: #F5F5F5;
+  }
+
+	.cas_sp_disabled {
+  fill: #565656;
+  cursor: not-allowed;
+  opacity: .4;
+  background-color: transparent;
+  border-color: transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  pointer-events: none;
+}
+  
+  .cas_sp_deployment_title_bar{
+    display: flex;
+    width: 100%;
+    align-items: baseline;
+  }
+  
+  .cas_sp_deployment_title_bar &gt; * {
+       margin-right: 20px;
+  }
+  
+  .cas_sp_deployment_properties_container{
+       display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    margin-top: 5px;
+  }
+  
+  .cas_sp_deployment_property{
+    width: 290px;
+    font-size: 15px;
+    font-weight: 520px;
+    margin: 2px;
+    margin-left: 0px;
+    padding-right: 10px;
+  }
+  
+  .cas_sp_deployment_property_text{
+    display: block;
+    width: fit-content;
+       max-width: 90%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis; 
+  }
+  .cas_sp_deployment_action_progress_container{
+       width: 100%;
+    margin-top: 10px;
+  }
+  
+  .cas_sp_in_progress_action_name{
+    font-size: 15px;
+    font-weight: 550;
+    margin-bottom: 5px;
+    padding: 5px;
+    padding-left: 0px;
+    font-size: 15px;
+    font-weight: 550;
+    color: #1F8476;
+  }
+  
+  .cas_sp_deployment_progress_bar_container{
+       height: 10px;
+    margin: 0px !important; 
+  }
+  
+  .cas_sp_deployment_progress_bar{
+       
+  }
+  
+  .cas_sp_deployment_details_body{
+       width: 90%;
+    padding: 5px;
+  }
+  
+  .cas_sp_resources_section{
+    width: 100%;
+    box-shadow: 0px 1px 1px 1px #e8e8e8;
+    padding: 0px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    overflow: hidden;
+    height: calc(100vh - 300px); 
+  }
+  
+  .cas_sp_resource_details_body{
+    width: 100%;
+    display: flex;
+    height: calc(100% - 50px);
+    padding: 0px;
+  }
+  
+  .cas_sp_resource_list_section{
+       width: 20%;
+    border-right: 1px solid gainsboro;
+    height: 100%;
+  }
+  
+  
+  .cas_sp_selected_resource{
+       background-color: #F0F3F4; 
+  }
+  
+  .cas_sp_resource_details_name{
+       font-size: 16px;
+    font-weight: 600;
+    margin: 10px 20px 20px 0px; 
+  }
+  
+  .vra-sp-deployment-details-widget-container{
+    height: 500px;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  
+  .vra-sp-deployment-overview{
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
+    border: 1px solid #ecebeb;
+    min-height: 120px;
+    width: 100%;
+    background-color: #E6F4FC;
+    border-radius: 4px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .vra-sp-deployment-title-container{
+       width: 25%;
+    min-width: 200px
+  }
+  
+  
+  
+  .vra-sp-deployment-overview-container{
+    display: flex;
+    flex-wrap: wrap;
+    align-content: start;
+       width: 75%;
+    justify-content: space-between;
+   //// border: 1px solid brown;
+  }
+  
+  .vra-sp-deployment-overview-data{
+    display: flex;
+    flex-wrap: wrap;
+    align-content: start;
+       max-width: 600px;
+   //// border: 1px solid brown;
+  }
+  
+  .vra-sp-deployment-overview-data &gt; div{
+        display: flex;
+      align-items: center;
+      width: 300px;
+      padding: 0px 5px
+      color: grey;
+  }
+  
+  .vra-sp-deployment-overview .vra-sp-progress-bar{
+    margin: 0px;
+       margin-top: 10px;
+    width: 100%;
+  }
+  
+  .vra-sp-deployment-overview .progress{
+       margin: 0px; 
+  }
+  
+  .vra-sp-deployment-right-section-container{
+    margin-left: 10px;
+    width: calc(75% - 10px);
+    height: 400px;
+    box-shadow: 0px 1px 1px 1px #e8e8e8;
+  }
+  
+  .cas_sp_resource_details_section{
+    height: calc(100% - 50px);
+    width: 100%;
+  }
+  
+  .cas_sp_resource_details_section_title_bar{
+       //border: 1px solid black;
+  }
+  
+  .cas_sp_resource_details_title{
+       //border: 1px solid black; 
+    padding: 10px  20px;
+    background: #F0F3F4;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+  
+  .vra-sp-left-panel-container .search-bar-container{
+         display: flex;
+      justify-content: center;
+      padding: 10px 5px;
+  }
+  
+  .vra-sp-input{
+      padding: 6px 11px;
+      font-size: 14px;
+      border: 1px solid gainsboro;
+      border-radius: 4px;
+      border-bottom-right-radius: 0px;
+      border-top-right-radius: 0px;
+        max-width: 80%;
+  }
+  
+  .search-button{
+    padding: 6px 11px;
+    display:flex;
+    align-items: center;
+    border:1px solid gainsboro;
+    border-radius:4px;
+    border-top-left-radius:0px;
+    border-bottom-left-radius:0px;
+    border-left:none;
+    background-color: white;
+  }
+
+	.cas_sp_search_container:focus-within #cas_sp_search_icon{
+  	color: black !important;  
+	}
+  
+  .vra-sp-left-panel-body{
+    //border: 1px solid black;
+    display: flex;
+    padding: 10px;
+  }
+  
+  
+  
+  
+  .cas_sp_resource{
+    padding:5px 0px;
+    font-size: 15px;
+    cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  
+  .cas_sp_resource:hover{
+       background-color: #f5f9fa;/*#F0F3F4; */
+  }
+  
+  .cas_sp_resource_details_container{
+          display: flex;
+      flex-direction: column;
+      padding-left: 50px;
+      overflow: auto;
+      width: 80%;
+    	position: relative;
+  }
+
+	.cas_sp_spinner_container{  
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    opacity: .8;
+    z-index: 500;
+    position: sticky;
+    transform: translate(0px, 100px);
+}
+
+.cas_sp_spinner{
+ 	width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.9); 
+}
+  
+  .vra-sp-deployment-details-title{
+         padding: 10px;
+      background: #F0F3F4;
+      font-size: 16px;
+      font-weight: 600;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+  }
+  
+  .vra-sp-actions-label-container{
+    float: right;
+    font-size:12px;
+    display: inline-block;
+    margin-right: 50px;
+  }
+  
+  .cas_sp_resource_details_row{
+    padding: 4px 20px;
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .cas_sp_resource_details_key{
+    width: 250px;
+    word-break: break-word;
+   
+  }
+  
+  .cas_sp_resource_details_value{
+       width: 500px;
+    word-break: break-word;
+  }
+  
+  
+  .vra-sp-progress-bar{
+      margin-right: 60px;
+  }
+  
+  .vra-sp-progress-bar .progress{
+    height: 10px !important;
+  }
+  
+
+  
+  .progress-bar.indeterminate {
+    position: relative;
+    animation: progress-indeterminate 3s linear infinite;
+  }
+  
+  @keyframes progress-indeterminate {
+     from { left: -25%; width: 25%; }
+     to { left: 100%; width: 25%;}
+  }
+  
+  
+  .cas_sp_resource_details_collapsible_container{
+      margin-bottom: 20px;  
+  }
+  
+  .cas_sp_resource_details_collapsible_header{
+       font-size: 15px;
+    font-weight: 520;
+  }
+  
+  .vra-sp-deployment-details-collapsible-header span{
+       padding-left: 5px; 
+  }
+  
+  .vra-sp-deployment-details-clollapsible-body{
+    padding-left:15px;
+  }
+  
+  .invisible{
+    visibility:hidden;
+  }
+  
+    .cas_sp_breadcrumb_cotainer{
+    padding: 10px 5px;
+    width: 100%
+    color: #165C53;
+    margin-bottom: 10px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+	.cas_sp_breadcrumb_items_cotainer{
+  	width: 90%;  
+	}
+  
+  .cas_sp_breadcrumb_item{
+    padding: 10px 7px 10px 0px;
+  }
+  
+  .cas_sp_breadcrumb_item a {
+       text-decoration: none;
+    color: #165C53;
+    cursor: pointer;
+  }
+  
+  
+  /*--------New---------------------------------------*/
+  .cas_sp_deployment_details_resource{
+       width: 89%;
+    display: flex; 
+  }
+  
+  .cas_sp_resource_section {
+    border-right: 1px solid gainsboro;
+  }
+  
+  .cas_sp_search_container{
+        height: 30px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+  }
+  
+  .cas_sp_search_container input:focus {
+      outline : 0;
+      border-color : #212121; 
+  }
+  
+  .cas_sp_resource_search_bar{
+    border: 0px;
+    border-bottom: 1px solid #9e9e9e;
+    width: 100%;
+    font-size: 12px;
+    /* margin-right: -10px; */
+    background: transparent;
+    transition: .5s ease;
+    /* margin: auto; */
+    padding-left: 15px;
+    position: relative;
+    left: -10px;
+  }
+  
+  .icon{
+      color: #9e9e9e;
+    font-size: 12.5px !important;
+    /* position: relative; */
+    /* left: 10px; */
+    bottom: 1px;
+    transition: .5s ease;
+  }
+  
+  .cas_sp_resource_container{
+       padding: 0px 20px;
+    overflow: auto;
+    height: calc(100% - 30px);
+  }
+  
+  .cas_sp_resource_link{
+       cursor: pointer;
+    text-decoration: none;
+  }
+  
+  
+  .cas_sp_dropdown_item {
+    a {
+      color: #575757;
+    }
+    padding: 10px 1rem;
+    &amp;:hover {
+      cursor: pointer;
+      background-color: #ededed;
+      color: #575757;
+      text-decoration: none;
+    }
+  }
+
+.cas_sp_no_scroll{
+	overflow: hidden;
+}
+  
+
+
+/*------Badge------*/
+.cas_sp_status{
+  width: 150px;
+}
+
+.cas_sp_badge{
+  width: 100%:
+  overflow: hidden;
+  padding: 5px 10px !important;
+  border-radius: 50px !important;
+}
+
+.cas_sp_success_badge{
+    border: 1px solid #65B500;
+    background-color: #DFF0D0;
+    color: #62A420;
+    font-weight: 500;
+  	width: 100%;
+}
+
+.cas_sp_failed_badge{
+    border: 1px solid #EBAFA6;
+    background-color: #F5DBD9;
+    color: #A32100;
+    font-weight: 500;
+}
+
+.cas_sp_in_progress_badge{
+    border: 1px solid #4fc3f7;
+    background-color: #b3e5fc;
+    color: #0277bd;
+    font-weight: 500;  
+}
+
+
+.cas_sp_resource_details_no_resource{
+ 		display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    font-size: 20px;
+    span{
+      span {
+        left: 50%;
+        position: relative;
+        transform: translateX(-50%);
+      }
+    }
+    
+}
+
+.cas_sp_propert_label{
+	font-weight : 501;
+  color : #4d4d4d;
+}
+
+.cas_sp_collapse_icon{
+  font-size: 10px;
+  position: relative;
+  top: -1px;
+  right: 2px;
+}
+
+/* Table CSS Starts */
+
+.cas_sp_table {
+  border: 1px solid #ccc;
+border-radius: .125rem;
+background-color: #fff;
+color: #575757;
+margin: 1rem 0 0;
+margin-bottom : 15px;
+margin-left : 18px;
+max-width: 100%;
+width: auto;
+  
+}
+
+.left {
+  text-align: left;
+}
+
+td{
+  white-space:normal;
+  padding: 6px;
+  padding-left: 10px;
+  }
+
+th{
+  border-radius: calc(.125rem - 1px) 0 0;
+color: #575757;
+font-size: 14px;
+font-weight: 600;
+letter-spacing: 0.15px;
+background-color: #fafafa;
+vertical-align: bottom;
+border-bottom: 1px solid #ccc;
+border-top: 0;
+line-height: 18px;
+padding: 11px;
+display: table-cell;
+}
+
+.cas_modal_body {
+  min-height:20vh;
+}
+
+/* Table CSS Ends */
+
+/* Modal CSS Starts */
+
+.cas_sp_modal{
+  padding: 1rem;
+  background-color: #fff;
+  border-radius: .125rem;
+  box-shadow: 0 1px 2px 2px rgba(0,0,0,.2);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1041;
+}
+
+.cas_sp_modal_backdrop{
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background-color: #303030;
+  opacity: .85;
+  z-index: 1040;
+}
+
+.cas_sp_close{
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0;
+  margin: 10px;
+  background: transparent;
+  border: none;
+}
+
+.cas_sp_close:focus{
+  box-shadow : none;
+}
+
+.cas_sp_modal_title{
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+.cas_sp_close_button{
+  background-color: #F5F5F5;
+  float: right;
+  margin: 0px 5px 5px 0px;
+}
+
+.cas_sp_model_message{
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.cas_sp_route_modal_container{
+  width: 500px;
+  margin-bottom: 30px;
+}
+
+/* Table CSS Ends */
+
+.section_row{
+  padding-left: 16px;
+}
+
+.tab-content{
+  margin-top: 14px;
+}
+
+.cas_sp_routes_details_key{
+  width: 180px;
+  word-break: break-word;
+  display: inline-block;
+  font-weight: 501;
+  line-height: 28px;
+}
+
+.cas_sp_routes_details_value{
+  word-break: break-word;
+  display: inline; 
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_sp_deploymentdetails</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+ 
+}]]></link>
+        <name>CAS_SP_deploymentDetails</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_end_user,x_vmw_cloudservice.vra_catalog_admin</roles>
+        <script><![CDATA[(function() {
+    try {
+        
+        var daoUtil = new CASDaoUtil();
+        var appUtil = new CASAppUtil();
+		data.notFound = false;
+			
+				data.deploymentId = $sp.getParameter('sysId') ? $sp.getParameter('sysId') : -1;
+        if(!input){
+//             data.machineId = $sp.getParameter('macSysId') ? $sp.getParameter('macSysId') : -1;
+						getDetails();
+						getActionStatus();
+						data.navigation = [
+							{label: "Home", link: '/' + gs.getProperty(appUtil.configuration.properties.ServicePortalPrefix) + '?id=index'},
+							{label: "Deployment List" , link: '/' + gs.getProperty(appUtil.configuration.properties.ServicePortalPrefix) + '?id=' + appUtil.configuration.page.casSPDeploymentListPage}
+						];
+						
+        }
+			
+        if(input && (input.selectedResourceSysId || input.action == 'selectResource')){
+            data.deploymentId = $sp.getParameter('sysId') ? $sp.getParameter('sysId') : -1;
+			var machineId = input.selectedResourceSysId;
+			getDetails(machineId);
+			getActionStatus();	
+        }
+			
+		if(input && input.action==="getActionRITM"){
+					
+            data.actionRITM = getActionRITM(input.response, data.deploymentId);
+						
+        }
+        
+  
+        
+    }catch (e) {
+        CASLogger.error('Exception caught inside CAS_deploymentDetails widget: '+e);
+    }    
+    
+	
+	/*-----------------------------------------------------------------------*/
+	
+	function getDetails(machineId){
+		try{
+			var appUtil = new CASAppUtil();
+			if(!machineId){
+				var macGR = new GlideRecordSecure(appUtil.configuration.table.machines);
+				macGR.addEncodedQuery('operational_status=1^deployment_sys=' + data.deploymentId);
+				macGR.orderBy('machine_name');
+				macGR.query();
+				if(macGR.next()){
+					machineId = macGR.sys_id+'';
+				}
+			}
+			data.mainJSON = daoUtil.fetchPortalDeploymentDetails({sysId: data.deploymentId, machineSysId: machineId, isServicePortal : true});
+			if(!data.mainJSON.sysId){
+				data.notFound = true;
+			}
+			if(data.mainJSON && data.mainJSON.detailSection){
+				for(var i=0;i<data.mainJSON.detailSection.length;i++){
+					if(data.mainJSON.detailSection[i].name=='Network' && data.mainJSON.detailSection[i].items[0].value != '-'){
+						for(var j=0;j<data.mainJSON.detailSection[i].items.length;j++){
+							data.mainJSON.detailSection[i].items[j].value = JSON.parse(data.mainJSON.detailSection[i].items[j].value);
+
+							var ipv6 = (data.mainJSON.detailSection[i].items[j].value[0].ipv6Addresses) ? data.mainJSON.detailSection[i].items[j].value[0].ipv6Addresses.toString().replace(",","\n"):'';
+
+							var ipv4= (data.mainJSON.detailSection[i].items[j].value[0].address) ? data.mainJSON.detailSection[i].items[j].value[0].address :'';
+
+							data.mainJSON.detailSection[i].items[j].value[0].address = (ipv4 != '') ? ipv4 + '\n' + ipv6 : ipv6;
+						}
+					}
+				} 
+
+			}
+			
+			data.machineId = machineId;
+		}catch(e){
+			CASLogger.error('error '+e);
+		}
+
+	}
+
+	function getActionStatus(){
+				data.actionInProgress = null;
+				var gr = new GlideRecordSecure('sc_req_item');
+				gr.addEncodedQuery('state=1^ORstate=2^stage=request_approved^variables.45d18a41dbd35010ca597b38689619e8='+ $sp.getParameter('sysId') +'^ORvariables.ab304f4ddb575010ca597b38689619c5='+ $sp.getParameter('sysId'));
+				gr.query();
+
+				if (gr.next()) {
+					var actionType = '';
+					if(gr.variables.resource == undefined) actionType = 'Deployment';
+					else actionType = 'Resource';
+
+					data.mainJSON.actionInProgress = {
+						actionSysId : gr.cat_item+'',
+						actionName : gr.cat_item.getDisplayValue(),
+						actionRITMNumber: gr.number.getDisplayValue(),
+						actionType : actionType
+					};
+				}
+				
+		}
+	
+	function getActionRITM(response, deploymentSysId){
+		try{
+		if(!response){
+			return;
+		}
+		
+		
+		var parsed= response;
+		var sysid='';
+		if(Array.isArray(parsed)){
+			for (var i=0;i<parsed.length;i++){
+				sysid = sysid+parsed[i].data.sys_id+',';
+			}
+		}
+		else{
+			sysid= parsed.data.sys_id;
+		}
+		
+				
+		var grReq = new GlideRecordSecure('sc_req_item');
+		grReq.addEncodedQuery('sys_idIN'+sysid+'^variables.45d18a41dbd35010ca597b38689619e8='+ deploymentSysId +'^ORvariables.ab304f4ddb575010ca597b38689619c5='+ deploymentSysId);
+		grReq.addEncodedQuery('stage=request_approved^ORstage=complete')
+		grReq.query();
+		if(grReq.next()){
+			return {
+				actionSysId:  grReq.cat_item + '',
+				actionName: grReq.cat_item.getDisplayValue(),
+				actionRITMNumber: grReq.number.getDisplayValue(),
+				actionStatus: grReq.state.getDisplayValue(),
+				actionType: grReq.variables.resource?'Resource':'Deployment'
+			};
+		}else{
+			return false
+		}
+		}catch(e){
+			CASLogger.error('error '+e);
+		}
+	}
+	
+	function checkRetiredResource(selectedResourceSysId){
+		var isSelectedResourceDeleted = true;	
+		var latestResources = daoUtil.fetchPortalRelatedMachines({sysId:data.deploymentId});
+		
+		for(var i=0;i<latestResources.length;i++){
+			if(selectedResourceSysId == latestResources[i].sysId){
+				isSelectedResourceDeleted = false;
+			}
+		}
+		if(isSelectedResourceDeleted){
+			return latestResources[0].sysId;
+		}else{
+			return selectedResourceSysId;
+		}
+	}
+	
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-11-02 10:08:10</sys_created_on>
+        <sys_id>e433a1a407d020103a35f61d7c1ed039</sys_id>
+        <sys_mod_count>697</sys_mod_count>
+        <sys_name>CAS_SP_deploymentDetails</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_e433a1a407d020103a35f61d7c1ed039</sys_update_name>
+        <sys_updated_by>Nayab</sys_updated_by>
+        <sys_updated_on>2021-03-03 11:32:06</sys_updated_on>
+        <template><![CDATA[<div class="breadcrumb cas_sp_breadcrumb_cotainer"> 
+  <div class="cas_sp_breadcrumb_items_cotainer">
+    <span class="cas_sp_breadcrumb_item" ng-repeat="navItem in navigation">
+      <a href="{{navItem.link}}">{{navItem.label}}</a>
+    </span>
+  </div>
+</div>
+
+
+<!-- Main Body Of The Widget --->
+<div class="cas_sp_deployment_details_widget_container" ng-if="!c.data.notFound">
+  
+    <!-- Header Section -->
+    <div class="cas_sp_deployment_details_header">
+      <div class="cas_sp_deployment_title_bar">
+        <div class="cas_sp_deployment_name">
+          {{deploymentDetails.header.name}}
+        </div>
+        <div class="cas_sp_deployment_status_container">
+          <div class="cas_sp_status" title="{{deploymentDetails.header.status}}">
+            <span ng-if="deploymentDetails.header.status.includes('PROGRESS')" class="badge cas_sp_badge cas_sp_in_progress_badge">{{deploymentDetails.header.status}}</span>
+            <span ng-if="deploymentDetails.header.status.includes('FAILED')" class="badge cas_sp_badge cas_sp_failed_badge">{{deploymentDetails.header.status}}</span>
+            <span ng-if="deploymentDetails.header.status.includes('SUCCESSFUL')" class="badge cas_sp_badge cas_sp_success_badge">{{deploymentDetails.header.status}}</span>
+            <span ng-if="deploymentDetails.header.status == 'Powered Off'" class="badge cas_sp_badge cas_sp_off_badge">{{deploymentDetails.header.status}}</span>
+          </div>
+        </div>
+        
+        <div class="cas_sp_actions_label_container">
+          <div class="dropdown cas_sp_dropdown">
+            <button ng-if="!deploymentDetails.day2ActionInProgress" type="button" class="btn btn-default dropdown-toggle action-btn cas_sp_action_button" style="width : 100%" aria-expanded="false" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Actions 
+              <span class="caret"></span> 
+            </button>
+            
+            <!--</button>-->
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" ng-if="!deploymentDetails.day2ActionInProgress">
+              <a  ng-repeat='action in deploymentDetails.header.actions' href="{{(!action.valid || (list.actionValid == false))?'':action.actionCatalogLink}}">
+                <div class="cas_sp_dropdown_item" ng-class="{'cas_sp_disabled' : (!action.valid || (list.actionValid == false))}">
+                  {{action.label}}
+                </div>
+                </a>
+            </div>
+          </div>
+          
+        </div>
+        
+        
+      </div>
+
+      <div class="cas_sp_deployment_properties_container">
+        
+          <div class="cas_sp_deployment_property" ng-repeat="property in deploymentDetails.header.properties">
+            <span class="cas_sp_deployment_property_text" data-toggle="tooltip" data-placement="top" ng-if="property.type==='date'" title={{getFormattedDate(property.value)}}>
+              <span class="cas_sp_propert_label">{{property.label}}:</span> &nbsp;{{getFormattedDate(property.value || '-')}}
+            </span>
+            <span class="cas_sp_deployment_property_text" data-toggle="tooltip" data-placement="top" ng-if="property.type!=='date'" title={{property.value}}>
+              <span class="cas_sp_propert_label">{{property.label}}:</span> &nbsp;{{property.value || '-'}}
+            </span>
+          </div>
+          
+        
+      </div>
+        <div class="cas_sp_deployment_action_progress_container" style="" ng-if="deploymentDetails.day2ActionInProgress">
+          <div class="cas_sp_in_progress_action_name">
+            {{deploymentDetails.day2ActionInProgress.actionType}} Action: {{deploymentDetails.day2ActionInProgress.actionName}} in progress
+          </div>
+          <div class="progress cas_sp_deployment_progress_bar_container" style="position: relative;">
+            <div class="progress-bar cas_sp_deployment_progress_bar indeterminate">
+            </div>
+          </div>
+        </div>
+    </div>
+    
+    <!-- Body Section -->
+    <div class="cas_sp_deployment_details_body">
+      
+      <!-- Resource List Section -->
+      <div class="cas_sp_resources_section">
+          <!--Title Bar-->
+          <div class="cas_sp_resource_details_section_title_bar">
+            <div class="cas_sp_resource_details_title">
+              Resources ({{deploymentDetails.resources.all.length}})
+            </div>
+          </div>
+          <div class="cas_sp_resource_details_body">
+            <div class="cas_sp_resource_details_no_resource" ng-if="!deploymentDetails.resources.all.length">
+              <span><cas-clr-icon shape="sad-face" color="#2e2e2e" size="30"></cas-clr-icon>
+                <p>No Resources Found</p>
+              </span>  
+              <!-- <span>No Resources Found</span> -->
+            </div>
+            <!-- Resource List Section -->
+            <div class="cas_sp_resource_list_section" ng-if="deploymentDetails.resources.all.length">
+              
+                <!--Search Bar-->
+                <div class="cas_sp_search_container">
+                  <i class="fa fa-search icon" id="cas_sp_search_icon"></i> 
+                  <input class="cas_sp_resource_search_bar" id="cas_sp_resource_search_id" type="text" placeholder="Search Resources" ng-model="resourceSearchKey" ng-change="searchResource()"/>
+                </div>
+
+                <!--Resource List--->
+                <div class="cas_sp_resource_container">
+                  <a href="javascript:void(0)" class="cas_sp_resource_link" ng-click="selectResource(resource.sysId)" ng-repeat="resource in deploymentDetails.resources.visible">
+                    <div class="cas_sp_resource" id="toggle-top-progress-bar" ng-class="{cas_sp_selected_resource:resource.sysId === deploymentDetails.resources.selected.sysId}" data-toggle="tooltip" data-placement="top" title={{resource.name}}>
+                      {{resource.name}}
+                    </div>
+                  </a>
+                </div>
+
+            </div>
+            <!--Resource Details Section-->
+            <div class="cas_sp_resource_details_container" id="cas_sp_resource_details_scrollable" ng-class="{cas_sp_no_scroll:loading}" ng-if="deploymentDetails.resources.all.length">
+              <div class="cas_sp_spinner_container" ng-if="loading">
+                <div class="cas_sp_spinner">
+                  <i class="fa fa-spinner fa-pulse fa-3x fa-fw" aria-hidden="true" title="Updating value"></i>
+                </div>
+              </div>
+              <div class="cas_sp_resource_details_name_action_container">
+                <div class="cas_sp_resource_details_name">
+                  {{deploymentDetails.resources.selected.name}}
+                </div>
+                
+                <div class="cas_sp_actions_label_container">
+                  <div class="dropdown cas_sp_dropdown">
+                    <!--<button class="cas-btn cas-btn-link" type="button" >-->
+                    <button ng-if="!deploymentDetails.day2ActionInProgress" type="button" class="btn btn-default dropdown-toggle action-btn cas_sp_action_button" style="width : 100%" aria-expanded="false" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Actions 
+                      <span class="caret"></span> 
+                    </button>
+                    <!--<button ng-if="deploymentDetails.day2ActionInProgress" type="button" class="btn btn-default dropdown-toggle action-btn cas_sp_action_button" style="width : 100%" aria-expanded="false">
+                        Actions 
+                        <span class="caret"></span> 
+                      </button>-->
+                    <!--</button>-->
+                    
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" ng-if="!deploymentDetails.day2ActionInProgress">
+                    <a ng-click="changingUrl=true" ng-repeat='action in deploymentDetails.selectedResourceActions' href="{{(!action.valid || (list.actionValid == false))?'':action.actionCatalogLink}}">
+                        <div class="cas_sp_dropdown_item"
+                            ng-class="{'cas_sp_disabled' : (!action.valid || (list.actionValid == false))}">
+                          {{action.label}}
+                        </div>
+                      </a>
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="vra-sp-progress-bar" id="middle-progress-bar" ng-if="false">
+                <div class="cas_sp_in_progress_action_name">
+                  Change lease in progress
+                </div>
+                <div class="progress" style="position: relative;">
+                  <div class="progress-bar indeterminate">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="cas_sp_resource_details_collapsible_container" ng-repeat="detail in deploymentDetails.selectedResourceDetails" ng-if="(detail.items.length)?((detail.items.length==1 && (!detail.items[0].value || detail.items[0].value == '-'))?false:true):false">
+                <!-- Tabular Tabs -->
+                <div ng-if="tabularTabs.indexOf(detail.name) !== -1">
+                  <div class="cas_sp_resource_details_collapsible_header" ng-click="detail.expand = !detail.expand">
+                    <i aria-hidden="true" class="fa fa-chevron-down cas_sp_collapse_icon" ng-if="detail.expand"></i>
+                    <i aria-hidden="true" class="fa fa-chevron-right cas_sp_collapse_icon" ng-if="!detail.expand"></i>
+                    <span>{{detail.name}}</span>
+                  </div>
+                  
+                  <div class="cas_sp_resource_details_collapsible_body" ng-if="detail.expand">
+                    <table class="cas_sp_table">
+                      <thead>
+                        <tr>
+                          <th class="left" ng-repeat="col in tabColumns[detail.name]">{{col}}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-if="detail.name != 'Storage'" ng-repeat="property in detail.items[0].value"> 
+                          <td class="left" ng-repeat="field in tabColumns[detail.name]">
+                            <div ng-if="detail.name == 'Routes' && field == 'details'"><a href="javascript:void(0)" onclick="$('.routes_modal, .routes_modal_backdrop').show()" ng-click="setCurrentRoutesObj(property, detail.name);">View</a></div>
+                            <div ng-if="!(detail.name == 'Routes' && field == 'details')">{{property[field]}}</div>
+                          </td>
+                        </tr>
+                        <tr ng-if="detail.name == 'Storage'" ng-repeat="property in detail.items[0].value.disks"> 
+                          <td class="left" ng-repeat="field in tabColumns[detail.name]">{{property[field]}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Non-Tabular Tabs -->
+                <div ng-if="tabularTabs.indexOf(detail.name) == -1">
+                  <div class="cas_sp_resource_details_collapsible_header" ng-click="detail.expand = !detail.expand">
+                    <i aria-hidden="true" class="fa fa-chevron-down cas_sp_collapse_icon" ng-if="detail.expand"></i>
+                    <i aria-hidden="true" class="fa fa-chevron-right cas_sp_collapse_icon" ng-if="!detail.expand"></i>
+                    <span>{{detail.name}}</span>
+                  </div>
+                  <div class="cas_sp_resource_details_collapsible_body" ng-if="detail.expand">
+                    <div class="cas_sp_resource_details_row" ng-repeat="property in detail.items">
+                      <div class="cas_sp_resource_details_key">
+                        {{property.label}}
+                      </div>
+                      <div class="cas_sp_resource_details_value">
+                        {{encryptPassword(property.value)}}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>        
+          </div>
+      </div>
+
+    </div>
+
+</div>
+
+<!-- No Record Found Container -->
+<div class="cas_sp_deployment_details_notFound_container" ng-if="c.data.notFound">
+  <span><cas-clr-icon shape="sad-face" color="#717171" size="35"></cas-clr-icon>
+    <p>No Record Found</p>
+  </span>
+</div>
+
+<!-----------------modal--------------------------->
+<div class="cas_sp_modal routes_modal" style="display: none">
+  <div class="cas_sp_modal_dialog" role="dialog" aria-hidden="true">
+    <div class="cas_sp_modal_content">
+      <div class="cas_sp_modal_header">
+        <button aria-label="Close" class="cas_sp_close" type="button"  ng-click="c.data.reason=''" onclick="$('.routes_modal, .routes_modal_backdrop').hide()">
+          <cas-clr-icon aria-hidden="true" shape="close" color="#565656" size="25" role="none"></cas-clr-icon>
+        </button>
+        <h3 class="cas_sp_modal_title">{{currentRoutesObj.name}}</h3>
+      </div>
+      <div class="cas_sp_modal_body">
+        <div id="exTab2" class="container cas_sp_route_modal_container">	
+          <ul class="nav nav-tabs">
+            <li class="active">
+              <a  href="#general" data-toggle="tab">General</a>
+            </li>
+            <li>
+              <a href="#healthCheck" data-toggle="tab">Health Check</a>
+            </li>
+          </ul>
+          
+          <div class="tab-content ">
+            <div class="tab-pane active" id="general">
+              <div class="section_row" ng-repeat="prop in currentRoutesObj.keysArr">
+                <div class="cas_sp_routes_details_key">{{prop}}</div>
+                <div class="cas_sp_routes_details_value">{{currentRoutesObj.detail[prop]}}</div>
+              </div>
+            </div>
+            <div class="tab-pane" id="healthCheck">
+              <div class="section_row" ng-repeat="(key, value) in currentRoutesObj.detail.healthCheckConfiguration">
+                <div class="cas_sp_routes_details_key">{{key}}</div>
+                <div class="cas_sp_routes_details_value">{{value}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cas_sp_modal_footer">
+        <button class="btn btn-default cas_sp_close_button" type="button" onclick="$('.routes_modal, .routes_modal_backdrop').hide()">CLOSE</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="cas_sp_modal_backdrop routes_modal_backdrop" aria-hidden="true" style="display: none;"></div>
+<!-----------------modal ends here----------------->
+]]></template>
+    </sp_widget>
+</record_update>

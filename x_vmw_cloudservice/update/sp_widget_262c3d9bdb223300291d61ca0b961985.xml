@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($rootScope, $scope, $timeout, spUtil) {
+  var c = this;
+	
+	$scope.$on('statusUpdated', function() {
+		c.data.action='refresh';
+		c.server.update().then(function(){
+			c.data.action='';
+		});
+	});
+
+} ]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.cas-clr-vertical-nav {
+  height: calc(100vh - 96px); 
+}
+.cas-nav-link:hover, .cas-nav-group-trigger:hover {
+  background-color: #cccccc;
+}
+.wdg-close {
+  .cas-nav-group-children {
+    display: none;
+  }
+}
+.wdg-open {
+  .cas-nav-group-trigger-icon {
+    transform: rotate(90deg);
+  }
+  .cas-nav-group-children {
+    display: block
+  }
+}
+.cas-active {
+  background-color: #ffffff;
+}
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_activitiescategory</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CAS_activitiesCategory</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	try {
+		CASLogger.debug('Inside CAS_activitiesCategory widget: Used for navigating between requests, approvals and actions requests.');
+if(!input || input.action=='refresh'){
+		var appUtil = new CASAppUtil();
+		var daoUtil = new CASDaoUtil();
+		var page = ($sp.getParameter('id')) ? $sp.getParameter('id') : appUtil.configuration.page.activitiesList;
+		var pageActivities = (page == appUtil.configuration.page.sharedResources || page == appUtil.configuration.page.sharedResourceForm || page == appUtil.configuration.page.activitiesForm || page == appUtil.configuration.page.sharedResourcesList) ? (($sp.getParameter('layout') == 'list') ? appUtil.configuration.page.activitiesList: appUtil.configuration.page.activitiesCard) : page;
+		var requestsTable = appUtil.configuration.table.requests;
+		var approvalsTable = appUtil.configuration.table.approvals;
+		var sharedResourcesTable = appUtil.configuration.table.shared_resources;
+		var urlMyFlag = ($sp.getParameter('myFlag') != '' && $sp.getParameter('myFlag') != null && $sp.getParameter('myFlag')) ?  $sp.getParameter('myFlag') : true + '';
+		var urlApprovalFilter = 'Awaiting Approval';
+		var urlRequestFilter = 'Open';
+		
+		data.shared_page=appUtil.configuration.page.sharedResources;
+		
+		var setRequestLegend = function (filter) {
+			switch (filter) {
+				case 'In Progress':
+					return 'Work In Progress';
+				case 'Open':
+					return 'Open';
+				/*case 'Rejected':
+					return 'Rejected';
+					*/
+				case 'Closed Complete':
+					return 'Closed Complete';
+				case 'Closed Incomplete':
+					return 'Closed Incomplete';
+			}
+		};
+		var setApprovalLegend = function (filter) {
+			switch (filter) {
+				case 'Awaiting Approval':
+					return 'Requested';
+				case 'Rejected':
+					return 'Rejected';
+				case 'Approved':
+					return 'Approved';
+			}
+		};
+		var json = {legend : setApprovalLegend(urlApprovalFilter),showMyFilter: urlMyFlag,table: appUtil.configuration.table.approvals, getCount: true};
+		data.selectedCategory = ($sp.getParameter('order')) ? $sp.getParameter('order') : 6;
+		data.categories = [
+			{
+
+				"name": "Requests",
+				"order" : 6,
+				"parent" : true,
+				"link": "?id=" + pageActivities + "&table=" + requestsTable + '&order=6' + '&myFlag=' + urlMyFlag
+				
+			},
+			{
+				"name" : "Open",
+				"link": "?id=" + pageActivities + "&table=" + requestsTable + "&filter=Open" + '&order=1' + '&myFlag=' + urlMyFlag,
+				"order" : 1,
+				"showBadge": true,
+				"badgeCount": daoUtil.fetchPortalRequestItems({legend: setRequestLegend(urlRequestFilter),showMyFilter: urlMyFlag,table: appUtil.configuration.table.requests, getCount: true})
+			},
+			{
+				"name" : "In Progress",
+				"link": "?id=" + pageActivities + "&table=" + requestsTable + "&filter=In Progress" + '&order=2' + '&myFlag=' + urlMyFlag,
+				"order" : 2
+			},
+			{
+				"name" : "Closed Complete",
+				"link": "?id=" + pageActivities + "&table=" + requestsTable + "&filter=Closed Complete" + '&order=4' + '&myFlag=' + urlMyFlag,
+				"order" : 4
+			},
+			{
+				"name" : "Closed Incomplete",
+				"link": "?id=" + pageActivities + "&table=" + requestsTable + "&filter=Closed Incomplete" + '&order=5' + '&myFlag=' + urlMyFlag,
+				"order" : 5
+			},
+
+			{
+				"name": "Approvals",
+				"parent" : true,
+				"order" : 10,
+				"link": "?id=" + pageActivities + "&table=" + approvalsTable + '&order=10' + '&myFlag=' + urlMyFlag
+			},
+			{
+				"name" : "Awaiting Approval",
+				"link": "?id=" + pageActivities + "&table=" + approvalsTable + "&filter=Awaiting Approval" + '&order=7' + '&myFlag=' + urlMyFlag,
+				"order" : 7,
+				"showBadge" : true,
+				"badgeCount": daoUtil.fetchPortalApprovalItems(json)
+			},
+			/*
+			{
+				"name" : "Fulfillment",
+				"link": "?id=" + pageActivities + "&table=" + approvalsTable + "&filter=Fulfillment" + '&order=8' + '&myFlag=' + urlMyFlag,
+				"order" : 8
+			},*/
+			{
+				"name" : "Approved",
+				"link": "?id=" + pageActivities + "&table=" + approvalsTable + "&filter=Approved" + '&order=9' + '&myFlag=' + urlMyFlag,
+				"order" : 9
+			},
+			{
+				"name" : "Rejected",
+				"link": "?id=" + pageActivities + "&table=" + approvalsTable + "&filter=Rejected" + '&order=11' + '&myFlag=' + urlMyFlag,
+				"order" : 11
+			},
+
+			{
+				"name": "Shared Resources",
+				"parent" : true,
+				"order" : 12,
+				"link": "?id=" +data.shared_page+ "&table=" + sharedResourcesTable + '&order=12' + '&myFlag=' + urlMyFlag
+			}
+		];
+	
+}
+	} catch(e) {
+		CASLogger.error('Exception caught inside CAS_activitiesCategory widget: ' + e);
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-15 08:47:44</sys_created_on>
+        <sys_id>262c3d9bdb223300291d61ca0b961985</sys_id>
+        <sys_mod_count>92</sys_mod_count>
+        <sys_name>CAS_activitiesCategory</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_262c3d9bdb223300291d61ca0b961985</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-23 10:12:22</sys_updated_on>
+        <template><![CDATA[<div class="cas-clr-vertical-nav cas-has-nav-groups">
+  <button class="cas-nav-trigger" type="button">
+    <div style="padding-left: 24px;font-weight: bold;color: #565656;">Categories</div>
+  </button>
+  <!-- cas nav -->
+  <div class="cas-nav-content">
+    <div class="wdg-close wdg-open" 
+         ng-class='{"cas-nav-group"  : category.parent, "cas-active": c.data.selectedCategory == category.order}'
+         ng-repeat='category in c.data.categories'>
+      <div class="cas-nav-group-content">
+        <a class="cas-nav-group-trigger" href="{{category.link}}">
+          <div class="cas-nav-group-text">{{category.name}}<span ng-if="category.showBadge && (category.badgeCount > 0)" class="cas-badge cas-badge-orange">{{category.badgeCount}}</span></div>
+          <cas-clr-icon ng-if="category.tab" class="cas-nav-group-trigger-icon" shape="angle" role="none" dir="right" title="Collapse"></cas-clr-icon>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>

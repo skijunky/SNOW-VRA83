@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.vRAOnChangeHideItems</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>vRAOnChangeHideItems</name>
+        <script><![CDATA[var vRAOnChangeHideItems = Class.create();
+vRAOnChangeHideItems.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+
+	//CAS Word is renamed to vRA
+	updateItems : function(source_sys_id,child_sys_id, target_tablename,target_field)
+	{
+		try
+		{
+			CASLogger.debug('Inside  vRAOnChangeHideItems.updateItems: Use to update Items on change of records');
+			source_sys_id = this.getParameter('source_sys_id')? this.getParameter('source_sys_id') : source_sys_id ;
+			child_sys_id = this.getParameter('child_sys_id')? this.getParameter('child_sys_id') : child_sys_id ;
+			target_tablename = this.getParameter('target_tablename')? this.getParameter('target_tablename') : target_tablename ;
+			target_field = this.getParameter('target_field')? this.getParameter('target_field') : target_field ;
+
+			var source_arr = source_sys_id.split(",");
+
+
+			var itemsSysIds = '';
+			for (var i =0; i < source_arr.length; i++) {
+				var item = new GlideRecord(target_tablename);
+
+				item.addQuery(target_field,source_arr[i]);
+
+				item.query();
+				while(item.next()) {
+					if(target_tablename == 'sc_cat_item_category'){
+						if(child_sys_id.indexOf(item.sc_cat_item)!=-1){
+							itemsSysIds += item.sc_cat_item + ',';
+						}		
+					}else{
+						if(child_sys_id.indexOf(item.sys_id)!=-1){
+							itemsSysIds += item.sys_id + ',';
+						}
+					}
+				}
+
+			}
+
+			return itemsSysIds+'';
+
+		}
+
+		catch(e)
+		{
+			CASLogger.error("Exception in vRAOnChangeHideItems:updateItems() :" + e);
+		}
+
+	},
+
+
+
+	/*
+	HideProjectsAndItems :function(Org, Projects)
+	{
+		try
+		{
+		var appUtil = new CASAppUtil();
+		Org = this.getParameter('Org') ? this.getParameter('Org') : Org;
+		Projectss   = this.getParameter('Projects') ? this.getParameter('Projects') : Projects;
+		var OrgValue = [];
+		OrgValue = Org.split(',');
+
+		var ProjectsSysIds = '';
+			for (var i =0; i < OrgValue.length; i++) {
+
+				var ProjectCategory = new GlideRecord(appUtil.configuration.table.category);
+				ProjectCategory.addQuery('organization',OrgValue[i]);
+				ProjecrtCategory.query();
+				while(ProjecrtCategory.next()) {
+					ProjectsSysIds += ProjectCategory.sys_id + ',';
+
+				}
+
+			}
+			var ProjectInfo=Projects.split(',');
+
+
+			for(var j=ProjectInfo.length-1; j>=0;j--)
+
+				{
+				if(ProjectsSysIds.indexOf(ProjectInfo[j])==-1)
+					{
+					ProjectInfo.splice(j,1);
+				}
+
+			}
+
+			return ProjectInfo.toString();
+
+
+		}
+		catch(e)
+			{
+				gs.error("Exception in CASOnChangeServicesHideItems:HideProjectsAndItems() :" + e);
+			}
+
+	}, */
+
+
+
+
+
+	type: 'vRAOnChangeHideItems'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-24 10:12:37</sys_created_on>
+        <sys_id>c6e560961bf2330058ba21b6bc4bcbf5</sys_id>
+        <sys_mod_count>44</sys_mod_count>
+        <sys_name>vRAOnChangeHideItems</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_c6e560961bf2330058ba21b6bc4bcbf5</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-05-04 16:19:29</sys_updated_on>
+    </sys_script_include>
+</record_update>

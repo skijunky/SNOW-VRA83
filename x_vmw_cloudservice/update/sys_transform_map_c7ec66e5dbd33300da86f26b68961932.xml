@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_transform_map">
+    <sys_transform_map action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <copy_empty_fields>false</copy_empty_fields>
+        <create_new_record_on_empty_coalesce_fields>false</create_new_record_on_empty_coalesce_fields>
+        <enforce_mandatory_fields>No</enforce_mandatory_fields>
+        <name>vRA Deployments Transfrom Map</name>
+        <order>100</order>
+        <run_business_rules>true</run_business_rules>
+        <run_script>true</run_script>
+        <script><![CDATA[(function transformRow(source, target, map, log, isUpdate) {
+	
+	var appUtil=new CASAppUtil();
+	target.operational_status='1';
+	target.install_status='1';
+	target.expired = false;
+	var UserEmail= source.deployment_createdby;
+	var gr = new GlideRecord("sys_user");
+	gr.addQuery("email", UserEmail);
+	gr.query();
+	if (gr.next()) {
+		
+		target.vra_owner=gr.sys_id;
+	}
+	
+		var removeUnderscore= source.deployment_status;
+		target.status =removeUnderscore.replace(/_/g, ' ');
+	
+	var projectId=source.projectid;
+	var organization=source.organization;
+	var projectCheck=new CASDaoUtil().transformProjectCheck(projectId,organization);
+	if(projectCheck)
+		{
+			
+		target.u_project=projectCheck;
+		target.test=projectId;
+	}
+	
+	if(source.expires_on!='')
+	{
+		var expireDate= source.expires_on.toString().replace('Z',".000Z");
+		target.expires_on= Date.parse(expireDate).toString();
+		
+		var currentDate = new Date(); 
+		if (target.expires_on < currentDate.getTime())
+			target.expired = true;
+		
+	}
+	if(source.deployment_createdat!='')
+	{
+		var regexp = new RegExp('.[0-9]+Z');
+		var spliteTime = regexp.exec(source.deployment_createdat.toString()).toString();
+		var milliseconds = spliteTime.substring(1, 4);
+		var finalDate = source.deployment_createdat.toString().replace(spliteTime,'.'+milliseconds+'Z');
+		
+		target.created_at= Date.parse(finalDate).toString();
+		
+	}
+	
+	var UpdatedDate=source.deployment_lastupdatedat;
+	getDate=appUtil.dateFormat(UpdatedDate);
+	target.last_updated_at=getDate;
+
+	var ExpenseObj=appUtil.parse(source.expense);
+	if(ExpenseObj.lastUpdatedTime!=null)
+		{
+		var getLastUpdate=ExpenseObj.lastUpdatedTime;
+		getDate=appUtil.dateFormat(getLastUpdate);
+		target.last_updated_time=getDate;
+	}
+	if(ExpenseObj.unit!=null)
+		{
+		target.unit=ExpenseObj.unit;
+		
+	}
+	if(ExpenseObj.message!=null)
+		{
+		target.message=ExpenseObj.message;
+		
+	}
+	if(ExpenseObj.code!=null)
+		{
+		target.code=ExpenseObj.code;
+		
+	}
+	
+})(source, target, map, log, action==="update");
+]]></script>
+        <source_table>x_vmw_cloudservice_vra_deployments_import_set</source_table>
+        <sys_class_name>sys_transform_map</sys_class_name>
+        <sys_created_by>manish.admin</sys_created_by>
+        <sys_created_on>2019-08-16 08:38:57</sys_created_on>
+        <sys_id>c7ec66e5dbd33300da86f26b68961932</sys_id>
+        <sys_mod_count>85</sys_mod_count>
+        <sys_name>vRA Deployments Transfrom Map</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_transform_map_c7ec66e5dbd33300da86f26b68961932</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-09-17 11:38:36</sys_updated_on>
+        <target_table>x_vmw_cloudservice_deployments</target_table>
+    </sys_transform_map>
+</record_update>

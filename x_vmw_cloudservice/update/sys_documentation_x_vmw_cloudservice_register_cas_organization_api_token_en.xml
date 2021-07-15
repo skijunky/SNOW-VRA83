@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="api_token" label="API Token" language="en" table="x_vmw_cloudservice_register_cas_organization">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>api_token</element>
+            <help/>
+            <hint/>
+            <label>API Token</label>
+            <language>en</language>
+            <name>x_vmw_cloudservice_register_cas_organization</name>
+            <plural>API Tokens</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2019-05-08 10:02:48</sys_created_on>
+            <sys_id>71618c211bd133000f14986cbc4bcb50</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>API Token</sys_name>
+            <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+            <sys_update_name>sys_documentation_x_vmw_cloudservice_register_cas_organization_api_token_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2019-05-08 10:02:48</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

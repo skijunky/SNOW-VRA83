@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_vmw_cloudservice_cas_catalog_entitlement</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>vRA PerformanceEnhancement</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+	// var UserCriteria = new sn_uc.UserCriteria();
+	// var attr={'name':current.sys_id+'_vRACS_entitlement','user':current.entitled_users+'','group':current.entitled_groups+''};
+	//var UserCriteriaId = UserCriteria.create(attr,true);
+	this.appUtil = new CASAppUtil();
+
+	try
+	{
+		CASLogger.debug('Inside  PerformanceEnhancement.Business Rule:');
+		var app_scope=gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+
+		var user_criteriaGR = new GlideRecord('user_criteria');
+		user_criteriaGR.addQuery('nameLIKE'+current.sys_id);
+		user_criteriaGR.query();
+		var inserted_record_id;
+
+		if(user_criteriaGR.next()){
+			var UserCriteria = new sn_uc.UserCriteria(user_criteriaGR.sys_id);
+			var attributes={'sys_scope':app_scope,'name':current.sys_id+'_vRACS_entitlement','user':current.entitled_users+'','group':current.entitled_groups+''};
+			inserted_record_id=UserCriteria.update(attributes,true);
+			/*	user_criteriaGR.name=current.sys_id+'_vRACS_entitlement';
+		user_criteriaGR.user = current.entitled_users;
+		user_criteriaGR.group=current.entitled_groups;
+		inserted_record_id = user_criteriaGR.update();
+	*/}
+		else{
+			var UserCriteria2 = new sn_uc.UserCriteria();
+
+			var attributes2={'sys_scope':app_scope,'name':current.sys_id+'_vRACS_entitlement','user':current.entitled_users+'','group':current.entitled_groups+''};
+			inserted_record_id=UserCriteria2.create(attributes2,true);
+			/*
+		user_criteriaGR.name=current.sys_id+'_vRACS_entitlement';
+		user_criteriaGR.user = current.entitled_users;
+		user_criteriaGR.group=current.entitled_groups;
+		inserted_record_id = user_criteriaGR.insert();
+	*/}
+
+		var cat_item_arr=current.select_catalog_items.split(',');
+		for(var i=0;i<cat_item_arr.length;i++)
+		{
+			var user_criteria_mtomGR = new GlideRecord('sc_cat_item_user_criteria_mtom');
+			user_criteria_mtomGR.addQuery('sc_cat_item='+cat_item_arr[i]+'^user_criteria='+inserted_record_id);
+			//gs.addErrorMessage(user_criteria_mtomGR.getEncodedQuery())
+			user_criteria_mtomGR.query();
+			if(!user_criteria_mtomGR.next()){
+				/*var item = new sn_sc.CatItem(cat_item_arr[i]);
+			var uc_arr=inserted_record_id.split(',');
+			item.setAttributes({'sys_scope':'0d6a0ec1db11bb407c83712ebf96194d'});
+`			user_criteria_mtomGR.sys_scope='0d6a0ec1db11bb407c83712ebf96194d';
+			item.availableForUserCriteria("add",uc_arr);
+			*/
+				user_criteria_mtomGR.sys_scope=app_scope;
+				user_criteria_mtomGR.sc_cat_item = cat_item_arr[i];
+				user_criteria_mtomGR.user_criteria =inserted_record_id;
+				user_criteria_mtomGR.insert();
+
+			}
+
+		}
+
+		var current_cat_items=current.select_catalog_items;
+		var previous_cat_items=previous.select_catalog_items;
+
+		if(current_cat_items.localeCompare(previous_cat_items)!=0)
+		{
+			//gs.addErrorMessage("gujrot");
+			var current_cat_item_arr=current.select_catalog_items.split(",");
+			var previous_cat_item_arr=previous.select_catalog_items.split(",");
+			var removed_sys_id=previous_cat_item_arr.filter(function(i) {return current_cat_item_arr.indexOf(i) < 0;});
+			var removed_sys_id_str=removed_sys_id.toString();
+
+			var  user_criteria_mtomGR2= new GlideRecord('sc_cat_item_user_criteria_mtom');
+			user_criteria_mtomGR2.addQuery('sc_cat_item.sys_idIN'+removed_sys_id_str+'^user_criteria.nameLIKE_vracs');
+			user_criteria_mtomGR2.query();
+			while(user_criteria_mtomGR2.next()){
+
+				var item2 = new sn_sc.CatItem(user_criteria_mtomGR2.sc_cat_item);
+				var uc_arr2=inserted_record_id.split(',');
+				item2.availableForUserCriteria("delete",uc_arr2);
+
+				//user_criteria_mtomGR2.deleteMultiple();
+			}
+		}	
+	}
+	catch(e)
+	{
+		CASLogger.error("Exception caught Inside PerformanceEnhancement.Business Rule   "+e);
+	}
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-08-22 12:05:43</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>1e011e2b1b5f730058ba21b6bc4bcbe2</sys_id>
+        <sys_mod_count>67</sys_mod_count>
+        <sys_name>vRA PerformanceEnhancement</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_1e011e2b1b5f730058ba21b6bc4bcbe2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-03-20 11:07:41</sys_updated_on>
+        <template/>
+        <when>before</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=1e011e2b1b5f730058ba21b6bc4bcbe2"/>
+</record_update>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="catalog_script_client">
+    <catalog_script_client action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <applies_catalog>true</applies_catalog>
+        <applies_extended>false</applies_extended>
+        <applies_req_item>false</applies_req_item>
+        <applies_sc_task>false</applies_sc_task>
+        <applies_target_record>false</applies_target_record>
+        <applies_to>set</applies_to>
+        <cat_item/>
+        <cat_variable>IO:45d18a41dbd35010ca597b38689619e8</cat_variable>
+        <condition/>
+        <description/>
+        <field/>
+        <global>true</global>
+        <isolate_script>true</isolate_script>
+        <messages/>
+        <name>populateVariablesonDesktop</name>
+        <order/>
+        <script><![CDATA[function onChange(control, oldValue, newValue, isLoading) {
+    if (isLoading || newValue == '') {
+        return;
+    }
+
+    var catalog = g_form.getUniqueValue();
+    var fields = g_form.getEditableFields();
+    for (var i = 0; i < fields.length; i++) {
+        if (fields[i] != 'deployment' && fields[i] != 'resource' && fields[i] != 'General' && fields[i] != 'deployment_default_variables') {
+            g_form.setMandatory(fields[i], false);
+            g_form.setDisplay(fields[i], false);
+            g_form.setReadOnly(fields[i], false);
+			g_form.hideFieldMsg(fields[i]);
+
+        }
+    }
+    g_form.setMandatory('deployment', true);
+    g_form.setDisplay('deployment', true);
+    var gAjax = new GlideAjax('x_vmw_cloudservice.vRACSClientSciptBridge');
+    gAjax.addParam('sysparm_name', 'getSchema');
+    gAjax.addParam('sysparm_deploymentid', newValue);
+    gAjax.addParam('sysparm_catalogid', catalog);
+    gAjax.addParam('sysparm_type', 'Deployment');
+    gAjax.getXMLAnswer(callBack);
+
+    function callBack(response) {
+        var answer = response;
+		
+		g_form.setValue('dp_schema',answer);
+        var parsed = JSON.parse(answer);
+        g_form.setDisplay('project', true);
+        g_form.setDisplay('endpoint', true);
+        var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+
+        if (parsed.schema && parsed.schema.properties && Object.keys(parsed.schema.properties).length > 0) {
+
+            var properties = parsed.schema.properties;
+            for (var key in properties) {
+                var name = key.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                g_form.setDisplay(name, true);
+                if (properties[key]["default"]) {
+                    if (properties[key]["enum"]) {
+                        g_form.clearOptions(name);
+                        g_form.addOption(name, properties[key]["default"], properties[key]["default"]);
+                        for (var dd in properties[key]["enum"]) {
+                            if (properties[key]["enum"][dd] != properties[key]["default"]) {
+                                g_form.addOption(name, properties[key]["enum"][dd], properties[key]["enum"][dd]);
+                            }
+                        }
+                    }
+					if (properties[key]["oneOf"]) {
+                        g_form.clearOptions(name);
+                        g_form.addOption(name, properties[key]["default"], properties[key]["default"]);
+                        for (var dd in properties[key]["oneOf"]) {
+                            if (properties[key]["enum"][dd]["title"] != properties[key]["default"]) {
+                                g_form.addOption(name, properties[key]["oneOf"][dd]["const"], properties[key]["oneOf"][dd]["title"]);
+                            }
+                        }
+                    }
+                    if (properties[key]["format"] && properties[key]["default"]) {
+                        var value = properties[key]["default"];
+                        value = value.replaceAll("T", " ");
+                        value = value.slice(0, -1);
+                        g_form.setValue(name, value, value);
+                    }
+                    g_form.setValue(name, properties[key]["default"], properties[key]["default"]);
+                } else if (properties[key]["oneOf"]) {
+                    g_form.clearOptions(name);
+                    for (var dd1 in properties[key]["oneOf"]) {
+						var oneOf = properties[key]["oneOf"];
+                            if (oneOf.hasOwnProperty(dd1) ) {
+								g_form.addOption(name, properties[key]["oneOf"][dd1]["const"], properties[key]["oneOf"][dd1]["title"]);
+							}
+                        
+                    }
+                }else {
+                    g_form.clearValue(name);
+                    g_form.clearOptions(name);
+                }
+                if (properties[key]["readOnly"]) {
+                    g_form.setReadOnly(name, properties[key]["readOnly"], true);
+                }
+                if (properties[key]["minLength"]) {
+                    g_form.showFieldMsg(name, "Minimum field length should be " + properties[key]["minLength"]);
+                }
+				if (properties[key]["maxLength"]) {
+                    g_form.showFieldMsg(name, "Maximum field length should be " + properties[key]["maxLength"]);
+                }
+                if (properties[key]["minimum"]) {
+                    g_form.showFieldMsg(name, "Minimum field value should be " + properties[key]["minimum"]);
+                }
+				if (properties[key]["maximum"]) {
+                    g_form.showFieldMsg(name, "Maximum field value should be " + properties[key]["maximum"]);
+                }
+                if (properties[key]["format"] && properties[key]["format"] == "date-time" && properties[key]["description"]) {
+                    var minimum = properties[key]["description"];
+					g_form.showFieldMsg(name, minimum);
+                    
+                }
+            }
+
+        } else {
+            g_form.setDisplay('reason', true);
+        }
+        if (parsed.schema && parsed.schema.required) {
+            for (var req in parsed.schema.required) {
+                var name = parsed.schema.required[req].replace(rgx, ' ').trim().replaceAll(' ', '_');
+                g_form.setMandatory(name, true);
+            }
+        }
+    }
+}]]></script>
+        <sys_class_name>catalog_script_client</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-09-15 11:09:49</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>67a4a649db175010ca597b3868961917</sys_id>
+        <sys_mod_count>40</sys_mod_count>
+        <sys_name>populateVariablesonDesktop</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>catalog_script_client_67a4a649db175010ca597b3868961917</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-10-09 12:21:55</sys_updated_on>
+        <table/>
+        <type>onChange</type>
+        <ui_type>0</ui_type>
+        <variable_set display_value="Deployment Default Variables">e9e7bd89db935010ca597b3868961900</variable_set>
+        <view/>
+    </catalog_script_client>
+</record_update>

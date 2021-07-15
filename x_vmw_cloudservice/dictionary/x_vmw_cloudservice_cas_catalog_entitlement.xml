@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Manage Entitlements" max_length="40" name="x_vmw_cloudservice_cas_catalog_entitlement" sizeclass="0" type="collection">
+        <element attributes="edge_encryption_enabled=true" default="true" label="Active" max_length="40" name="active" type="boolean"/>
+        <element attributes="edge_encryption_enabled=true,no_sort=true,slushbucket_ref_no_expand=true" choice="3" label="Deployment Actions" max_length="1024" name="deployment_actions" reference="x_vmw_cloudservice_day_2_action_request_entitlement" reference_qual="type=Deployment^EQ" reference_qual_condition="type=Deployment^EQ" type="glide_list">
+            <choice/>
+        </element>
+        <element label="Description" max_length="1000" name="description" type="string"/>
+        <element attributes="no_sort=true,slushbucket_ref_no_expand=true,edge_encryption_enabled=true" label="Endpoint" mandatory="true" max_length="32" name="endpoint" reference="x_vmw_cloudservice_register_cas_organization" reference_qual="active=true^EQ" reference_qual_condition="active=true^EQ" type="reference"/>
+        <element attributes="no_sort=true,slushbucket_ref_no_expand=true,edge_encryption_enabled=true" label="Entitled Groups" max_length="1024" name="entitled_groups" reference="sys_user_group" reference_qual="active=true^EQ" reference_qual_condition="active=true^EQ" type="glide_list"/>
+        <element attributes="no_sort=true,slushbucket_ref_no_expand=true,edge_encryption_enabled=true" label="Entitled Users" max_length="1024" name="entitled_users" reference="sys_user" reference_qual="active=true^EQ" reference_qual_condition="active=true^EQ" type="glide_list"/>
+        <element attributes="edge_encryption_enabled=true,no_sort=true,slushbucket_ref_no_expand=true" label="Machine Actions" max_length="1024" name="machine_actions" reference="x_vmw_cloudservice_day_2_action_request_entitlement" reference_qual="type=Resource^EQ" reference_qual_condition="type=Resource^EQ" type="glide_list"/>
+        <element label="Name" mandatory="true" max_length="200" name="name" type="string" unique="true"/>
+        <element attributes="edge_encryption_enabled=true" label="Projects" max_length="40" name="projects" type="string"/>
+        <element attributes="no_sort=true,slushbucket_ref_no_expand=true,edge_encryption_enabled=true" label="Catalog Items" max_length="4000" name="select_catalog_items" reference="x_vmw_cloudservice_cas_catalog_items" reference_qual="javascript:new CASDaoUtil().getFilters(current.select_projects)" type="glide_list" use_reference_qualifier="advanced"/>
+        <element attributes="no_sort=true,slushbucket_ref_no_expand=true,edge_encryption_enabled=true,sys_ref_list" calculation="(function calculatedFieldValue(current) {&#10;&#10;&#9;// Add your code here&#10;&#9;return current.number + ' - ' + current.short_description; &#10;&#9; // return the calculated value&#10;&#10;})(current);" label="Projects" max_length="1024" name="select_projects" reference="x_vmw_cloudservice_cas_project" reference_qual="javascript:new CASDaoUtil().getFilter(current.endpoint)" type="glide_list" use_reference_qualifier="advanced"/>
+        <index name="index">
+            <element name="endpoint"/>
+        </index>
+        <index name="index2">
+            <element name="name"/>
+        </index>
+    </element>
+</database>

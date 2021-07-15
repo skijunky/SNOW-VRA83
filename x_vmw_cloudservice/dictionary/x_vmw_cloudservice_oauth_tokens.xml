@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Oauth Tokens" max_length="40" name="x_vmw_cloudservice_oauth_tokens" sizeclass="0" type="collection">
+        <element attributes="edge_encryption_enabled=true" label="Active" max_length="40" name="active" type="boolean"/>
+        <element attributes="edge_encryption_enabled=true,encode_utf8=false" label="Endpoint" max_length="32" name="endpoint" reference="x_vmw_cloudservice_register_cas_organization" type="reference"/>
+        <element label="state" max_length="32" name="state" type="string"/>
+        <element attributes="edge_encryption_enabled=true,no_data_replicate=true" label="Token Received" max_length="4000" name="token_received" type="password2"/>
+        <element choice="1" label="Type" max_length="40" name="type" type="string">
+            <choice>
+                <element inactive_on_update="false" label="Access Token" sequence="100" value="access_token"/>
+                <element inactive_on_update="false" label="Refresh Token" sequence="200" value="refresh_token"/>
+            </choice>
+        </element>
+        <element attributes="edge_encryption_enabled=true,encode_utf8=false" label="User" max_length="32" name="user" reference="sys_user" type="reference"/>
+        <index name="index">
+            <element name="endpoint"/>
+        </index>
+        <index name="index2">
+            <element name="user"/>
+        </index>
+    </element>
+</database>

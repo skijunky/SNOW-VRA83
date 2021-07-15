@@ -1,0 +1,2176 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_vmw_cloudservice.vRAImportCatalog</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description>Script vRAImport Catalog.</description>
+        <name>vRAImportCatalog</name>
+        <script><![CDATA[var vRAImportCatalog = Class.create();
+vRAImportCatalog.prototype = {
+    initialize: function() {
+        this.appUtil = new CASAppUtil();
+        this.daoUtil = new CASDaoUtil();
+        this.order = 6;
+		this.number = '';	
+        this.decimal = '';	
+        this.clientscript = 0;
+    },
+
+
+  
+	preImportCatalogSchedule: function(current) {
+        try {
+
+            CASLogger.debug('Inside  vRAImportCatalog.preImportCatalog: PreImporting of Catalog');
+            var midserver = '';
+            var endPoint = '';
+            var token = '';
+            if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue();
+                endPoint = current.organization.cas_url + this.appUtil.configuration.api.catalogItem + "?size=20&page=0";
+            }
+            if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                endPoint = current.organization.hostname + this.appUtil.configuration.api.catalogItem + "?size=20&page=0";
+                midserver = current.organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue();
+            }
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportCatalog.preImportCatalogSchedule: ' + response.getErrorMessage());
+                return false;
+            } else {
+                var responseBody = response.getBody();
+                var jsonResponse = responseBody;
+                var obj = this.appUtil.parse(responseBody);
+                var catalogId = '';
+                var catalogDetails = obj.content.length;
+
+                for (var i = 0; i < catalogDetails; i++) {
+                    catalogId = obj.content[i].id;
+                    new CASDaoUtil().insert("PreImportCatalog", jsonResponse, catalogId, current.organization);
+                }
+
+
+                var pageElement = obj.totalPages;
+                for (var j = 1; j <= pageElement; j++) {
+
+
+                    if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                        token = current.organization.api_token.getDecryptedValue();
+                        endPoint = current.organization.cas_url + this.appUtil.configuration.api.catalogItem + "?size=20&page=" + j;
+                    }
+                    if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                        endPoint = current.organization.hostname + this.appUtil.configuration.api.catalogItem + "?size=20&page=" + j;
+                        midserver = current.organization.mid_server.name;
+                        token = current.organization.api_token.getDecryptedValue();
+                    }
+                    response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+                    if (response.haveError()) {
+                        CASLogger.error('REST call error found inside vRAImportCatalog.preImportCatalogSchedule: ' + response.getErrorMessage());
+                        return false;
+                    } else {
+                        responseBody = response.getBody();
+                        jsonResponse = responseBody;
+                        obj = this.appUtil.parse(responseBody);
+                        catalogId = '';
+                        catalogDetails = obj.content.length;
+                        for (i = 0; i < catalogDetails; i++) {
+                            catalogId = obj.content[i].id;
+                            new CASDaoUtil().insert("PreImportCatalog", jsonResponse, catalogId, current.organization); //loop 2 for functionality
+                        }
+                    }
+                }
+
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.preImportCatalogSchedule" + e);
+        }
+
+
+    },
+
+
+    preImportCatalog: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportCatalog.preImportCatalog: PreImporting of Catalog');
+            var midserver = '';
+            var endPoint = '';
+            var token = '';
+            var projectID = current.request;
+
+
+
+            if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue();
+                endPoint = current.organization.cas_url + this.appUtil.configuration.api.catalogItem + "?projects=" + projectID + "&size=20&page=0";
+            }
+            if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                endPoint = current.organization.hostname + this.appUtil.configuration.api.catalogItem + "?projects=" + projectID + "&size=20&page=0";
+                midserver = current.organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue();
+            }
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportCatalog.preImportCatalog: ' + response.getErrorMessage());
+                return false;
+            } else {
+                var responseBody = response.getBody();
+                var jsonResponse = responseBody;
+                var obj = this.appUtil.parse(responseBody);
+                var catalogId = '';
+                var catalogDetails = obj.content.length;
+                for (var i = 0; i < catalogDetails; i++) {
+                    catalogId = obj.content[i].id;
+                    var check= this.catalogCheck(catalogId);
+                        if(check!=true)
+                            {
+                        new CASDaoUtil().insert("PreImportCatalog", jsonResponse, catalogId, current.organization); //loop 2 for functionality
+                            }
+                }
+                var pageElement = obj.totalPages;
+                for (var j = 1; j <= pageElement; j++) {
+                    if (current.organization.select_automation_service == 'vRealiseAutomationCloud')
+                        token = current.organization.api_token.getDecryptedValue();
+                    endPoint = current.organization.cas_url + this.appUtil.configuration.api.catalogItem + "?projects=" + projectID + "&size=20&page=" + j;
+                
+                if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                    endPoint = current.organization.hostname + this.appUtil.configuration.api.catalogItem + "?projects=" + projectID + "&size=20&page=" + j;
+                    midserver = current.organization.mid_server.name;
+                    token = current.organization.api_token.getDecryptedValue();
+                }
+                response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+                if (response.haveError()) {
+                    CASLogger.error('REST call error found inside vRAImportCatalog.preImportCatalog: ' + response.getErrorMessage());
+                    return false;
+                } else {
+                    responseBody = response.getBody();
+                    jsonResponse = responseBody;
+                    obj = this.appUtil.parse(responseBody);
+                    catalogId = '';
+                    catalogDetails = obj.content.length;
+                    for (i = 0; i < catalogDetails; i++) {
+                        catalogId = obj.content[i].id;
+						var check= this.catalogCheck(catalogId);
+						if(check!=true)
+						{
+							new CASDaoUtil().insert("PreImportCatalog", jsonResponse, catalogId, current.organization); //loop 2 for functionality
+						}
+                    }
+                }
+            }
+		}
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.preImportCatalog" + e);
+        }
+
+
+    },
+
+
+
+
+
+
+    //Function Name:importCatalog
+    //Description: To import catalog item schema and handing custom form
+    //Created By:Ajay Gunjal
+    //Updated By: Ajay Gunjal.
+
+    importCatalog: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportCatalog.ImportCatalog: Importing of Catalog');
+            var midserver = '';
+            var endPoint = '';
+            var token = '';
+            var catalogId = current.request;
+            var CustomFormFilter = gs.getProperty(this.appUtil.configuration.properties.CustomFormFilter);
+
+            if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue();
+                endPoint = current.organization.cas_url + this.appUtil.configuration.api.catalogItem + "/" + catalogId + "/?expandProjects=true";
+            }
+            if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                endPoint = current.organization.hostname + this.appUtil.configuration.api.catalogItem + "/" + catalogId + "/?expandProjects=true";
+                midserver = current.organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue();
+            }
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportCatalog.importCatalog: ' + response.getErrorMessage());
+                return false;
+            } else {
+
+
+                var responseBody = response.getBody();
+                var jsonResponse = responseBody;
+				
+				var isExcluded = false;
+				var parsedCatalogItem = this.appUtil.parse(jsonResponse);
+				var catalogVraId = parsedCatalogItem.id;
+				var catalogType = parsedCatalogItem.type.id;
+				
+			if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue();
+                endPoint = current.organization.cas_url + this.appUtil.configuration.api.customform + catalogType + "&sourceId=" + catalogVraId + "&formType=requestForm";
+            }
+            if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                endPoint = current.organization.hostname + this.appUtil.configuration.api.customform + catalogType + "&sourceId=" + catalogVraId + "&formType=requestForm";
+                midserver = current.organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue();
+            }
+
+            ////'body'='schema' tag from response received by making REST call using 'catalog API' using version
+            var body = this.appUtil.stringify(parsedCatalogItem.schema);
+            body = body.replaceAll("encrypted", "writeOnly");
+            response = this.appUtil.makeApiCall(endPoint, 'post', body, midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside importCatalog ' + response.getErrorMessage());
+                return false;
+            } else {
+                var customResponse = response.getBody();				
+                var objSchema = this.appUtil.parse(customResponse);
+                var schema = objSchema.model.schema;
+                var pageSchema = objSchema.model.layout.pages;
+				var length = objSchema.model.layout.pages.length; //page length ie.e total containers
+                for (var i = 0; i < length; i++) {
+                    var name = objSchema.model.layout.pages[i].id;
+                    var title = objSchema.model.layout.pages[i].title;
+                    var length2 = objSchema.model.layout.pages[i].sections.length;
+					for (var j = 0; j < length2; j++) {
+                        var length3 = objSchema.model.layout.pages[i].sections[j].fields.length; // details of form field i.e datatype, field id(name),state(visible, read-only)
+                        for (var k = 0; k < length3; k++) {
+                            for (var key in schema) {
+								if (key == objSchema.model.layout.pages[i].sections[j].fields[k].id) {
+                                    if (key == 'deploymentName' || key == 'description' || key == 'project') {
+										//do nothing
+                                    } else {
+                                        var displayValue = objSchema.model.layout.pages[i].sections[j].fields[k].display;
+										if(displayValue == 'valuePicker' || displayValue =='multiValuePicker')
+										{	
+											isExcluded = true;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if(isExcluded){
+			var catItem = new GlideRecord(this.appUtil.configuration.table.catalogItem);
+			catItem.addQuery('cas_uid', catalogVraId);
+			catItem.addQuery('organisation_name', current.organization);
+			catItem.query();
+			if (catItem.next()) {
+				catItem.deleteRecord();
+			}					
+        } else {
+				new CASDaoUtil().insert("ImportCatalog", jsonResponse, catalogId, current.organization);
+			}
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.importCatalogSchema" + e);
+        }
+    },
+
+
+    //This returns whether catalog item is 'inset' or 'update'
+    processCASCatalog: function(current) {
+        try {
+            CASLogger.debug('Inside  vRAImportCatalog.processCASCatalog: Used for processing the catalog');
+            return this.daoUtil.catalogItemCheck(current);
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.processCASCatalog " + e);
+        }
+    },
+
+
+    //current=  Queue table record Topic='ImportCatalog'
+    createCatalog: function(current) {
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.createCatalog');
+
+            var parsedCatalogItem = this.appUtil.parse(current.response);
+            var versions = this.getCatalogVersions(current);
+            var projectid = parsedCatalogItem.projects[0].id;
+            var catalogVraId = parsedCatalogItem.id;
+            var catalogType = parsedCatalogItem.type.id;
+            var projectSysid = '';
+            var projectgr = this.daoUtil.genericGRquery(this.appUtil.configuration.table.project, 'project_id=' + projectid, '1');
+            if (projectgr.next()) {
+                projectSysid = projectgr.sys_id;
+            }
+
+            var catalogItemName = parsedCatalogItem.name;
+            var app_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+
+            var attr = {
+                "sys_scope": app_scope,
+                "workflow": gs.getProperty(this.appUtil.configuration.properties.catalogRequestWorkflow),
+                "name": parsedCatalogItem.name,
+                "active": true,
+                "use_sc_layout": false,
+                "versions": versions,
+                "no_quantity": true,
+                "availability": "on_both",
+                "cas_uid": parsedCatalogItem.id,
+                "sc_catalogs": gs.getProperty(this.appUtil.configuration.properties.catalogSysID),
+                "category": projectSysid,
+                "short_description": parsedCatalogItem.description,
+                "organisation_name": current.organization
+            };
+
+            //var categorysysid = this.daoUtil.insertCatalolgCategory(parsedCatalogItem);
+            var catItem = new sn_sc.CatItem();
+            catItem.setTableName('x_vmw_cloudservice_cas_catalog_items');
+            catItem.setAttributes(attr);
+            //catItem.setCategories(categorysysid);
+            var catalog = catItem.create(true);
+
+            //Create relationship between Catalog and categories in sc_cat_item_categories table
+            if (catalog) {
+                this.daoUtil.insertCatalolgCategory(catalog, parsedCatalogItem);
+                this.createDefaultVariables(catalog);
+                if (versions == "undefined," || versions == undefined || versions == 'undefined,') {
+                    this.getcustomformschema(current, catalog, catalogVraId, '', catalogType, current.response);
+                } else {
+                    this.parseCatalogVariables(current, catalog, catalogVraId,'');
+                }
+                this.createDefaultCatalogClientScript(catalog, catalogItemName);
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.createCatalog " + e);
+        }
+    },
+
+
+    updateCatalog: function(current) {
+        try {
+
+            CASLogger.debug('Inside the vRAImportCatalog.updateCatalog');
+
+            var parsedCatalogItem = this.appUtil.parse(current.response);
+			var catalogItemName = parsedCatalogItem.name;
+            var versions = this.getCatalogVersions(current);
+            var projectid = parsedCatalogItem.projects[0].id;
+            var catalogVraId = parsedCatalogItem.id;
+            var catalogType = parsedCatalogItem.type.id;
+            var app_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+            var projectSysid = '';
+            var projectgr = this.daoUtil.genericGRquery(this.appUtil.configuration.table.project, 'project_id=' + projectid, '1');
+            if (projectgr.next()) {
+                projectSysid = projectgr.sys_id;
+            }
+			
+			//retriving the previous versions of the Catalog Item
+			var previousVersions = '';
+			var grCatItem = this.daoUtil.genericGRquery(this.appUtil.configuration.table.catalogItem, 'cas_uid=' + catalogVraId, '1');
+            if (grCatItem.next()) {
+                previousVersions = grCatItem.versions;
+            }
+			
+            if (parsedCatalogItem.id) {
+                var casCatalogItemGR = new GlideRecord(this.appUtil.configuration.table.catalogItem);
+                casCatalogItemGR.addQuery('cas_uid', parsedCatalogItem.id);
+                casCatalogItemGR.addQuery('organisation_name', current.organization);
+                casCatalogItemGR.query();
+                if (casCatalogItemGR.next()) {
+                    var attr = {
+                        "sys_scope": app_scope,
+                        "name": parsedCatalogItem.name,
+                        "versions": versions,
+                        "category": projectSysid,
+                        "short_description": parsedCatalogItem.description,
+                        "organisation_name": current.organization
+                    };
+                    var catItem = new sn_sc.CatItem(casCatalogItemGR.sys_id);
+                    catItem.setTableName('x_vmw_cloudservice_cas_catalog_items');
+                    catItem.update(attr, true);
+                    var catalog = casCatalogItemGR.sys_id;
+
+                    if (catalog) {
+						this.daoUtil.deleteClientScript(catalog);
+                        this.daoUtil.insertCatalolgCategory(catalog, parsedCatalogItem);
+                        this.daoUtil.reconcileCatalogCategory(catalog, parsedCatalogItem);
+						this.createDefaultCatalogClientScript(catalog, catalogItemName);
+
+                        if (versions == "undefined," || versions == undefined || versions == 'undefined,') {
+                            this.getcustomformschema(current, catalog, catalogVraId, '', catalogType, current.response);
+
+                        } else {
+                            this.parseCatalogVariables(current, catalog, catalogVraId, previousVersions);
+
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.updateCatalog " + e);
+        }
+    },
+
+
+
+    getCatalogVersions: function(current) {
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.getCatalogVersions: Get Versions of Catalog');
+            var versions = '';
+            var catalogID = current.request;
+            var midserver = '';
+            var endPoint = '';
+            var token = '';
+
+            if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue();
+                endPoint = current.organization.cas_url + this.appUtil.configuration.api.catalogItem + "/" + catalogID + "/versions/?page=0&size=500";
+            }
+            if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                endPoint = current.organization.hostname + this.appUtil.configuration.api.catalogItem + "/" + catalogID + "/versions/?page=0&size=500";
+                midserver = current.organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue();
+            }
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportCatalog.getCatalogVersions: ' + response.getErrorMessage());
+                return 'No Versions Found';
+            } else {
+                var responseBody = response.getBody();
+                var parsedVersions = this.appUtil.parse(responseBody);
+                for (var i = 0; i < parsedVersions.content.length; i++) {
+                    versions = versions + parsedVersions.content[i].id + ',';
+                }
+                return versions;
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.getCatalogVersions " + e);
+            return 'No Versions Found';
+        }
+
+    },
+
+
+    createContainerStart: function(catalog, name, title, order, version, visible) {
+        try {
+
+            CASLogger.debug('Inside the vRAImportCatalog.createContainerStart');
+            var servicenowName;
+            var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+            var varName = name.replace(rgx, ' ').trim().replaceAll(' ', '_');
+
+            if (version == '' || version == 'undefined' || version == 'undefined,') {
+                servicenowName = varName;
+
+            } else {
+
+                var varVersion = version.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                servicenowName = varName + '__' + varVersion;
+
+            }
+
+            var containerStartGR = new GlideRecord(this.appUtil.configuration.table.variable);
+            containerStartGR.addQuery("cat_item", catalog);
+            containerStartGR.addQuery("name", servicenowName);
+            containerStartGR.addQuery("type", '19');
+            containerStartGR.addQuery("x_vmw_cloudservice_versions", version + ",");
+            containerStartGR.query();
+            if (containerStartGR.next()) {
+
+
+                containerStartGR.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+                containerStartGR.type = '19';
+                containerStartGR.display_title = 'true';
+                containerStartGR.cat_item = catalog;
+                containerStartGR.active = 'true';
+                containerStartGR.order = this.order;
+                this.order = this.order + 1;
+                containerStartGR.x_vmw_cloudservice_versions = version + ",";
+                containerStartGR.visible_standalone = 'true';
+                containerStartGR.visible_bundle = 'true';
+                containerStartGR.visible_guide = 'true';
+                containerStartGR.visible_summary = 'true';
+                containerStartGR.x_vmw_cloudservice_field_visibility = visible;
+                containerStartGR.question_text = title;
+                containerStartGR.name = servicenowName;
+                containerStartGR.layout = 'normal';
+                containerStartGR.update();
+
+            } else {
+
+                containerStartGR.initialize();
+                containerStartGR.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+                containerStartGR.type = '19';
+                containerStartGR.display_title = 'true';
+                containerStartGR.cat_item = catalog;
+                containerStartGR.active = 'true';
+                containerStartGR.order = this.order;
+                this.order = this.order + 1;
+                containerStartGR.visible_standalone = 'true';
+                containerStartGR.visible_bundle = 'true';
+                containerStartGR.visible_guide = 'true';
+                containerStartGR.visible_summary = 'true';
+                containerStartGR.question_text = title;
+                containerStartGR.x_vmw_cloudservice_field_visibility = visible;
+                containerStartGR.name = servicenowName;
+                containerStartGR.x_vmw_cloudservice_versions = version + ',';
+                containerStartGR.layout = 'normal';
+                containerStartGR.insert();
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.createContainerStart " + e);
+        }
+    },
+
+    createContainerEnd: function(catalog, name, version, visible) {
+        try {
+
+            CASLogger.debug('Inside the vRAImportCatalog.createContainerEnd');
+            var servicenowName;
+            var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+            var varName = name.replace(rgx, ' ').trim().replaceAll(' ', '_');
+
+            if (version == '' || version == 'undefined' || version == 'undefined,') {
+                servicenowName = varName + '_end';
+
+            } else {
+
+                var varVersion = version.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                servicenowName = varName + '__' + varVersion + '_end';
+
+            }
+
+            var containerEndGR = new GlideRecord(this.appUtil.configuration.table.variable);
+            containerEndGR.addQuery("cat_item", catalog);
+            containerEndGR.addQuery("name", servicenowName);
+            containerEndGR.addQuery("type", '20');
+            containerEndGR.addQuery("x_vmw_cloudservice_versions", version + ",");
+            containerEndGR.query();
+            if (containerEndGR.next()) {
+
+                containerEndGR.name = servicenowName;
+                containerEndGR.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+                containerEndGR.type = '20';
+                containerEndGR.cat_item = catalog;
+                containerEndGR.active = 'true';
+                containerEndGR.x_vmw_cloudservice_field_visibility = visible;
+                containerEndGR.x_vmw_cloudservice_versions = version + ',';
+                containerEndGR.order = this.order;
+                this.order = this.order + 1;
+                containerEndGR.update();
+            } else {
+                containerEndGR.initialize();
+                containerEndGR.name = servicenowName;
+                containerEndGR.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+                containerEndGR.type = '20';
+                containerEndGR.cat_item = catalog;
+                containerEndGR.active = 'true';
+                containerEndGR.x_vmw_cloudservice_field_visibility = visible;
+                containerEndGR.x_vmw_cloudservice_versions = version + ',';
+                containerEndGR.order = this.order;
+                this.order = this.order + 1;
+                containerEndGR.insert();
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.createContainerEnd " + e);
+        }
+    },
+
+    createDefaultVariables: function(catalog) {
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.createDefaultVariables');
+            var variableset = gs.getProperty(this.appUtil.configuration.properties.variableSetSysID);
+            var app_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+            var varset = new sn_sc.CatalogItemVariableSetM2M();
+            var attr = {
+                'variable_set': variableset,
+                'sc_cat_item': catalog,
+                'sys_scope': app_scope,
+                'order': 2
+            };
+            varset.setAttributes(attr);
+            varset.create(true);
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.createDefaultVariables " + e);
+
+        }
+    },
+
+
+
+    //current=  Queue table record withTopic='ImportCatalog'
+    //catalog= sys id of catalog item
+    parseCatalogVariables: function(current, catalog, catalogVraId, previousVersions) {
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.parseCatalogVariables');
+            var obj = this.appUtil.parse(current.response);
+            var catalogType = obj.type.id;
+
+            var catalogversion = '';
+            var grCatItem = this.daoUtil.genericGRquery(this.appUtil.configuration.table.catalogItem, 'sys_id=' + catalog, '1');
+            if (grCatItem.next()) {
+                catalogversion = grCatItem.versions;
+
+            }
+            var catalogID = current.request; //this vRA id of catalog item
+            var midserver;
+            var token;
+            var endpoint;
+            var response;
+
+            var versionArr = catalogversion.split(",");
+            versionArr = versionArr.slice(0, -1);
+	
+			//caalling the method for eliminating the versions which are unreleased from vRA.
+			if(previousVersions != ''){
+				this.deleteCatalogVersions(previousVersions, versionArr, catalog);
+			}
+
+            //REST call using catalog API to get catalog item schema based on version
+            for (var i = 0; i < versionArr.length; i++) {
+
+                if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                    endpoint = current.organization.cas_url + this.appUtil.configuration.api.catalogItem + "/" + catalogID + "/versions/" + versionArr[i] + "/?expandProjects=true";
+                    token = current.organization.api_token.getDecryptedValue();
+                }
+                if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                    endpoint = current.organization.hostname + this.appUtil.configuration.api.catalogItem + "/" + catalogID + "/versions/" + versionArr[i] + "/?expandProjects=true";
+                    midserver = current.organization.mid_server.name;
+                    token = current.organization.api_token.getDecryptedValue();
+                }
+                response = this.appUtil.makeApiCall(endpoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+                if (response.haveError()) {
+                    CASLogger.error('REST call error found inside vRAImportCatalog.parseCatalogVariables: ' + response.getErrorMessage());
+                    return;
+                } else {
+                    var responseBodyBlue = response.getBody();
+
+                    this.getcustomformschema(current, catalog, catalogVraId, versionArr[i], catalogType, responseBodyBlue);
+
+                }
+
+            }
+
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.parseCatalogVariables " + e);
+        }
+    },
+
+	//method for eliminating the versions which are unreleased from vRA.	
+	deleteCatalogVersions: function(previousVersions, versionArr, catalog) {
+		try {
+            CASLogger.debug('Inside the vRAImportCatalog.deleteCatalogVersions');
+			
+			var previousVersionsArr = previousVersions.split(',').slice(0, -1);	
+			var unreleaseVersionsArr = [];
+	
+			//creating the unreleased version's array
+			previousVersionsArr.map(function(version){
+				if((versionArr.indexOf(version) == -1)) unreleaseVersionsArr.push(version);		
+			});
+			
+			for(var j = 0; j < unreleaseVersionsArr.length; j++){
+				this.daoUtil.deleteUnreleaseVersionVariable(catalog, unreleaseVersionsArr[j]);
+			}
+						
+		
+		} catch (e) {
+			CASLogger.error("Exception caught inside vRAImportCatalog.deleteCatalogVersions" + e);
+		}
+	},
+
+    //'response'=catalog schema received by making REST call using 'catalog API' using version
+    getcustomformschema: function(current, catalog, catalogVraId, versions, catalogType, response) {
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.getcustomformschema');
+            var midserver;
+            var token;
+            var endpoint;
+
+            if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue();
+
+                endPoint = current.organization.cas_url + this.appUtil.configuration.api.customform + catalogType + "&sourceId=" + catalogVraId + "&formType=requestForm";
+            }
+            if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                endPoint = current.organization.hostname + this.appUtil.configuration.api.customform + catalogType + "&sourceId=" + catalogVraId + "&formType=requestForm";
+
+                midserver = current.organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue();
+
+            }
+
+            var obj = this.appUtil.parse(response);
+            ////'body'='schema' tag from response received by making REST call using 'catalog API' using version
+            var body = this.appUtil.stringify(obj.schema);
+            body = body.replaceAll("encrypted", "writeOnly");
+
+            response = this.appUtil.makeApiCall(endPoint, 'post', body, midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportCatalog.getcustomformschema: ' + response.getErrorMessage());
+                return false;
+            } else {
+                var customResponse = response.getBody();
+				var requestArray = [];
+				requestArray.push("catalogVraId");
+				requestArray.push(catalogVraId);
+				requestArray.push("catalogType");
+				requestArray.push(catalogType);
+				requestArray.push("versions");
+				requestArray.push(versions);
+				requestArray.push("catalog");
+				requestArray.push(catalog);
+				var requestJson = this.appUtil.arrToJSON(requestArray);
+									
+				
+				new CASDaoUtil().insert("processCatalogCustomFormSchema", customResponse, requestJson, current.organization);
+				this.processCatalogCustomFormSchema(current, customResponse, requestJson);
+				
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.getcustomformschema" + e);
+        }
+    },
+
+	
+	processCatalogCustomFormSchema: function(current, customResponse, requestJson) {
+    try {
+        CASLogger.debug('Inside the vRAImportCatalog.processCatalogCustomFormSchema');
+        var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+        var requestJson = this.appUtil.parse(requestJson);
+        var versions = requestJson.versions;
+        var catalogVraId = requestJson.catalogVraId;
+        var catalog = requestJson.catalog;
+        var catalogType = requestJson.catalogType;
+        var objSchema = this.appUtil.parse(customResponse);
+        var schema = objSchema.model.schema;
+        var pageSchema = objSchema.model.layout.pages;
+        this.daoUtil.deleteContainer(pageSchema, catalog, versions);
+        this.daoUtil.deleteVariable(schema, catalog, versions);
+        var visibility;
+        var tabVisibility;
+        var readOnly;
+        var size;
+        var length = objSchema.model.layout.pages.length; //page length ie.e total containers
+        for (var i = 0; i < length; i++) {
+            var name = objSchema.model.layout.pages[i].id;
+            var title = objSchema.model.layout.pages[i].title;
+            var length2 = objSchema.model.layout.pages[i].sections.length; //section length/i.e. total fields in 1 container
+
+            if (objSchema.model.layout.pages[i].state == "undefined" || objSchema.model.layout.pages[i].state == undefined || objSchema.model.layout.pages[i].state.visible == null) {
+
+                tabVisibility = "true";
+                this.createContainerStart(catalog, name, title, "", versions, tabVisibility);
+            } else {
+                tabVisibility = objSchema.model.layout.pages[i].state.visible;
+                this.createContainerStart(catalog, name, title, "", versions, tabVisibility);
+            }
+
+            if (length2 == '0' || length2 == 0) {
+                this.createContainerEnd(catalog, name, versions, tabVisibility);
+            }
+            for (var j = 0; j < length2; j++) {
+
+                var length3 = objSchema.model.layout.pages[i].sections[j].fields.length; // details of form field i.e datatype, field id(name),state(visible, read-only)
+
+                for (var k = 0; k < length3; k++) {
+
+                    for (var key in schema) {
+
+                        if (key == objSchema.model.layout.pages[i].sections[j].fields[k].id) {
+                            if (key == 'deploymentName' || key == 'description' || key == 'project') {
+
+                            } else {
+
+                                var displayValue = objSchema.model.layout.pages[i].sections[j].fields[k].display;
+                                if (objSchema.model.layout.pages[i].sections[j].fields[k].state == null) {
+
+                                    visibility = 'true';
+                                    readOnly = 'false';
+                                } else {
+
+                                    visibility = objSchema.model.layout.pages[i].sections[j].fields[k].state.visible;
+
+                                    readOnly = objSchema.model.layout.pages[i].sections[j].fields[k].state['read-only'];
+                                    if (objSchema.model.layout.pages[i].sections[j].fields[k].size) {
+
+                                        size = objSchema.model.layout.pages[i].sections[j].fields[k].size;
+
+                                    } else {
+                                        size = '';
+                                    }
+
+                                }
+                                if (tabVisibility == false) {
+                                    visibility = false;
+                                }
+
+                                var checkBlue = this.daoUtil.checkVariable(key, catalog, versions);
+                                if (checkBlue == 'create') {
+                                    this.createVariable(key, catalog, versions, schema, displayValue, visibility, readOnly, size);
+                                }
+                                if (checkBlue == 'update') {
+                                    this.updateVariable(key, catalog, versions, schema, displayValue, visibility, readOnly, size);
+                                }
+                            }
+                        }
+                    }
+                    this.createContainerEnd(catalog, name, versions, tabVisibility);
+                }
+            }
+        }
+        for (var field in schema) {
+
+            var datatype = schema[field].type.dataType;
+			
+			if (schema[field].constraints && datatype != 'dateTime' && field != 'deploymentName' && field != 'description') {
+
+
+				var minValue = '';
+				var maxValue = '';
+				var pattern = '';
+				var patternMessage = '';
+				for (var validation in schema[field].constraints) {
+					if (validation == 'min-value') {
+						minValue = schema[field].constraints[validation];
+					}
+					if (validation == 'max-value') {
+						maxValue = schema[field].constraints[validation];
+					}
+					if (validation == 'pattern') {
+						pattern = schema[field].constraints[validation].value;
+						patternMessage = schema[field].constraints[validation].message;
+					}
+				}
+				//display message.
+				if (minValue || maxValue || pattern) {
+					this.clientscript = this.daoUtil.insertValidationScript(minValue, maxValue, pattern, datatype, catalog, versions, field, patternMessage, this.clientscript);
+				}
+			}
+			
+
+            if (field != 'project' && field != 'deploymentName' && field != 'description') {
+				
+                if (schema[field]["valueList"] && typeof schema[field]["valueList"] == 'object' && schema[field]["valueList"]["type"] == 'scriptAction') {
+
+
+                    var type = schema[field]["valueList"]["type"];
+                    var uri = schema[field]["valueList"]["id"];
+                    var parameters = [];
+                    var dependency = [];
+                    if (schema[field]["valueList"]["parameters"]) {
+
+                        for (var param in schema[field]["valueList"]["parameters"]) {
+                            for (var param1 in schema[field]["valueList"]["parameters"][param]) {
+                                if (param1 != "$type") {
+                                    if (schema[field]["valueList"]["parameters"][param][param1] == null) {
+                                        parameters.push({
+                                            "name": param1,
+                                            "value": null
+                                        });
+                                    } else if (schema[field]["valueList"]["parameters"][param][param1] == 'project') {
+                                        dependency.push(param1);
+                                        dependency.push("u_project");
+                                    } else if (schema[field]["valueList"]["parameters"][param][param1].startsWith('`') && schema[field]["valueList"]["parameters"][param][param1].endsWith('`')) {
+                                        var value = schema[field]["valueList"]["parameters"][param][param1].slice(1, -1);
+										value = value.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                                        parameters.push({
+                                            "name": param1,
+                                            "value": value
+                                        });
+                                    } else {
+                                        var value = schema[field]["valueList"]["parameters"][param][param1];
+										value = value.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                                        dependency.push(param1);
+                                        if (!versions) {
+                                            dependency.push(value);
+                                        } else {
+                                            dependency.push(value + "__" + versions.replace(rgx, ' ').trim().replaceAll(' ', '_'));
+                                        }
+                                    }
+
+
+                                }
+                            }
+
+                        }
+
+                    }
+					var varField ='';
+					if(versions)
+						{
+							varField = field + "__"+versions;
+							varField = varField.replace(rgx, ' ').trim().replaceAll(' ', '_');
+						}
+					else
+						{
+							varField=field.replace(rgx, ' ').trim().replaceAll(' ', '_');
+						}
+
+                    this.clientscript = this.daoUtil.insertonloadscript(type, uri, JSON.stringify(parameters), dependency, varField, catalog, versions, 'onload_valueList');
+                    if (dependency.toString()) {
+
+                        this.clientscript = this.daoUtil.insertonchangescript(type, uri, JSON.stringify(parameters), dependency, varField, catalog, versions);
+
+                    }
+
+                }
+
+            }
+			if (schema[field]["default"] && typeof schema[field]["default"] == 'object' && schema[field]["default"]["type"] == 'scriptAction') {
+
+                    var type = schema[field]["default"]["type"];
+                    var uri = schema[field]["default"]["id"];
+                    var parameters = [];
+                    var dependency = [];
+                    if (schema[field]["default"]["parameters"]) {
+
+                        for (var param in schema[field]["default"]["parameters"]) {
+                            for (var param1 in schema[field]["default"]["parameters"][param]) {
+                                if (param1 != "$type") {
+                                    if (schema[field]["default"]["parameters"][param][param1] == null) {
+                                        parameters.push({
+                                            "name": param1,
+                                            "value": null
+                                        });
+                                    } else if (schema[field]["default"]["parameters"][param][param1] == 'project') {
+                                        dependency.push(param1);
+                                        dependency.push("u_project");
+                                    } else if (schema[field]["default"]["parameters"][param][param1].startsWith('`') && schema[field]["default"]["parameters"][param][param1].endsWith('`')) {
+                                        var value = schema[field]["default"]["parameters"][param][param1].slice(1, -1);
+										value = value.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                                        parameters.push({
+                                            "name": param1,
+                                            "value": value
+                                        });
+                                    } else {
+                                        var value = schema[field]["default"]["parameters"][param][param1];
+										value = value.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                                        dependency.push(param1);
+                                        if (!versions) {
+                                            dependency.push(value);
+                                        } else {
+                                            dependency.push(value + "__" + versions.replace(rgx, ' ').trim().replaceAll(' ', '_'));
+                                        }
+                                    }
+
+
+                                }
+                            }
+
+                        }
+                    }
+				var varField = '';
+				if(versions)
+						{
+							varField = field + "__"+versions;
+							varField = varField.replace(rgx, ' ').trim().replaceAll(' ', '_');
+						}
+					else
+						{
+							varField=field.replace(rgx, ' ').trim().replaceAll(' ', '_');
+						}
+                    this.clientscript = this.daoUtil.insertonloadscript(type, uri, JSON.stringify(parameters), dependency, varField, catalog, versions, 'onload_defaultValue');
+
+                    if ((!schema[field]["valueList"]) && (dependency.toString() || JSON.stringify(parameters))) {
+
+                        this.clientscript = this.daoUtil.insertonchangescript(type, uri, JSON.stringify(parameters), dependency, varField, catalog, versions);
+                    }
+
+                }
+
+        }
+
+
+    } catch (e) {
+        CASLogger.error("Exception caught inside vRAImportCatalog.processCatalogCustomFormSchema" + e);
+    }
+
+},
+
+
+    //'displayValue'= datatype e.g.'dropDown'
+    //'key'= field name 
+    //'catalog'= sys id of catalog item
+    //'schema'= schema tag from 'form service API response' which contains all field details
+    //x_vmw_cloudservice_vra_uri	
+    //x_vmw_cloudservice_vra_datasource	
+    //x_vmw_cloudservice_vra_parameter
+    //x_vmw_cloudservice_vra_client_script
+
+    createVariable: function(key, catalog, version, schema, displayValue, visibility, readOnly,size)
+
+    {
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.createVariable');
+            var GRVariable = new GlideRecord(this.appUtil.configuration.table.variable);
+            GRVariable.initialize();
+            GRVariable.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+            GRVariable.mandatory = 'false';
+            var clientScriptVersion = version;
+            if (version == '' || version == 'undefined' || version == 'undefined,') {
+                clientScriptVersion = 'undefined';
+            }
+
+            var dropdown = 'false';
+            GRVariable.type = '6';
+            GRVariable.x_vmw_cloudservice_cas_name = 'STR__' + key;
+			var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+            var VersionCheck = key.replace(rgx, ' ').trim().replaceAll(' ', '_');
+			var name = '';
+            if (version == '' || version == 'undefined' || version == 'undefined,') {
+                GRVariable.name = VersionCheck;
+				name = VersionCheck;
+
+            } else {
+                var versionEncrypt = version.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                GRVariable.name = VersionCheck + '__' + versionEncrypt;
+				name = VersionCheck + '__' + versionEncrypt;
+            }
+			
+            if (displayValue == 'datagrid') {
+                GRVariable.x_vmw_cloudservice_field_json = this.appUtil.stringify(schema[key]);
+                GRVariable.x_vmw_cloudservice_datatype = 'DataGrid';
+				GRVariable.x_vmw_cloudservice_step=size;
+				this.createMacroVariable(key, catalog, version, schema, displayValue, visibility, readOnly,size);
+				this.createClientScriptForDynamicDatatype(catalog, displayValue, key, version);
+            }
+
+            if (displayValue == 'integerField') {
+				if (!this.number) {
+                    var validationGR = new GlideRecord(this.appUtil.configuration.table.regex);
+                    validationGR.addEncodedQuery('active=true^name=Number');
+                    validationGR.query();
+                    if (validationGR.next()) {
+                        this.number = validationGR.sys_id;
+                    }
+
+                }
+                GRVariable.x_vmw_cloudservice_cas_name = 'INT__' + key;
+                GRVariable.x_vmw_cloudservice_step = schema[key]['step'];
+				GRVariable.validate_regex = this.number;
+                if (schema[key]['constraints']) {
+                    if (schema[key]['constraints']['min-value']) {
+                        GRVariable.default_value = schema[key]['constraints']['min-value'];
+                    }
+                }
+            }
+            if (displayValue == 'decimalField') {
+				if (!this.decimal) {
+                    var decimalGR = new GlideRecord(this.appUtil.configuration.table.regex);
+                    decimalGR.addEncodedQuery('active=true^name=Decimal');
+                    decimalGR.query();
+                    if (decimalGR.next()) {
+                        this.decimal = decimalGR.sys_id;
+                    } else {
+                        decimalGR.initialize();
+                        decimalGR.name = 'Decimal';
+                        decimalGR.validation_message = 'Not a Decimal Number';
+                        decimalGR.regex = '^(\d*\.)?\d+$';
+                        var decimal = decimalGR.insert();
+                        this.decimal = decimal;
+                    }
+
+                }
+                GRVariable.x_vmw_cloudservice_cas_name = 'INT__' + key;
+                GRVariable.x_vmw_cloudservice_datatype = 'Decimal';
+                GRVariable.x_vmw_cloudservice_step = schema[key]['step'];
+				GRVariable.validate_regex = this.decimal;
+                if (schema[key]['constraints']) {
+                    if (schema[key]['constraints']['min-value']) {
+                        GRVariable.default_value = schema[key]['constraints']['min-value'];
+                    }
+                }
+            }
+            if (displayValue == 'passwordField') {
+
+                GRVariable.type = '25';
+                GRVariable.x_vmw_cloudservice_cas_name = 'PSD__' + key;
+                GRVariable.mask_use_encryption = true;
+
+            }
+            if (displayValue == 'textArea') {
+                GRVariable.type = '2';
+            }
+            if (displayValue == 'dateTime') {
+                GRVariable.type = '10';
+                GRVariable.x_vmw_cloudservice_cas_name = 'DATE__' + key;
+            }
+
+            if (displayValue == 'checkbox') {
+                GRVariable.type = '7';
+                GRVariable.x_vmw_cloudservice_cas_name = 'BOOL__' + key;
+            }
+			
+			if (schema[key]['default']) {
+				if (schema[key]['default']['type'] == 'scriptAction') {
+					if (schema[key]['default']['parameters'] == '' || schema[key]['default']['parameters'] == null) {
+						GRVariable.x_vmw_cloudservice_vra_default_value_client_script = "OnLoad__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+					} else {
+						GRVariable.x_vmw_cloudservice_vra_default_value_client_script = "OnChange__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+					}
+
+				} else {
+					if (typeof schema[key]['default'] === 'object') {
+
+						GRVariable.default_value = this.appUtil.stringify(schema[key]['default']);
+
+					} else {
+						GRVariable.default_value = schema[key]['default'];
+
+					}
+				}
+			}
+			
+			
+			
+
+            if (schema[key]["valueList"]) {
+                GRVariable.type = '5';
+                dropdown = 'true';
+                if (schema[key]['valueList']['type'] == 'scriptAction' && displayValue != 'valuePicker') {
+
+                    if (schema[key]['valueList']['parameters'] == '' || schema[key]['valueList']['parameters'] == null) {
+                        GRVariable.x_vmw_cloudservice_vra_value_client_script = "OnLoad__" + schema[key]['valueList']['id'] + "__" + schema[key]['valueList']['type'] + "__" + this.appUtil.stringify(schema[key]['valueList']['parameters']) + '__' + clientScriptVersion;
+                    } else {
+                        if (schema[key]['valueList']['type'] == 'scriptAction') {
+                            GRVariable.x_vmw_cloudservice_vra_value_client_script = "OnChange__" + schema[key]['valueList']['id'] + "__" + schema[key]['valueList']['type'] + "__" + this.appUtil.stringify(schema[key]['valueList']['parameters']) + '__' + clientScriptVersion;
+                        }
+                    }
+
+
+                }
+            }
+            if (displayValue == 'multiSelect') {
+                GRVariable.x_vmw_cloudservice_datatype = 'Multiselect';
+				var def_val = schema[key];
+				var constraints = schema[key]['constraints'];
+				constraints["read_only"] =readOnly;
+				def_val['constraints'] =constraints; 
+				def_val["field_id"] = name;
+				this.createMacroVariable(key, catalog, version, schema, displayValue, visibility, readOnly, size);
+				this.createClientScriptForDynamicDatatype(catalog, displayValue, key, version, def_val);
+            }
+            if (displayValue == 'dualList') {				
+                GRVariable.x_vmw_cloudservice_datatype = 'Duallist';
+				var def_val = schema[key];
+				var constraints = schema[key]['constraints'];
+				constraints["read_only"] =readOnly;
+				def_val['constraints'] =constraints; 
+				def_val["field_id"] = name;
+				this.createMacroVariable(key, catalog, version, schema, displayValue, visibility, readOnly, size);
+				this.createClientScriptForDynamicDatatype(catalog, displayValue, key, version, def_val);
+            }
+            if (displayValue == 'radio') {
+                GRVariable.type = '3';
+                GRVariable.x_vmw_cloudservice_cas_name = 'RADO__' + key;
+                dropdown = 'true';
+            }
+            if (displayValue == 'valuePicker') {
+                GRVariable.x_vmw_cloudservice_datatype = 'ValuePicker';
+                GRVariable.type = '5';
+
+                if ((schema[key]['valueList'] == '' || schema[key]['valueList'] == null) && (schema[key]['type']['referenceType'] != null || schema[key]['type']['referenceType'] == '')) {
+                    GRVariable.x_vmw_cloudservice_vra_value_client_script = "OnLoad__" + "Nodata" + "__" + "Nodata" + "__" + "Nodata" + '__' + clientScriptVersion + "__" + schema[key]['type']['referenceType'];
+                } else {
+
+                    if (schema[key]['valueList']['type'] == 'scriptAction') {
+                        GRVariable.x_vmw_cloudservice_vra_value_client_script = "OnLoad__" + schema[key]['valueList']['id'] + "__" + schema[key]['valueList']['type'] + "__" + this.appUtil.stringify(schema[key]['valueList']['parameters']) + '__' + clientScriptVersion + "__" + schema[key]['type']['referenceType'];
+                    }
+                }
+            }
+
+
+           
+						
+            if (schema[key]['constraints']) {
+                if (schema[key]['constraints']['required']) {
+                    GRVariable.mandatory = (schema[key]['constraints']['required'] && visibility);
+                }
+                if (schema[key]['constraints']['min-value']) {
+                    if (displayValue == 'dateTime') {
+                        GRVariable.x_vmw_cloudservice_cas_min_date = schema[key]['constraints']['min-value'];
+                    } else {
+                        GRVariable.x_vmw_cloudservice_vra_minimum = schema[key]['constraints']['min-value'];
+                    }
+                }
+                if (schema[key]['constraints']['max-value']) {
+                    if (displayValue == 'dateTime') {
+                        GRVariable.x_vmw_cloudservice_cas_max_date = schema[key]['constraints']['max-value'];
+                    } else {
+                        GRVariable.x_vmw_cloudservice_vra_maximum = schema[key]['constraints']['max-value'];
+                    }
+                }
+
+                if (schema[key]['constraints']['pattern']) {
+                    GRVariable.x_vmw_cloudservice_pattern = schema[key]['constraints']['pattern']['value'];
+                    GRVariable.x_vmw_cloudservice_pattern_message = schema[key]['constraints']['pattern']['message'];
+                }
+            }
+
+            if (schema[key]['signpost']) {
+                GRVariable.tooltip = schema[key]['signpost'];
+            }
+
+
+            if (schema[key]['placeholder']) {
+                GRVariable.example_text = schema[key]['placeholder'];
+            }
+            if (schema[key]['label']) {
+                GRVariable.question_text = schema[key]['label'];
+            } else {
+                GRVariable.question_text = key;
+            }
+
+            if (displayValue == 'text') {
+                GRVariable.type = '11';
+                if (schema[key]['default'] == 'undefined' || schema[key]['default'] == undefined || schema[key]['default'] == '') {
+                    GRVariable.question_text = displayValue;
+                } else {
+                    GRVariable.question_text = schema[key]['default'];
+                }
+                GRVariable.x_vmw_cloudservice_cas_name = 'LAB__' + key;
+            }
+
+            GRVariable.x_vmw_cloudservice_field_readonly = readOnly;
+            GRVariable.x_vmw_cloudservice_field_visibility = visibility;
+            GRVariable.display_title = 'true';
+            GRVariable.cat_item = catalog;
+			GRVariable.visible_standalone = visibility;
+
+            GRVariable.x_vmw_cloudservice_versions = GRVariable.x_vmw_cloudservice_versions + version + ",";
+            GRVariable.active = 'true';
+            GRVariable.order = this.order;
+            this.order = this.order + 1;
+            GRVariable.visible_standalone = 'true';
+            GRVariable.visible_bundle = 'true';
+            GRVariable.visible_guide = 'true';
+            GRVariable.x_vmw_cloudservice_vraorginalkeyname = key;
+            GRVariable.visible_summary = 'true';
+			GRVariable.variable_width = '100';
+            if (dropdown && !(displayValue == 'multiSelect' || displayValue == 'dualList' || displayValue == 'valuePicker' || displayValue == 'radio')) {
+                GRVariable.include_none = 'true';
+            }
+            var variable = GRVariable.insert();
+
+            if (dropdown == 'true') {
+                this.daoUtil.DeleteQuestionChoices(variable);
+                this.createChoices(schema[key]["valueList"], variable);
+            }
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.createVariable " + e + 'in Variable' + key);
+        }
+    },
+    updateVariable: function(key, catalog, version, schema, displayValue, visibility, readOnly,size) {
+        try {
+			
+
+            CASLogger.debug('Inside the vRAImportCatalog.updateVariable');
+            var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+            var variable = '';
+            var versionCheck = key.replace(rgx, ' ').trim().replaceAll(' ', '_');
+            var clientScriptVersion;
+
+            if (version == '' || version == "undefined" || version == "undefined,") {
+                variable = versionCheck;
+                clientScriptVersion = 'undefined';
+            } else {
+                var versionEncrypt = version.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                variable = versionCheck + "__" + versionEncrypt;
+                clientScriptVersion = version;
+            }
+            var dropdown = 'false';
+            var grVariable = this.daoUtil.genericGRquery(this.appUtil.configuration.table.variable, 'name=' + variable + '^cat_item=' + catalog, '1');
+            grVariable.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+            if (grVariable.next()) {
+                grVariable.mandatory = 'false';
+                grVariable.default_value = '';
+                grVariable.x_vmw_cloudservice_cas_min_date = '';
+                grVariable.x_vmw_cloudservice_vra_minimum = '';
+                grVariable.x_vmw_cloudservice_cas_max_date = '';
+                grVariable.x_vmw_cloudservice_vra_maximum = '';
+                grVariable.x_vmw_cloudservice_pattern = '';
+                grVariable.x_vmw_cloudservice_pattern_message = '';
+                grVariable.x_vmw_cloudservice_step = '';
+                grVariable.tooltip = '';
+                grVariable.example_text = '';
+                grVariable.x_vmw_cloudservice_vra_value_client_script = '';
+                grVariable.x_vmw_cloudservice_vra_default_value_client_script = '';
+                grVariable.type = '6';
+
+                grVariable.x_vmw_cloudservice_cas_name = 'STR__' + key;
+
+                if (displayValue == 'datagrid') {
+                    grVariable.x_vmw_cloudservice_field_json = this.appUtil.stringify(schema[key]);
+                    grVariable.x_vmw_cloudservice_datatype = 'DataGrid';
+					grVariable.x_vmw_cloudservice_step=size;
+					this.updateMacroVariable(key, catalog, version, schema, displayValue, visibility, readOnly,size);
+					this.createClientScriptForDynamicDatatype(catalog, displayValue, key, version);
+                }
+
+                if (displayValue == 'integerField') {
+					
+                    if (!this.number) {
+                        var validationGR = new GlideRecord(this.appUtil.configuration.table.regex);
+                        validationGR.addEncodedQuery('active=true^name=Number');
+                        validationGR.query();
+                        if (validationGR.next()) {
+                            this.number = validationGR.sys_id;
+                        }
+
+                    }
+                    grVariable.x_vmw_cloudservice_cas_name = 'INT__' + key;
+                    grVariable.x_vmw_cloudservice_step = schema[key]['step'];
+					grVariable.validate_regex = this.number;
+                    if (schema[key]['constraints']) {
+                        if (schema[key]['constraints']['min-value']) {
+                            grVariable.default_value = schema[key]['constraints']['min-value'];
+                        }
+                    }
+                }
+                if (displayValue == 'decimalField') {
+					
+                    if (!this.decimal) {
+                        var decimalGR = new GlideRecord(this.appUtil.configuration.table.regex);
+                        decimalGR.addEncodedQuery('active=true^name=Decimal');
+                        decimalGR.query();
+                        if (decimalGR.next()) {
+                            this.decimal = decimalGR.sys_id;
+                        } else {
+                            decimalGR.initialize();
+                            decimalGR.name = 'Decimal';
+                            decimalGR.validation_message = 'Not a Decimal Number';
+                            decimalGR.regex = '^(\d*\.)?\d+$';
+                            var decimal = decimalGR.insert();
+                            this.decimal = decimal;
+                        }
+
+                    }
+                    grVariable.x_vmw_cloudservice_datatype = 'Decimal';
+                    grVariable.x_vmw_cloudservice_cas_name = 'INT__' + key;
+                    grVariable.x_vmw_cloudservice_step = schema[key]['step'];
+					grVariable.validate_regex = this.decimal;
+                    if (schema[key]['constraints']) {
+                        if (schema[key]['constraints']['min-value']) {
+                            grVariable.default_value = schema[key]['constraints']['min-value'];
+                        }
+                    }
+                }
+                if (displayValue == 'passwordField') {
+                    grVariable.type = '25';
+                    grVariable.x_vmw_cloudservice_cas_name = 'PSD__' + key;
+                    grVariable.mask_use_encryption = true;
+                }
+                if (displayValue == 'dateTime') {
+                    grVariable.type = '10';
+                    grVariable.x_vmw_cloudservice_cas_name = 'DATE__' + key;
+                }
+                if (displayValue == 'textArea') {
+                    grVariable.type = '2';
+                }
+
+                if (displayValue == 'checkbox') {
+                    grVariable.type = '7';
+                    grVariable.x_vmw_cloudservice_cas_name = 'BOOL__' + key;
+                }
+
+                if (schema[key]["valueList"]) {
+                    grVariable.type = '5';
+                    dropdown = 'true';
+
+                    if (schema[key]['valueList']['type'] == 'scriptAction' && displayValue != 'valuePicker') {
+
+
+
+                        if (schema[key]['valueList']['parameters'] == '' || schema[key]['valueList']['parameters'] == null) {
+                            grVariable.x_vmw_cloudservice_vra_value_client_script = "OnLoad__" + schema[key]['valueList']['id'] + "__" + schema[key]['valueList']['type'] + "__" + this.appUtil.stringify(schema[key]['valueList']['parameters']) + '__' + clientScriptVersion;
+                        } else {
+                            grVariable.x_vmw_cloudservice_vra_value_client_script = "OnChange__" + schema[key]['valueList']['id'] + "__" + schema[key]['valueList']['type'] + "__" + this.appUtil.stringify(schema[key]['valueList']['parameters']) + '__' + clientScriptVersion;
+                        }
+
+                    }
+
+                }
+                if (displayValue == 'multiSelect') {
+                    grVariable.x_vmw_cloudservice_datatype = 'Multiselect';
+					var def_val = schema[key];
+					var constraints = schema[key]['constraints'];
+					constraints["read_only"] =readOnly;
+					def_val['constraints'] =constraints; 
+					def_val["field_id"] = variable;
+					this.updateMacroVariable(key, catalog, version, schema, displayValue, visibility, readOnly, size);
+					this.createClientScriptForDynamicDatatype(catalog, displayValue, key, version, def_val);
+                }
+                if (displayValue == 'dualList') {
+                    grVariable.x_vmw_cloudservice_datatype = 'Duallist';
+					var def_val = schema[key];
+					var constraints = schema[key]['constraints'];
+					constraints["read_only"] =readOnly;
+					def_val['constraints'] =constraints; 
+					def_val["field_id"] = variable;
+					this.updateMacroVariable(key, catalog, version, schema, displayValue, visibility, readOnly, size);
+					this.createClientScriptForDynamicDatatype(catalog, displayValue, key, version, def_val);
+                }
+                if (displayValue == 'radio') {
+                    grVariable.type = '3';
+                    grVariable.x_vmw_cloudservice_cas_name = 'RADO__' + key;
+                    dropdown = 'true';
+                }
+                if (displayValue == 'valuePicker') {
+                    grVariable.x_vmw_cloudservice_datatype = 'ValuePicker';
+                    grVariable.type = '5';
+
+                    if ((schema[key]['valueList'] == '' || schema[key]['valueList'] == null || schema[key]['valueList'] == undefined) && (schema[key]['type']['referenceType'] != null || schema[key]['type']['referenceType'] == '' || schema[key]['type']['referenceType'] == undefined)) {
+                        grVariable.x_vmw_cloudservice_vra_value_client_script = "OnLoad__" + "Nodata" + "__" + "Nodata" + "__" + "Nodata" + '__' + clientScriptVersion + "__" + schema[key]['type']['referenceType'];
+                    } else {
+
+                        if (schema[key]['valueList']['type'] == 'scriptAction') {
+                            grVariable.x_vmw_cloudservice_vra_value_client_script = "OnLoad__" + schema[key]['valueList']['id'] + "__" + schema[key]['valueList']['type'] + "__" + this.appUtil.stringify(schema[key]['valueList']['parameters']) + '__' + clientScriptVersion + "__" + schema[key]['type']['referenceType'];
+                        }
+                    }
+                }
+
+
+                if (schema[key]['default']) {
+
+                    if (schema[key]['default']['type'] == 'scriptAction') {
+                        if (schema[key]['default']['parameters'] == '' || schema[key]['default']['parameters'] == null) {
+                            grVariable.x_vmw_cloudservice_vra_default_value_client_script = "OnLoad__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+                        } else {
+                            grVariable.x_vmw_cloudservice_vra_default_value_client_script = "OnChange__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+                        }
+
+                    } else {
+
+                        if (typeof schema[key]['default'] === 'object') {
+
+                            grVariable.default_value = this.appUtil.stringify(schema[key]['default']);
+
+                        } else {
+                            grVariable.default_value = schema[key]['default'];
+
+                        }
+                    }
+                }
+				
+                if (schema[key]['constraints']) {
+                    if (schema[key]['constraints']['required']) {
+                        grVariable.mandatory = (schema[key]['constraints']['required'] && visibility);
+                    }
+                    if (schema[key]['constraints']['min-value']) {
+                        if (displayValue == 'dateTime') {
+                            grVariable.x_vmw_cloudservice_cas_min_date = schema[key]['constraints']['min-value'];
+                        } else {
+                            grVariable.x_vmw_cloudservice_vra_minimum = schema[key]['constraints']['min-value'];
+                        }
+                    }
+                    if (schema[key]['constraints']['max-value']) {
+                        if (displayValue == 'dateTime') {
+                            grVariable.x_vmw_cloudservice_cas_max_date = schema[key]['constraints']['max-value'];
+                        } else {
+                            grVariable.x_vmw_cloudservice_vra_maximum = schema[key]['constraints']['max-value'];
+                        }
+                    }
+                    if (schema[key]['constraints']['pattern']) {
+                        grVariable.x_vmw_cloudservice_pattern = schema[key]['constraints']['pattern']['value'];
+                        grVariable.x_vmw_cloudservice_pattern_message = schema[key]['constraints']['pattern']['message'];
+                    }
+                }
+                if (schema[key]['signpost']) {
+                    grVariable.tooltip = schema[key]['signpost'];
+                }
+
+
+                if (schema[key]['placeholder']) {
+                    grVariable.example_text = schema[key]['placeholder'];
+                }
+                if (schema[key]['label']) {
+                    grVariable.question_text = schema[key]['label'];
+                } else {
+                    grVariable.question_text = key;
+                }
+
+                if (displayValue == 'text') {
+                    grVariable.type = '11';
+                    if (schema[key]['default'] == 'undefined' || schema[key]['default'] == undefined || schema[key]['default'] == '') {
+                        grVariable.question_text = displayValue;
+                    } else {
+
+                        grVariable.question_text = schema[key]['default'];
+                    }
+                    grVariable.x_vmw_cloudservice_cas_name = 'LAB__' + key;
+                }
+                if (!grVariable.x_vmw_cloudservice_versions.contains(version)) {
+                    grVariable.x_vmw_cloudservice_versions = grVariable.x_vmw_cloudservice_versions + version + ",";
+                }
+
+                grVariable.active = 'true';
+                grVariable.x_vmw_cloudservice_field_readonly = readOnly;
+                grVariable.x_vmw_cloudservice_field_visibility = visibility;
+                grVariable.x_vmw_cloudservice_vraorginalkeyname = key;
+				grVariable.visible_standalone = 'true';
+                grVariable.order = this.order;
+                this.order = this.order + 1;
+				grVariable.variable_width = '100';
+				if (dropdown && !(displayValue == 'multiSelect' || displayValue == 'dualList' || displayValue == 'valuePicker' || displayValue == 'radio')) {
+                    grVariable.include_none = 'true';
+                }
+                var Updatevariable = grVariable.update();
+                if (dropdown == 'true') {
+                    this.daoUtil.DeleteQuestionChoices(Updatevariable);
+                    this.createChoices(schema[key]["valueList"], Updatevariable);
+                }
+            }
+				
+
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.updateVariable " + e + "in Variable " + key);
+        }
+    },
+    createChoices: function(choices, variable) {
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.createChoices');
+
+            for (var i = 0; i < choices.length; i++) {
+                if (choices[i].label) {
+
+
+                    this.daoUtil.insertCustomChoice(choices[i].label, choices[i].value, variable, i);
+                } else {
+
+                    this.daoUtil.insertCustomChoice(choices[i], choices[i], variable, i);
+                }
+            }
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.createChoices " + e);
+        }
+    },
+	
+	
+	createMacroVariable: function(key, catalog, version, schema, displayValue, visibility, readOnly, size) {
+    try {
+        CASLogger.debug('Inside the vRAImportCatalog.createMacroVariable : reconcile CatalogItem');
+		
+		var macroVariable =  new GlideRecord(this.appUtil.configuration.table.variable);
+		macroVariable.initialize();
+		macroVariable.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+		macroVariable.x_vmw_cloudservice_cas_name = 'STR__' + key;
+		macroVariable.mandatory = 'false';
+		
+		var clientScriptVersion = version;
+		if (version == '' || version == 'undefined' || version == 'undefined,') {
+			clientScriptVersion = 'undefined';
+		}
+		var macro_name = '';
+		var name = '';
+		var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+		var VersionCheck = key.replace(rgx, ' ').trim().replaceAll(' ', '_');
+		if (version == '' || version == 'undefined' || version == 'undefined,') {
+			macroVariable.name = 'macro_'+VersionCheck;
+			macro_name = 'macro_'+VersionCheck;
+			name = VersionCheck;
+            } else {
+                var versionEncrypt = version.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                macroVariable.name = 'macro_'+VersionCheck + '__' + versionEncrypt;
+				macro_name = 'macro_'+VersionCheck + '__' + versionEncrypt;
+				name = VersionCheck + '__' + versionEncrypt;
+            }
+		
+		var dropdown = 'false';
+		var defaultClientScript = '';
+		if (schema[key]['default']) {
+
+                    if (schema[key]['default']['type'] == 'scriptAction') {
+                        if (schema[key]['default']['parameters'] == '' || schema[key]['default']['parameters'] == null) {
+                            macroVariable.x_vmw_cloudservice_vra_default_value_client_script = "OnLoad__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+							defaultClientScript ="OnLoad__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+                        } else {
+                            macroVariable.x_vmw_cloudservice_vra_default_value_client_script = "OnChange__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+							defaultClientScript ="OnChange__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+                        }
+
+                    } else {
+
+                        if (typeof schema[key]['default'] === 'object') {
+
+                            macroVariable.default_value = this.appUtil.stringify(schema[key]['default']);
+
+                        } else {
+                            macroVariable.default_value = schema[key]['default'];
+                        }
+                    }
+
+                }
+		if (displayValue == 'multiSelect') {
+			macroVariable.type = '17';
+			var def_val = schema[key];
+			var constraints = schema[key]['constraints'];
+			constraints["read_only"] =readOnly;
+			def_val['constraints'] =constraints; 
+			def_val["field_id"] = name;
+			macroVariable.default_value =  this.appUtil.stringify(def_val);
+			macroVariable.sp_widget = gs.getProperty(this.appUtil.configuration.properties.cas_multiselect_widget_sysid); 
+			macroVariable.macro = gs.getProperty(this.appUtil.configuration.properties.cas_multiselect_ui_macro_sysid);
+		}
+		
+		if (displayValue == 'dualList') {
+			macroVariable.type = '17';
+			var def_val = schema[key];
+			var constraints = schema[key]['constraints'];
+			constraints["read_only"] =readOnly;
+			def_val['constraints'] =constraints; 
+			def_val["field_id"] = name;
+			macroVariable.default_value =  this.appUtil.stringify(def_val);
+			macroVariable.sp_widget = gs.getProperty(this.appUtil.configuration.properties.cas_duallist_widget_sysid); 
+			macroVariable.macro = gs.getProperty(this.appUtil.configuration.properties.cas_duallist_ui_macro_sysid);
+		}
+		if(displayValue == 'datagrid'){
+			var macroJSON = {  
+				"field": {
+					"visible": visibility,
+					"versions": version + ",",
+					"read_only": readOnly,
+					"macro_name": macro_name,
+					"name": name,
+					"display_name": (schema[key]['label']) ? schema[key]['label'] : key,
+					"json" : schema[key],
+					"default_value" : (schema[key]['default']['type'] != 'scriptAction') ? (schema[key]['default']) :[],
+					"pageSize": size+'',
+					"defaultClientScript" : defaultClientScript
+				}
+			};
+			
+			macroVariable.type = '17';
+			macroVariable.default_value = this.appUtil.stringify(macroJSON);
+			macroVariable.sp_widget = gs.getProperty(this.appUtil.configuration.properties.cas_datagrid_widget_sysid); 
+			macroVariable.macro = gs.getProperty(this.appUtil.configuration.properties.cas_datagrid_ui_macro_sysid);
+		}
+		
+		if (schema[key]['constraints']) {
+                if (schema[key]['constraints']['required']) {
+                    macroVariable.mandatory = (schema[key]['constraints']['required']&& visibility);
+                }
+                if (schema[key]['constraints']['min-value']) {
+                    if (displayValue == 'dateTime') {
+                        macroVariable.x_vmw_cloudservice_cas_min_date = schema[key]['constraints']['min-value'];
+                    } else {
+                        macroVariable.x_vmw_cloudservice_vra_minimum = schema[key]['constraints']['min-value'];
+                    }
+                }
+                if (schema[key]['constraints']['max-value']) {
+                    if (displayValue == 'dateTime') {
+                        macroVariable.x_vmw_cloudservice_cas_max_date = schema[key]['constraints']['max-value'];
+                    } else {
+                        macroVariable.x_vmw_cloudservice_vra_maximum = schema[key]['constraints']['max-value'];
+                    }
+                }
+
+                if (schema[key]['constraints']['pattern']) {
+                    macroVariable.x_vmw_cloudservice_pattern = schema[key]['constraints']['pattern']['value'];
+                    macroVariable.x_vmw_cloudservice_pattern_message = schema[key]['constraints']['pattern']['message'];
+                }
+            }
+
+            if (schema[key]['signpost']) {
+                macroVariable.tooltip = schema[key]['signpost'];
+            }
+
+
+            if (schema[key]['placeholder']) {
+                macroVariable.example_text = schema[key]['placeholder'];
+            }
+            if (schema[key]['label']) {
+                macroVariable.question_text = schema[key]['label'];
+            } else {
+                macroVariable.question_text = key;
+            }
+		
+		macroVariable.x_vmw_cloudservice_field_readonly = readOnly;
+            macroVariable.x_vmw_cloudservice_field_visibility = visibility;
+            macroVariable.display_title = 'true';
+            macroVariable.cat_item = catalog;
+			macroVariable.visible_standalone = visibility;
+		
+			macroVariable.x_vmw_cloudservice_versions = macroVariable.x_vmw_cloudservice_versions + version + ",";
+		
+            macroVariable.active = 'true';
+            macroVariable.order = this.order;
+            this.order = this.order + 1;
+            macroVariable.visible_standalone = 'true';
+            macroVariable.visible_bundle = 'true';
+            macroVariable.visible_guide = 'true';
+            macroVariable.x_vmw_cloudservice_vraorginalkeyname = key;
+            macroVariable.visible_summary = 'false';
+		if (schema[key]['label']) {
+			macroVariable.question_text = schema[key]['label'];
+		} else {
+			macroVariable.question_text = key;
+		}
+		
+           
+            var variable = macroVariable.insert();
+
+    } catch (e) {
+        CASLogger.error("Exception caught inside vRAImportCatalog.createMacroVariable " + e);
+    }
+	},
+	
+	updateMacroVariable: function(key, catalog, version, schema, displayValue, visibility, readOnly, size) {
+    try {
+        CASLogger.debug('Inside the vRAImportCatalog.updateMacroVariable : reconcile CatalogItem');
+		
+		var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+            var variable = '';
+            var versionCheck = key.replace(rgx, ' ').trim().replaceAll(' ', '_');
+            var clientScriptVersion;
+			var name = '';
+		
+            if (version == '' || version == "undefined" || version == "undefined,") {
+                variable = 'macro_'+versionCheck;
+                clientScriptVersion = 'undefined';
+				name = versionCheck;
+            } else {
+                var versionEncrypt = version.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                variable = "macro_"+versionCheck + "__" + versionEncrypt;
+                clientScriptVersion = version;
+				name = versionCheck + "__" + versionEncrypt;
+            }		
+				
+            var dropdown = 'false';
+            var macroVariable = this.daoUtil.genericGRquery(this.appUtil.configuration.table.variable, 'name=' + variable + '^cat_item=' + catalog, '1');
+            macroVariable.sys_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+		if(!macroVariable.next()){
+			this.createMacroVariable(key, catalog, version, schema, displayValue, visibility, readOnly, size);	
+		}else{
+			
+                macroVariable.mandatory = 'false';
+                macroVariable.default_value = '';
+                macroVariable.x_vmw_cloudservice_cas_min_date = '';
+                macroVariable.x_vmw_cloudservice_vra_minimum = '';
+                macroVariable.x_vmw_cloudservice_cas_max_date = '';
+                macroVariable.x_vmw_cloudservice_vra_maximum = '';
+                macroVariable.x_vmw_cloudservice_pattern = '';
+                macroVariable.x_vmw_cloudservice_pattern_message = '';
+                macroVariable.x_vmw_cloudservice_step = '';
+                macroVariable.tooltip = '';
+                macroVariable.example_text = '';
+                macroVariable.x_vmw_cloudservice_vra_value_client_script = '';
+                macroVariable.x_vmw_cloudservice_vra_default_value_client_script = '';
+				
+			var defaultClientScript ='';
+                if (schema[key]['default']) {
+
+                    if (schema[key]['default']['type'] == 'scriptAction') {
+                        if (schema[key]['default']['parameters'] == '' || schema[key]['default']['parameters'] == null) {
+                            macroVariable.x_vmw_cloudservice_vra_default_value_client_script = "OnLoad__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+							defaultClientScript = "OnLoad__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+                        } else {
+                            macroVariable.x_vmw_cloudservice_vra_default_value_client_script = "OnChange__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+							defaultClientScript = "OnChange__" + schema[key]['default']['id'] + "__" + schema[key]['default']['type'] + "__" + this.appUtil.stringify(schema[key]['default']['parameters']) + '__' + clientScriptVersion;
+                        }
+
+                    } else {
+
+                        if (typeof schema[key]['default'] === 'object') {
+
+                            macroVariable.default_value = this.appUtil.stringify(schema[key]['default']);
+
+                        } else {
+                            macroVariable.default_value = schema[key]['default'];
+                        }
+                    }
+
+                }
+			if (displayValue == 'multiSelect') {
+					var def_val = schema[key];
+					var constraints = schema[key]['constraints'];
+					constraints["read_only"] =readOnly;
+					def_val['constraints'] =constraints; 
+					def_val["field_id"] = name;
+					macroVariable.default_value =  this.appUtil.stringify(def_val);	
+					macroVariable.sp_widget = gs.getProperty(this.appUtil.configuration.properties.cas_multiselect_widget_sysid);
+					macroVariable.macro = gs.getProperty(this.appUtil.configuration.properties.cas_multiselect_ui_macro_sysid);
+                }
+			
+				if (displayValue == 'dualList') {
+					var def_val = schema[key];
+					var constraints = schema[key]['constraints'];
+					constraints["read_only"] =readOnly;
+					def_val['constraints'] =constraints; 
+					def_val["field_id"] = name;
+					macroVariable.default_value =  this.appUtil.stringify(def_val);	
+					macroVariable.sp_widget = gs.getProperty(this.appUtil.configuration.properties.cas_duallist_widget_sysid);
+					macroVariable.macro = gs.getProperty(this.appUtil.configuration.properties.cas_duallist_ui_macro_sysid);
+                }
+			
+			if (displayValue == 'datagrid') {
+				var macroJSON = {  
+				"field": {
+					"visible": visibility,
+					"versions": version + ",",
+					"read_only": readOnly,
+					"macro_name": variable,
+					"name": name,
+					"display_name": (schema[key]['label']) ? schema[key]['label'] : key,
+					"json" : schema[key],
+					"default_value" : (schema[key]['default']['type'] != 'scriptAction') ? (schema[key]['default']) :[],
+					"pageSize": size+'',					
+					"defaultClientScript" : defaultClientScript
+				}
+			};
+				macroVariable.default_value =  this.appUtil.stringify(macroJSON);
+                macroVariable.x_vmw_cloudservice_field_json = this.appUtil.stringify(schema[key]);
+				macroVariable.x_vmw_cloudservice_step=size;
+				macroVariable.sp_widget = gs.getProperty(this.appUtil.configuration.properties.cas_datagrid_widget_sysid);
+				macroVariable.macro = gs.getProperty(this.appUtil.configuration.properties.cas_datagrid_ui_macro_sysid);
+			}
+				
+                if (schema[key]['constraints']) {
+                    if (schema[key]['constraints']['required']) {
+                        macroVariable.mandatory = (schema[key]['constraints']['required'] && visibility);
+                    }
+                    if (schema[key]['constraints']['min-value']) {
+                        if (displayValue == 'dateTime') {
+                            macroVariable.x_vmw_cloudservice_cas_min_date = schema[key]['constraints']['min-value'];
+                        } else {
+                            macroVariable.x_vmw_cloudservice_vra_minimum = schema[key]['constraints']['min-value'];
+                        }
+                    }
+                    if (schema[key]['constraints']['max-value']) {
+                        if (displayValue == 'dateTime') {
+                            macroVariable.x_vmw_cloudservice_cas_max_date = schema[key]['constraints']['max-value'];
+                        } else {
+                            macroVariable.x_vmw_cloudservice_vra_maximum = schema[key]['constraints']['max-value'];
+                        }
+                    }
+                    if (schema[key]['constraints']['pattern']) {
+                        macroVariable.x_vmw_cloudservice_pattern = schema[key]['constraints']['pattern']['value'];
+                        macroVariable.x_vmw_cloudservice_pattern_message = schema[key]['constraints']['pattern']['message'];
+                    }
+                }
+                if (schema[key]['signpost']) {
+                    macroVariable.tooltip = schema[key]['signpost'];
+                }
+
+
+                if (schema[key]['placeholder']) {
+                    macroVariable.example_text = schema[key]['placeholder'];
+                }
+                if (schema[key]['label']) {
+                    macroVariable.question_text = schema[key]['label'];
+                } else {
+                    macroVariable.question_text = key;
+                }
+
+			if (!macroVariable.x_vmw_cloudservice_versions.contains(version)) {
+                    macroVariable.x_vmw_cloudservice_versions = macroVariable.x_vmw_cloudservice_versions + version + ",";
+                }
+
+                macroVariable.active = 'true';
+                macroVariable.x_vmw_cloudservice_field_readonly = readOnly;
+                macroVariable.x_vmw_cloudservice_field_visibility = visibility;
+                macroVariable.x_vmw_cloudservice_vraorginalkeyname = key;
+				macroVariable.visible_standalone = 'true';
+                macroVariable.order = this.order;
+                this.order = this.order + 1;
+				macroVariable.visible_summary = 'false';
+			
+                var Updatevariable = macroVariable.update();			
+		}
+		
+	} catch (e) {
+        CASLogger.error("Exception caught inside vRAImportCatalog.updateMacroVariable " + e);
+    }
+	},
+
+    reconcileCatalogItem: function(current) {
+
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.reconcileCatalogItem : reconcile CatalogItem');
+            this.appUtil = new CASAppUtil();
+            var midserver = '';
+            var catalogIdList = '';
+            var endPoint = '';
+            var token = '';
+
+
+            if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                token = current.organization.api_token.getDecryptedValue().toString();
+                endPoint = current.organization.cas_url + this.appUtil.configuration.api.catalogItem + "?size=20&page=0";
+            }
+            if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+
+                endPoint = current.organization.hostname + this.appUtil.configuration.api.catalogItem + "?size=20&page=0";
+                midserver = current.organization.mid_server.name;
+                token = current.organization.api_token.getDecryptedValue().toString();
+
+            }
+
+            var response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+            if (response.haveError()) {
+                CASLogger.error('REST call error found inside vRAImportCatalog.reconcileCatalogItem: ' + response.getErrorMessage());
+                return;
+            } else {
+                var responsebody = response.getBody();
+                var obj = this.appUtil.parse(responsebody);
+                var catalogId = obj.content.length;
+                for (var i = 0; i < catalogId; i++) {
+                    catalogIdList += obj.content[i].id + ";";
+                }
+
+                var pageElement = obj.totalPages;
+                for (var j = 1; j <= pageElement; j++) {
+
+                    if (current.organization.select_automation_service == 'vRealiseAutomationCloud') {
+                        token = current.organization.api_token.getDecryptedValue().toString();
+                        endPoint = current.organization.cas_url + this.appUtil.configuration.api.catalogItem + "?size=20&page=" + j;
+                    }
+                    if (current.organization.select_automation_service == 'vrealizeAutomationService') {
+                        endPoint = current.organization.hostname + this.appUtil.configuration.api.catalogItem + "?size=20&page=" + j;
+                        midserver = current.organization.mid_server.name;
+                        token = current.organization.api_token.getDecryptedValue().toString();
+                    }
+
+                    response = this.appUtil.makeApiCall(endPoint, 'get', '', midserver, "application/json", "application/json", 'Bearer ' + token);
+                    if (response.haveError()) {
+                        CASLogger.error('REST call error found inside vRAImportCatalog.reconcileCatalogItem: ' + response.getErrorMessage());
+                        return;
+                    } else {
+                        responsebody = response.getBody();
+                        obj = this.appUtil.parse(responsebody);
+                        catalogId = obj.content.length;
+                        for (i = 0; i < catalogId; i++) {
+                            catalogIdList += obj.content[i].id + ";";
+
+                        }
+                    }
+                }
+            }
+            if (catalogIdList) {
+
+                var checkCatalogId = new CASDaoUtil().reconcileCatalogCheck(catalogIdList, current);
+            }
+        } catch (e) {
+            CASLogger.error("Exception caugth inside vRAImportCatalog.reconcileCatalogItem " + e);
+        }
+    },
+
+
+    checkobject: function(current, properties, CatalogVraId) {
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.checkobject');
+            var check = 'true';
+
+            var XaaSWorkflowFilter = gs.getProperty(this.appUtil.configuration.properties.XaaSWorkflowFilter);
+            if (XaaSWorkflowFilter == 'true' || XaaSWorkflowFilter == true) {
+
+
+
+                for (var key in properties) {
+
+                    if (properties[key].type == 'object') {
+
+                        this.daoUtil.customCatalogCheck(CatalogVraId, current.organization);
+
+                        check = "false";
+
+                    } else if (properties[key].type == 'array') {
+
+                        if (properties[key]['items'].type == 'object' || properties[key]['items'].type == 'string' || properties[key]['items'].type == 'number') {
+
+                            this.daoUtil.customCatalogCheck(CatalogVraId, current.organization);
+                            //return false;
+                            check = 'false';
+
+                        }
+                    }
+
+                }
+                return check;
+            } else {
+                return true;
+            }
+        } catch (e) {
+            CASLogger.error("Exception caugth inside vRAImportCatalog.checkobject " + e);
+        }
+    },
+   createDefaultCatalogClientScript: function(catalog, catalogItemName) {
+        try {
+            CASLogger.debug('Inside the vRAImportCatalog.createDefaultCatalogClientScript');
+            //var script = "function onLoad(){var loadingDialog=new GlideDialogWindow('dialog_loading',true);loadingDialog.setPreference('table','loading');loadingDialog.setTitle('Loading...');loadingDialog.render();var catItemSysid=g_form.getUniqueValue();var gAjax=new GlideAjax('x_vmw_cloudservice.vRACSClientSciptBridge');gAjax.addParam('sysparm_name','getVersions');gAjax.addParam('sysparm_sys_id',catItemSysid);gAjax.getXMLAnswer(callBack);function callBack(response){var answer=response;if(answer=='[{\"label\":\"undefined\",\"value\":\"undefined\"}]'){g_form.setMandatory('u_version','false');g_form.setDisplay('u_version','false'); loadingDialog.destroy();}else {answer=answer.slice(0,-1);var arrVersion=answer.split(',');g_form.clearOptions('u_version');for(var i=0;i<arrVersion.length;i++){g_form.addOption('u_version',arrVersion[i],arrVersion[i]);}loadingDialog.destroy();}}}"; if(typeof g_form != 'undefined') catItemSysid = g_form.getValue('cat_item'); else
+
+            var script = "function onLoad() { var catItemSysid = ''; var cat_item = g_form.getValue('cat_item'); if(cat_item == '' || cat_item ==undefined){ catItemSysid = g_form.getUniqueValue(); }else{ catItemSysid = cat_item; } var gAjax = new GlideAjax('x_vmw_cloudservice.getVersionsvRA'); gAjax.addParam('sysparm_name', 'getVersions'); gAjax.addParam('sysparm_sys_id', catItemSysid); gAjax.getXML(callBack); function callBack(response) { var answer = response.responseXML.documentElement.getAttribute('answer'); if (answer.startsWith('undefined') || answer == undefined) { g_form.addOption('u_version', 'undefined', 'undefined'); g_form.setMandatory('u_version', false); g_form.setDisplay('u_version', false); } if (response != 'false') { var values = answer.split(','); g_form.clearOptions('u_version'); for (var i = 0; i < values.length - 1; i++) { g_form.addOption('u_version', values[i], values[i]); } } } }";
+
+
+            this.daoUtil.insertClientScript(catalog, script, catalogItemName, 'getVersions');
+
+            var scriptproject = "function onLoad() {var catItemSysid = g_form.getUniqueValue();var gAjax = new GlideAjax('x_vmw_cloudservice.getVersionsvRA');gAjax.addParam('sysparm_name', 'getCatalogProjects');gAjax.addParam('sysparm_sys_id', catItemSysid);gAjax.getXMLAnswer(callBack);function callBack(response) { if (response != 'false') { var values = response.split(',');g_form.clearOptions('u_project');for (var i = 0; i < values.length; i++){ g_form.addOption('u_project', values[i+1], values[i]);i=i+1;}}}}";
+
+
+            this.daoUtil.insertClientScript(catalog, scriptproject, catalogItemName, 'getProjects');
+			
+			var onLoadScript = "function onLoad() { var catItemSysid = ''; var cat_item = g_form.getValue('cat_item'); var gAjax = new GlideAjax('x_vmw_cloudservice.getVersionsvRA'); if(cat_item == '' || cat_item ==undefined){ catItemSysid = g_form.getUniqueValue(); gAjax.addParam('sysparm_name', 'getFieldProperties'); }else{ catItemSysid = cat_item; gAjax.addParam('sysparm_name', 'getAllFields'); } gAjax.addParam('sysparm_sys_id', catItemSysid); gAjax.getXMLAnswer(callBack); function callBack(response) { if (response != 'false') { var fields = response.split('||'); var readonlyFields = fields[0].split(','); var hiddenFields = fields[1].split(','); for (var i = 0; i < readonlyFields.length; i++) { g_form.setReadOnly(readonlyFields[i], true); } for (var j = 0; j < hiddenFields.length; j++) { g_form.setReadOnly(hiddenFields[j], true); g_form.setDisplay(hiddenFields[j], false); } } } } ";
+			
+			this.daoUtil.insertClientScript(catalog, onLoadScript, catalogItemName, 'makeFieldsReadOnly');
+			
+			var onChangeScript = "function onChange(control, oldValue, newValue, isLoading) { if (newValue == '') { return; } var catItemSysid = ''; var cat_item = g_form.getValue('cat_item'); if (cat_item == '' || cat_item == undefined) { catItemSysid = g_form.getUniqueValue(); } else { catItemSysid = cat_item; } var gAjax = new GlideAjax('x_vmw_cloudservice.getVersionsvRA'); gAjax.addParam('sysparm_name', 'getVersionsFields'); gAjax.addParam('sysparm_sys_id', catItemSysid); gAjax.addParam('sysparm_version', newValue.toString()); gAjax.getXMLAnswer(callBack);var gAjax2 = new GlideAjax('x_vmw_cloudservice.getVersionsvRA'); gAjax2.addParam('sysparm_name', 'getHiddenContainers');gAjax2.addParam('sysparm_sys_id', catItemSysid); gAjax2.getXMLAnswer(callBack2); function callBack(response) { if (response != 'false') { var result = response.split('||'); var fieldsArray = result[0].split(','); var mandatoryFields = result[1].split(','); var hiddenFields = result[2].split(','); for (var i = 0; i < fieldsArray.length; i++) { g_form.setVisible(fieldsArray[i], true); g_form.setDisplay(fieldsArray[i], true); } for (var j = 0; j < mandatoryFields.length; j++) { g_form.setMandatory(mandatoryFields[j], true); } for (var k = 0; k < hiddenFields.length; k++) { g_form.setMandatory(hiddenFields[k], false); g_form.setVisible(hiddenFields[k], false); g_form.setDisplay(hiddenFields[k], false); } } if (cat_item == '' || cat_item == undefined) { catItemSysid = g_form.getUniqueValue(); var gAjax = new GlideAjax('x_vmw_cloudservice.getVersionsvRA'); gAjax.addParam('sysparm_name', 'getDatagridFields'); gAjax.addParam('sysparm_sys_id', catItemSysid); gAjax.getXMLAnswer(callBack1); } else { var catItemSysid = g_form.getValue('cat_item'); var gAjax = new GlideAjax('x_vmw_cloudservice.getVersionsvRA'); gAjax.addParam('sysparm_name', 'getMacroFields'); gAjax.addParam('sysparm_sys_id', catItemSysid); gAjax.getXMLAnswer(callBack3); } } function callBack1(response) { if (response != 'false') { var datagridFields = response.split(','); for (var j = 0; j < datagridFields.length; j++) { g_form.setMandatory(datagridFields[j], false); g_form.setDisplay(datagridFields[j], false); } } }function callBack2(response) { if (response != 'false' && response != null) { var hiddenContainer = JSON.parse(response); for (var j = 0; j < hiddenContainer.length; j++) { g_form.setDisplay(hiddenContainer[j], false); g_form.setDisplay(hiddenContainer[j] + '_end', false); } } } function callBack3(response) { if (response != 'false') { var macroFields = response.split(','); for (var i = 0; i < macroFields.length; i++) { g_form.setMandatory(macroFields[i], false); g_form.setDisplay(macroFields[i], false); } } }}";
+			
+			this.daoUtil.insertClientScript(catalog, onChangeScript, catalogItemName, 'versionOnChange');
+		
+			var onLoadOAuthScript = "function onLoad(){var gajax=new GlideAjax('x_vmw_cloudservice.getVersionsvRA');gajax.addParam('sysparm_name','isUserAuthorized');gajax.addParam('sysparm_userID',g_user.userID);gajax.getXMLAnswer(callBack);function callBack(response){if(response!='true'){alert('You are being redirected to VMware Cloud vRA Login Page');top.window.open(response,'','height=500,width=800');}}}";
+			
+			this.daoUtil.insertClientScript(catalog, onLoadOAuthScript, catalogItemName, 'onLoadOAuthValidation');        
+
+			var onLoadHideContainerScript = "function onLoad() { var catItemSysid = ''; var cat_item = g_form.getValue('cat_item'); var gAjax = new GlideAjax('x_vmw_cloudservice.getVersionsvRA'); gAjax.addParam('sysparm_name', 'getHiddenContainers');if (cat_item == '' || cat_item == undefined) { catItemSysid = g_form.getUniqueValue(); } else { catItemSysid = cat_item; } gAjax.addParam('sysparm_sys_id', catItemSysid); gAjax.getXMLAnswer(callBack); function callBack(response) { if (response != 'false' && response != null) {var hiddenContainer = JSON.parse(response);for (var j = 0; j < hiddenContainer.length; j++) { g_form.setDisplay(hiddenContainer[j], false); g_form.setDisplay(hiddenContainer[j]+'_end', false); } } }}";
+			
+			this.daoUtil.insertClientScript(catalog, onLoadHideContainerScript, catalogItemName, 'onLoadHideContainer');	
+			
+        } catch (e) {
+            CASLogger.error("Exception caugth inside vRAImportCatalog.createDefaultCatalogClientScript " + e);
+        }
+    },
+
+	createClientScriptForDynamicDatatype: function(catalog, displayValue, key, version, def_val_json) {
+		
+		if(displayValue =='datagrid' || displayValue =='dualList' || displayValue =='multiSelect'){
+			
+			var grClientScript = new GlideRecord(this.appUtil.configuration.table.clientScript);
+			grClientScript.addQuery('cat_item',catalog);
+			grClientScript.addQuery('name','OnLoad to set Macro fields hidden');
+			grClientScript.query();
+			if(!grClientScript.next()){
+				var macroScript = "function onLoad(){var catItemSysid='';var cat_item=g_form.getValue('cat_item');var gAjax=new GlideAjax('x_vmw_cloudservice.getVersionsvRA');if(cat_item==''||cat_item==undefined){catItemSysid=g_form.getUniqueValue();gAjax.addParam('sysparm_name','getMacroFields');}else{catItemSysid=cat_item;gAjax.addParam('sysparm_name','getMacroFields');} gAjax.addParam('sysparm_sys_id',catItemSysid);gAjax.getXMLAnswer(callBack);function callBack(response){if(response!='false'){var macroFields=response.split(',');for(var i=0;i<macroFields.length;i++){g_form.setDisplay(macroFields[i],false);}}}}";
+				this.daoUtil.insertClientScript(catalog, macroScript, '', 'OnLoad to set Macro fields hidden');
+				
+				var datagridScript = "function onLoad(){var catItemSysid='';var cat_item=g_form.getValue('cat_item');var gAjax=new GlideAjax('x_vmw_cloudservice.getVersionsvRA');if(cat_item==''||cat_item==undefined){catItemSysid=g_form.getUniqueValue();gAjax.addParam('sysparm_name','getDatagridFields');}else{catItemSysid=cat_item;gAjax.addParam('sysparm_name','getDatagridFields');} gAjax.addParam('sysparm_sys_id',catItemSysid);gAjax.getXMLAnswer(callBack);function callBack(response){if(response!='false'){var datagridFields=response.split(',');for(var j=0;j<datagridFields.length;j++){g_form.setDisplay(datagridFields[j],false);}}}}";
+				this.daoUtil.insertClientScript(catalog, datagridScript, '', 'OnLoad to set datagrid hidden');
+			}
+		}
+		
+		var rgx = new RegExp('[^a-zA-Z0-9]', 'g');
+            var VersionCheck = key.replace(rgx, ' ').trim().replaceAll(' ', '_');
+			var field_name ='';
+            if (version == '' || version == 'undefined' || version == 'undefined,') {
+               field_name = VersionCheck;
+            } else {
+                var versionEncrypt = version.replace(rgx, ' ').trim().replaceAll(' ', '_');
+                field_name = VersionCheck + '__' + versionEncrypt;
+            }
+		var app_scope = gs.getProperty(this.appUtil.configuration.properties.applicationSysID);
+		
+		if(displayValue == 'dualList'){				
+			var onLoadScript = 'function onLoad(){var field_id="'+field_name+'"; g_form.setMandatory(field_id,false); g_form.setDisplay(field_id,false);var options='+JSON.stringify(def_val_json)+';var data={};var formElement=g_form.getControl("macro_"+field_id);if(!formElement.querySelector) return;var fieldIdElement=formElement.querySelector("#field_id");fieldIdElement.value=field_id; updateElementIds();getData();setData();function getData(){data.options=options;data.all_options=(options.valueList||[]);if(typeof data.all_options[0]!="object"&&!data.all_options.id){data.all_options=data.all_options.map(function(item){return{"value":item,"label":item};});} data.default_value=(options["default"]||[]);data.field_id=options.field_id;data.constraints=options.constraints;} function setData(){if(!data)return;formElement.querySelector("#json"+field_id).value=JSON.stringify((options||""));formElement.querySelector("#all_options"+field_id).value=JSON.stringify((data.all_options||""));formElement.querySelector("#default_values"+field_id).value=JSON.stringify((data.default_value||""));formElement.querySelector("#constraints"+field_id).value=JSON.stringify((data.constraints||""));} function updateElementIds(){formElement.querySelector("#duallist-container").id+=field_id;formElement.querySelector("#error-message").id+=field_id;formElement.querySelector("#selected").id+=field_id;formElement.querySelector("#unselected").id+=field_id;formElement.querySelector("#selectOptionButton").id+=field_id;formElement.querySelector("#unselectOptionButton").id+=field_id;formElement.querySelector("#selectAllOptionsButton").id+=field_id;formElement.querySelector("#unselectAllOptionsButton").id+=field_id;formElement.querySelector("#read_only").id+=field_id;formElement.querySelector("#all_options").id+=field_id;formElement.querySelector("#default_values").id+=field_id;formElement.querySelector("#constraints").id+=field_id;formElement.querySelector("#answer").id+=field_id;formElement.querySelector("#json").id+=field_id;}}';
+			
+			var onloadClientScript = new sn_sc.CatalogClientScript();
+            onloadClientScript.setAttributes({
+                'name': "OnLoad for " + field_name,
+                'description': 'onLoad ' + field_name,
+                'applies_to': 'item',
+                'ui_type': '10',
+                'type': 'onLoad',
+                'sys_scope': app_scope,
+                'cat_item': catalog,
+                'active': 'true',                
+            });
+            
+            onloadClientScript.addScript(onLoadScript);
+            onloadClientScript.appliesToCatalogItem(true);
+            var onLoadClientScriptId = onloadClientScript.create();
+			
+			var onSubmitScript = 'function onSubmit(){ var version = g_form.getValue("u_version"); var field_id="'+field_name+'"; if(version != field_id.split("__").pop()) return ; var formElement=g_form.getControl("macro_"+field_id);var answer;var constraints;if(formElement.querySelector){answer=formElement.querySelector("#answer"+field_id).value;var options=formElement.querySelector("#json"+field_id).value;options=options?JSON.parse(options):{};answer=answer?JSON.parse(answer):[];constraints=formElement.querySelector("#constraints"+field_id).value;constraints=constraints?JSON.parse(constraints):{};if(constraints){if(constraints.required&&!answer.length){g_form.addErrorMessage("The following mandatory fields are not filled in: "+options.label);formElement.querySelector("#selected"+field_id).style.border="1px solid #c83c36";formElement.querySelector("#unselected"+field_id).style.border="1px solid #c83c36";return false;} else if(constraints["max-value"]<answer.length){g_form.addErrorMessage("Correct the highlighted errors in: "+options.label);formElement.querySelector("#selected"+field_id).style.border="1px solid #c83c36";formElement.querySelector("#unselected"+field_id).style.border="1px solid #c83c36";return false;} else if(constraints["min-value"]>answer.length){g_form.addErrorMessage("Correct the highlighted errors in: "+options.label);formElement.querySelector("#selected"+field_id).style.border="1px solid #c83c36";formElement.querySelector("#unselected"+field_id).style.border="1px solid #c83c36";return false;}} g_form.clearOptions(field_id);g_form.addOption(field_id,answer,answer);g_form.setValue(field_id,answer);} else if(g_form.getField(field_id).choices){answer=g_form.getField(field_id).answer; var duallistData=g_form.getField(field_id).duallist_data; constraints=duallistData.constraints;if(constraints["max-value"]<answer.length){g_form.addErrorMessage("Correct the highlighted errors in: "+duallistData.options.label);return false;} else if(constraints["min-value"]>answer.length){g_form.addErrorMessage("Correct the highlighted errors in: "+duallistData.options.label);return false;}else if(constraints.required && !answer.length) {             g_form.addErrorMessage("The following mandatory fields are not filled in: " + duallistData.options.label); return false }} return true;}';
+			
+			var onSubmitClientScript = new sn_sc.CatalogClientScript();
+            onSubmitClientScript.setAttributes({
+                'name': "OnSubmit for " + field_name,
+                'description': 'onSubmit ' + field_name,
+                'applies_to': 'item',
+                'ui_type': '10',
+                'type': 'onSubmit',
+                'sys_scope': app_scope,
+                'cat_item': catalog,
+                'active': 'true',                
+            });
+            
+            onSubmitClientScript.addScript(onSubmitScript);
+            onSubmitClientScript.appliesToCatalogItem(true);
+           var onSubmitClientScriptId =  onSubmitClientScript.create();
+		}
+		if(displayValue =='multiSelect'){
+			
+			var onLoadScriptMS = 'function onLoad(){var field_id="'+field_name+'";g_form.setMandatory(field_id,false);g_form.setDisplay(field_id,false);var options='+JSON.stringify(def_val_json)+';var data={};var formElement=g_form.getControl("macro_"+field_id);if(!formElement.querySelector)return;var fieldIdElement=formElement.querySelector("#field_id");fieldIdElement.value=field_id;updateElementIds();getData();setData();function getData(){data.options=options;data.all_options=(options.valueList||[]);if(typeof data.all_options[0]!="object"&&!data.all_options.id){data.all_options=data.all_options.map(function(item){return{"value":item,"label":item};});} data.default_value=(options["default"]||[]);data.field_id=options.field_id;data.constraints=options.constraints;} function setData(){if(!data)return;formElement.querySelector("#json"+field_id).value=JSON.stringify((options||""));formElement.querySelector("#all_options"+field_id).value=JSON.stringify((data.all_options||""));formElement.querySelector("#default_values"+field_id).value=JSON.stringify((data.default_value||""));formElement.querySelector("#constraints"+field_id).value=JSON.stringify((data.constraints||""));} function updateElementIds(){formElement.querySelector("#multiselect-container").id+=field_id; formElement.querySelector("#error-message").id+=field_id; formElement.querySelector("#multiselect").id+=field_id; formElement.querySelector("#read_only").id+=field_id; formElement.querySelector("#all_options").id+=field_id; formElement.querySelector("#default_values").id+=field_id; formElement.querySelector("#constraints").id+=field_id; formElement.querySelector("#answer").id+=field_id; formElement.querySelector("#json").id+=field_id;}}';
+			
+		
+			var onloadClientScriptMS = new sn_sc.CatalogClientScript();
+            onloadClientScriptMS.setAttributes({
+                'name': "OnLoad for " + field_name,
+                'description': 'onLoad ' + field_name,
+                'applies_to': 'item',
+                'ui_type': '10',
+                'type': 'onLoad',
+                'sys_scope': app_scope,
+                'cat_item': catalog,
+                'active': 'true',                
+            });
+            
+            onloadClientScriptMS.addScript(onLoadScriptMS);
+            onloadClientScriptMS.appliesToCatalogItem(true);
+            onloadClientScriptMS.create();
+			
+			var onSubmitScriptMS = 'function onSubmit(){var version = g_form.getValue("u_version"); var field_id="'+field_name+'"; if(version != field_id.split("__").pop()) return ; var formElement=g_form.getControl("macro_"+field_id);var answer;var constraints;if(formElement.querySelector){answer=formElement.querySelector("#answer"+field_id).value;var options=formElement.querySelector("#json"+field_id).value; options=options?JSON.parse(options):{}; answer=answer?JSON.parse(answer):[]; constraints=formElement.querySelector("#constraints"+field_id).value; constraints=constraints?JSON.parse(constraints):{};if(constraints){if(constraints.required&&!answer.length){g_form.addErrorMessage("The following mandatory fields are not filled in: "+options.label);formElement.querySelector("#multiselect"+field_id).style.border="1px solid #c83c36";return false;}else if(constraints["max-value"]<answer.length){g_form.addErrorMessage("Correct the highlighted errors in: "+options.label);formElement.querySelector("#multiselect"+field_id).style.border="1px solid #c83c36";return false;}else if(constraints["min-value"]>answer.length){g_form.addErrorMessage("Correct the highlighted errors in: "+options.label);formElement.querySelector("#multiselect"+field_id).style.border="1px solid #c83c36";return false;}} g_form.clearOptions(field_id);g_form.addOption(field_id,answer,answer);g_form.setValue(field_id,answer);}else if(g_form.getField(field_id).choices){answer=g_form.getField(field_id).answer;var multiselectData=g_form.getField(field_id).duallist_data;constraints=multiselectData.constraints;if(constraints["max-value"]<answer.length){g_form.addErrorMessage("Correct the highlighted errors in: "+multiselectData.options.label);return false;}else if(constraints["min-value"]>answer.length){g_form.addErrorMessage("Correct the highlighted errors in: "+multiselectData.options.label);return false;}else if(constraints.required && !answer.length) { g_form.addErrorMessage("The following mandatory fields are not filled in: " + multiselectData.options.label); return false; }} return true;}';
+			
+			var onSubmitClientScriptMS = new sn_sc.CatalogClientScript();
+            onSubmitClientScriptMS.setAttributes({
+                'name': "OnSubmit for " + field_name,
+                'description': 'onSubmit ' + field_name,
+                'applies_to': 'item',
+                'ui_type': '10',
+                'type': 'onSubmit',
+                'sys_scope': app_scope,
+                'cat_item': catalog,
+                'active': 'true',                
+            });
+            
+            onSubmitClientScriptMS.addScript(onSubmitScriptMS);
+            onSubmitClientScriptMS.appliesToCatalogItem(true);
+            onSubmitClientScriptMS.create();			
+		}
+	},
+	
+	catalogCheck: function(catalogId) {
+        try {
+			CASLogger.debug('Inside the vRAImportCatalog.catalogCheck');
+            var gr = new GlideRecord(this.appUtil.configuration.table.queue);
+            gr.addEncodedQuery('topic=PreImportCatalog^stateINProcessing,Ready^request=' + catalogId);
+            gr.query();
+            if (gr.next()) {           
+				return true;
+			} else {               
+                return false;
+			}
+        } catch (e) {
+            CASLogger.error("Exception caught inside vRAImportCatalog.catalogCheck" + e);
+        }
+    },
+
+    type: 'vRAImportCatalog'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-07-15 13:04:34</sys_created_on>
+        <sys_id>41f6be1b1b263300e61b21b6bc4bcb76</sys_id>
+        <sys_mod_count>649</sys_mod_count>
+        <sys_name>vRAImportCatalog</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_include_41f6be1b1b263300e61b21b6bc4bcb76</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-03-05 09:24:11</sys_updated_on>
+    </sys_script_include>
+</record_update>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>vRA_cat_item_more_details</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript(/* GlideRecord */ current, /* TemplatePrinter */ template,
+          /* Optional EmailOutbound */ email, /* Optional GlideRecord */ email_action,
+          /* Optional GlideRecord */ event) {
+try{
+		
+		CASLogger.debug("Inside EmailScript : vRA_cat_item_more_details Email Notification for vRA_cat_item ");
+		
+        var cat_item=current.document_id.cat_item.getDisplayValue();
+	if(cat_item=="")
+		{
+			template.print('&nbsp;&nbsp;-');
+		}
+	else{
+		
+		template.print(cat_item);
+	}
+	}catch(e){
+		CASLogger.error("Exception caught inside EmailScript : vRA_cat_item_more_details vRA_cat_item Email Notification "+e);
+	}
+
+})(current, template, email, email_action, event);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-04-02 06:29:49</sys_created_on>
+        <sys_id>974d666fdb7f80102dd0d1b1ca96196e</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>vRA_cat_item_more_details</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sys_script_email_974d666fdb7f80102dd0d1b1ca96196e</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-04-02 06:40:30</sys_updated_on>
+    </sys_script_email>
+</record_update>

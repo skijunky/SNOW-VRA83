@@ -1,0 +1,874 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($rootScope,$scope,$window,$location) {
+	/* widget controller */
+	var c = this;
+	$scope.error='';
+	$scope.customDate = function () {
+		//alert(new Date(c.data.datePicker).toISOString())
+		$scope.data.funcName="OnDate";
+		c.server.update().then(function(){
+
+		});
+	};
+
+	$scope.validateMin=function(val_1,val_2){
+		alert()
+		var val1=parseInt(val_1);
+		var val2=parseInt(val_2);
+		if(val1<val2){
+			alert('1')
+			return false;
+		}
+		return true;
+	}
+	
+	$scope.validateMax=function(val_1,val_2){
+		var val1=parseInt(val_1);
+		var val2=parseInt(val_2);
+		if(val1>val2){
+			alert('2')
+			return false;
+		}
+		return true;
+	}
+	
+	//cancel button functionality
+	$scope.previous=function(){
+		$window.history.back();
+	}
+
+	//update answer JSON
+	$scope.updateAnswer=function(field_id,field_value,field_type){
+
+		if(field_type=='date' ){
+			var selectedDate = new Date(field_value);
+			var now = new Date();
+			if (selectedDate < now  && (selectedDate.toLocaleDateString()!=now.toLocaleDateString()))
+			{
+				$scope.error='Please select a future date.';
+			}else{
+				$scope.error='';
+			}
+			field_value=new Date(field_value).toISOString();
+		}
+		if(typeof field_value!='undefined')
+			c.data.json.answer[field_id]=field_value.toString();
+	
+		if(field_type=='number'){
+		//	alert('gurjot')
+			c.data.json.answer[field_id]=(field_value)?parseInt(field_value):0;		
+		}
+		if(field_type=='checkbox'){
+			c.data.json.answer[field_id]=(field_value.toString()=='true')?true:false;
+		}
+
+	}
+
+	//submission of a form
+	$scope.submit=function(x){
+		
+		if(x.$valid && $scope.error==''){
+			c.data.action='submitAction';
+			c.server.update().then(function(){
+				c.data.action='';
+				c.data.json.answer={};
+				if(c.data.submitted)
+					$rootScope.$broadcast('formSubmit',c.data.actionType);
+			});
+		}else{
+			alert('Invalid Form Submission');
+		}
+	}
+
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>19-start  -done
+20-end    -done
+5 - select box  -done
+2 -  multi line  -done
+6 - single line  -done
+10 -date tme  -
+7- checkbox   ----
+
+
+
+.custom-cas-content-area{
+
+-webkit-box-flex: 1;
+-ms-flex: 1 1 auto;
+flex: 1 1 auto;
+overflow-y: auto;
+-webkit-overflow-scrolling: touch;
+padding: 1rem;
+}
+
+.custom-nav{
+display: -webkit-box;
+display: -ms-flexbox;
+display: flex;
+height: 1.5rem;
+list-style-type: none;
+-webkit-box-align: center;
+-ms-flex-align: center;
+align-items: center;
+margin: 0;
+width: 100%;
+white-space: nowrap;
+}
+.custom-nav-item{
+display: inline-block;
+margin-right: 1rem;
+}
+.custom-nav-link{
+color: #000;
+font-weight: 400;}
+ul{
+padding:0;
+}*/
+.fullwidth{
+  width: 100%;
+}
+/*select.fullwidth{
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+}*/
+.labelflex{
+  flex: 0 0 30% !important;
+}
+.contentflex{
+  flex: 0 0 50% !important;
+}
+ul{
+  padding:5px !important;
+}
+.cas-content-area{
+  padding:0.7rem !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+}
+
+.cas-clr-input.ng-touched.ng-invalid{
+  border-bottom:1px solid #c92100;
+}
+
+.cas-clr-subtext {
+  display: block;
+  font-size: .458333rem;
+  line-height: .5rem;
+  color: #c92100;
+  margin-top: 0.3rem;
+}
+
+.info-error{
+  svg{
+    fill:#c92100;
+  }
+}
+
+select.ng-invalid.ng-invalid-required.ng-submitted{
+  border-bottom:1px solid #c92100;
+}
+input.ng-invalid.ng-invalid-required.ng-submitted{
+  border-bottom:1px solid #c92100;
+}
+
+.cas-alert.cas-alert-danger {
+  background: #f5dddb;
+  color: #575757;
+  border: 1px solid #f8b5b4;
+}
+.c3-chart-arcs-title{
+fill:#737373;
+  font-size:2rem;
+}
+
+.cas-alert {
+  font-size: .541667rem;
+  letter-spacing: normal;
+  line-height: .75rem;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  border-radius: .125rem;
+  margin-top: .25rem;
+  background: #e0f0f6;
+  color: #575757;
+  border: 1px solid #45afd9;
+}
+
+.cas-alert-text {
+  font-size: .541667rem;
+  letter-spacing: normal;
+  line-height: .75rem;
+  display: inline-block;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 98%;
+  max-width: 98%;
+  margin-right: .5rem;
+  text-align: left;
+  padding-top: 5px;
+}
+
+.cas-alert-item {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-basis: 100%;
+  min-height: .75rem;
+  padding: .2rem;
+}
+
+.cas-alert-item:last-child {
+  margin-bottom: 0;
+}
+
+.cas-alert-icon-wrapper {
+  flex: 0 0 1.04166667rem;
+  align-self: start;
+  padding-top: .04166667rem;
+  height: .75rem;
+}
+
+
+/*.cas-clr-form{
+overflow-y:auto;
+height:770px;
+}*/
+
+.form-wrapper-single-container{
+  margin-top:0;
+  overflow-y:auto;
+//  height:calc(100vh - 240px);
+}
+
+
+.form-wrapper-multiple-container{
+  margin-top:0;
+  overflow-y:auto;
+  //height:calc(100vh - 280px);
+}
+h2{
+  margin-top:0.5rem !important;
+}
+.cas-clr-col-12{
+  padding-left:0.2rem !important;
+  padding-right:0.2rem !important;
+  margin-bottom:10px;
+}
+
+.angle-down{
+position: relative;
+    right: 20px;
+}
+
+.cas-clr-checkbox-wrapper {
+    position: relative
+}
+
+.cas-clr-control-label {
+	width:0.9rem;
+}
+.cas-clr-checkbox-wrapper .cas-clr-control-label {
+    font-weight: 400;
+    display: block
+}
+
+.cas-clr-checkbox-wrapper~.cas-clr-validate-icon {
+    margin-left: 0
+}
+
+.cas-clr-checkbox-wrapper~.cas-clr-subtext {
+    display: inline-block
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox],.cas-clr-radio-wrapper input[type=radio] {
+    position: absolute;
+    opacity: 0;
+    top: .25rem;
+    left: 0;
+    height: .8rem;
+    width: .8rem
+}
+
+.cas-clr-checkbox-wrapper label {
+    position: relative;
+    display: inline-block;
+    min-height: 0.9rem;
+    padding-left: 1.1rem;
+    margin-top: 0;
+    cursor: pointer;
+    line-height: 1.2rem;
+    color: #000;
+    color: var(--cas-clr-forms-checkbox-label-color,#000)
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::before {
+    position: absolute;
+    top: 0rem;
+    left: 0;
+    content: "";
+    display: inline-block;
+    height: .8rem;
+    width: .8rem;
+    border: .05rem solid #b3b3b3;
+    border-color: var(--cas-clr-forms-border-color,#b3b3b3);
+    border-radius: .15rem;
+    border-radius: var(--cas-clr-forms-checkbox-border-radius,.15rem)
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::after {
+    position: absolute;
+    content: "";
+    display: none;
+    height: .25rem;
+    width: .4rem;
+    border-left: .1rem solid;
+    border-bottom: .1rem solid;
+    border-color: #fff;
+    border-color: var(--cas-clr-forms-checkbox-mark-color,#fff);
+    top: 0rem;
+    left: .2rem;
+    -webkit-transform: translate(0,.2rem) rotate(-45deg);
+    transform: translate(0,.2rem) rotate(-45deg)
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::before {
+    background: #0088c2;
+    background: var(--cas-clr-forms-checkbox-background-color,#0088c2);
+    border: 0
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::after {
+    display: inline-block
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox].cas-clr-indeterminate+label::before,.cas-clr-checkbox-wrapper input[type=checkbox]:indeterminate+label::before {
+    border: .05rem solid #0088c2;
+    border-color: var(--cas-clr-forms-checkbox-indeterminate-border-color,#0088c2)
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox].cas-clr-indeterminate+label::after,.cas-clr-checkbox-wrapper input[type=checkbox]:indeterminate+label::after {
+    border-left: none;
+    border-bottom-color: #0088c2;
+    border-bottom-color: var(--cas-clr-forms-checkbox-indeterminate-border-color,#0088c2);
+    display: inline-block;
+    -webkit-transform: translate(0,.2rem);
+    transform: translate(0,.2rem)
+}
+
+.cas-clr-checkbox-wrapper.cas-clr-checkbox-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start
+}
+
+.cas-clr-checkbox-wrapper.cas-clr-checkbox-inline .cas-clr-control-label {
+    display: inline-block;
+    margin-right: .6rem;
+    width: auto
+}
+
+.cas-clr-error .cas-clr-checkbox-wrapper input[type=checkbox]+label::before {
+    border-color: #c21d00;
+    border-color: var(--cas-clr-forms-invalid-color,#c21d00)
+}
+
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper label {
+    cursor: not-allowed
+}
+
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]+label::before,.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::before {
+    background-color: #ccc;
+    background-color: var(--cas-clr-forms-checkbox-disabled-background-color,#ccc);
+    border: 0
+}
+
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::after {
+    border-left: .1rem solid #000;
+    border-bottom: .1rem solid #000;
+    border-left-color: var(--cas-clr-forms-checkbox-disabled-mark-color,#000);
+    border-bottom-color: var(--cas-clr-forms-checkbox-disabled-mark-color,#000)
+}
+
+.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked.cas-clr-indeterminate+label::after,.cas-clr-form-control-disabled .cas-clr-checkbox-wrapper input[type=checkbox]:checked:indeterminate+label::after {
+    border-left: none
+}
+
+.cas-clr-form-compact .cas-clr-checkbox-wrapper {
+    max-width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    height: 1.2rem
+}
+
+.cas-clr-form-compact .cas-clr-checkbox-wrapper~.cas-clr-subtext {
+    margin-left: .3rem
+}
+
+.cas-clr-form-compact .cas-clr-checkbox-wrapper .cas-clr-control-label {
+    display: inline-block;
+    margin-right: .6rem;
+    width: auto;
+    margin-top: 0
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_day2action_form</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>cas_day2action_form</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object */
+	/* e.g., data.table = $sp.getValue'table'); */
+
+	var clientBridge=new vRACSClientSciptBridge();
+	var daoUtil=new CASDaoUtil();
+	var appUtil=new CASAppUtil();
+	data.sys_id=options.sysId;
+	data.actionType=options.actionType;
+	data.machine_sysID=options.mac_sys_id;
+	data.deployment_sysID=options.dep_sysId;
+	data.submitted=false;
+	//gs.addErrorMessage(data.machine_sysID+' '+data.deployment_sysID )
+	
+	data.link = {
+		cart : "/"+gs.getProperty(appUtil.configuration.properties.portalPrefix)+"?id="+appUtil.configuration.page.cart,
+		activitiesList : "/"+gs.getProperty(appUtil.configuration.properties.portalPrefix)+"?id="+appUtil.configuration.page.activitiesList
+	}
+	//variable declarations
+	var select_options=[];
+	data.json={};
+	data.json.containers=[];
+	data.selectedContainer=0;
+	//data.json.scripts={};
+	data.json.answer={};
+	//data.json.catalog_item='';
+	data.field_index='';
+
+	data.datePicker="";
+	if(input && input.funcName=="OnDate"){
+		data.datePicker=input.datePicker;
+
+	}
+
+
+	//initial call to fetch client scripts and populate catalog items data.json.
+	if(!input){
+		try{
+			CASLogger.debug('Inside the widget cas_day2action_form.not_input');
+			//populateClientScripts();
+			populateFieldArr();
+			
+		}catch(e){
+			CASLogger.error('Exception caught inside the widget cas_day2action_form.not_input');
+		}
+	}
+	
+	//populating the data.json fields arr on the basis of containers
+	function populateFieldArr(){
+		try{
+			CASLogger.debug('Inside the widget cas_day2action_form.populateFieldArr');
+			var gr=new GlideRecordSecure(appUtil.configuration.table.variable);
+			gr.addEncodedQuery('x_vmw_cloudservice_vra_action='+data.sys_id);
+			gr.orderBy('order');
+			gr.query();
+			var sys=''
+			var parent;
+			var i=0;
+			while(gr.next()){
+				if(gr.type==19){
+					parent=i;
+					data.json.containers.push({"fields_arr":[],"label":gr.question_text+'',"containerId":gr.getUniqueValue()+'',"order":parent});
+					i++;
+				}
+				else if(gr.type!=19 && gr.type!=20 && gr.type!=5 && gr.type!=7){
+					
+					field_id=gr.name+'';
+					if(gr.name=='Lease_Expiration_Date' || gr.name=='Deployment_expires_in'){
+						gr.name=gr.name.trim().replaceAll('_',' ');
+					}
+					
+					data.json.containers[parent].fields_arr.push({
+						"name":(gr.name)?gr.name+'':'',
+						"display_name":(gr.question_text)?gr.question_text+'':'',
+						"type":(gr.type)?gr.type+'':'',
+						"default_value":(gr.default_value)?gr.default_value+'':'',
+						"tooltip_text":(gr.tooltip)?gr.tooltip+'':'',
+						"help_text":(gr.example_text)?gr.example_text+'':'',
+						"mandatory":(gr.mandatory)?gr.mandatory+'':'',
+						"order":(gr.order)?gr.order+'':'',
+						"fieldId":gr.getUniqueValue()+'',
+						"value":(gr.default_value)?gr.default_value+'':'',
+						"visible":'true',
+						"read_only":(gr.show_help_on_load==true),
+						"scale_max":(gr.x_vmw_cloudservice_cas_scale_max)?gr.x_vmw_cloudservice_cas_scale_max+'':'',
+						"scale_min":(gr.x_vmw_cloudservice_cas_scale_min)?gr.x_vmw_cloudservice_cas_scale_min+'':'',
+						"field_type":(gr.x_vmw_cloudservice_cas_name)?fetchFieldType(gr.x_vmw_cloudservice_cas_name):'text'
+					});
+					data.json.answer[gr.name]=(gr.default_value)?gr.default_value+'':'';
+					
+				}
+				else if(gr.type==7){
+					data.json.containers[parent].fields_arr.push({
+						"name":(gr.name)?gr.name+'':'',
+						"display_name":(gr.question_text)?gr.question_text+'':'',
+						"type":(gr.type)?gr.type+'':'',
+						"default_value":(gr.default_value=='true')?true:false,
+						"tooltip_text":(gr.tooltip)?gr.tooltip+'':'',
+						"help_text":(gr.example_text)?gr.example_text+'':'',
+						"mandatory":(gr.mandatory)?gr.mandatory+'':'',
+						"order":(gr.order)?gr.order+'':'',
+						"fieldId":gr.getUniqueValue()+'',
+						"value":(gr.default_value=='true')?true:false,
+						"visible":'true',
+						"read_only":(gr.show_help_on_load==true),
+						"field_type":(gr.x_vmw_cloudservice_cas_name)?fetchFieldType(gr.x_vmw_cloudservice_cas_name):'text'
+					});
+						data.json.answer[gr.name]=(gr.default_value=='true')?true:false;
+					}
+				else if(gr.type==5){
+					select_options=fetchOptions(gr.getUniqueValue());
+					field_id=gr.name+'';
+					data.json.containers[parent].fields_arr.push({
+						"name":(gr.name)?gr.name+'':'',
+						"display_name":(gr.question_text)?gr.question_text+'':'',
+						"type":(gr.type)?gr.type+'':'',
+						"tooltip_text":(gr.tooltip)?gr.tooltip+'':'',
+						"help_text":(gr.example_text)?gr.example_text+'':'',
+						"mandatory":(gr.mandatory)?gr.mandatory+'':'',
+						"versions":(gr.x_vmw_cloudservice_versions)?gr.x_vmw_cloudservice_versions+'':'',
+						"order":(gr.order)?gr.order+'':'',
+						"fieldId":gr.getUniqueValue()+'',
+						"arr":select_options,
+						"selected":(gr.default_value)?gr.default_value+'':'',
+						"visible":'true',
+						"read_only":(gr.show_help_on_load==true),
+						"field_type":'dropdown'
+					});	
+					//gs.addErrorMessage(gr.default_value)
+					data.json.answer[gr.name]=(gr.default_value)?gr.default_value.getDisplayValue()+'':'';
+				}
+				else if(gr.type==6 && fetchFieldType(gr.x_vmw_cloudservice_cas_name)=='number'){
+				field_id=gr.name+'';
+					
+					data.json.containers[parent].fields_arr.push({
+						"name":(gr.name)?gr.name+'':'',
+						"display_name":(gr.question_text)?gr.question_text+'':'',
+						"type":(gr.type)?gr.type+'':'',
+						"default_value":(gr.default_value)?parseInt(gr.default_value):0,
+						"tooltip_text":(gr.tooltip)?gr.tooltip+'':'',
+						"help_text":(gr.example_text)?gr.example_text+'':'',
+						"mandatory":(gr.mandatory)?gr.mandatory+'':'',
+						"order":(gr.order)?gr.order+'':'',
+						"fieldId":gr.getUniqueValue()+'',
+						"value":(gr.default_value)?parseInt(gr.default_value):0,
+						"visible":'true',
+						"read_only":(gr.show_help_on_load==true),
+						"field_type":(gr.x_vmw_cloudservice_cas_name)?fetchFieldType(gr.x_vmw_cloudservice_cas_name):'text',
+					"scale_max":(gr.x_vmw_cloudservice_cas_scale_max)?gr.x_vmw_cloudservice_cas_scale_max+'':'',
+						"scale_min":(gr.x_vmw_cloudservice_cas_scale_min)?gr.x_vmw_cloudservice_cas_scale_min+'':''
+					});
+					data.json.answer[gr.name]=(gr.default_value)?parseInt(gr.default_value):0;
+					}
+				
+				//data.json.catalog_item=gr.cat_item.getDisplayValue();
+				//data.json.catalog_item_id=gr.cat_item.sys_id+'';
+			}
+		}catch(e){
+			CASLogger.error('Exception caught inside the widget cas_day2action_form.populateFieldArr');
+		}
+	}
+
+	//triggered on client events like script execution or submission
+	if(input){
+		try{
+			CASLogger.debug('Inside the widget cas_day2action_form.input');
+			
+
+			data.json=input.json;
+			data.action=input.action;
+			data.sys_id=input.sys_id;
+			data.actionType=input.actionType;
+			data.machine_sysID=input.machine_sysID;
+			data.deployment_sysID=input.deployment_sysID;
+			if(data.action=="submitAction"){
+				submitRequest();		
+			}/*else{
+				//script execution
+				data.scripts=input.scripts;
+				for(var k=0;k<data.scripts.length;k++){
+					executeScripts(ddata.scripts[k].description,data.action);
+				}
+			}*/
+		}catch(e){
+			CASLogger.error('Exception caught inside the widget cas_day2action_form.input');
+		}
+	}
+
+	function submitRequest(){
+		try{
+			CASLogger.debug('Inside the widget cas_day2action_form.submitRequest');
+			
+			
+			var paramObj = {
+				//reason: data.reason,
+				actionId:data.sys_id,
+				state : 'Ready',
+				body: JSON.stringify(data.json.answer),
+				deployment_id:data.deployment_sysID+'',
+				machine_id:data.machine_sysID+''
+			}
+			var response = daoUtil.createActionRequest(paramObj);
+			if (response) {
+				data.submitted=true;
+				gs.addInfoMessage('Action submitted from portal');
+			}else{
+				data.submitted=false;
+			}
+
+
+
+		}catch(e){
+			CASLogger.error('Exception caught inside the widget cas_day2action_form.submitRequest');
+		}
+
+	}
+
+	//populate type of a field from backend table response
+	function fetchFieldType(cas_name){
+		try{
+			CASLogger.debug('Inside the widget cas_day2action_form.fetchFieldType');
+			var type=''
+			if(cas_name.startsWith("STR__")){
+				type="text";
+			}
+			else if(cas_name.startsWith("INT__")){
+				type="number";
+			}else if(cas_name.startsWith("BOOL__")){
+				type="checkbox"
+			}else if(cas_name.startsWith("Date__")){
+				type="date"
+			}return type;
+		}catch(e){
+			CASLogger.error('Exception caught inside the widget cas_day2action_form.fetchFieldType');
+
+		}
+	}
+
+	//fetch options for a select box initially if they exist 
+	function fetchOptions(fieldId){
+		try{
+			CASLogger.debug('Inside the widget cas_day2action_form.fetchOptions');
+			return daoUtil.fetchCatalogFieldOptions(fieldId);
+
+			var choiceGR=new GlideRecordSecure('question_choice');
+			choiceGR.addQuery('question='+fieldId);
+			choiceGR.query();
+			var choice_arr = [{"label":"","value":""}]
+			while(choiceGR.next()){
+				choice_arr.push({
+					"label":choiceGR.text+'',
+					"value":choiceGR.value+''
+				});
+			}
+			return choice_arr;
+
+		}catch(e){
+			CASLogger.error('Exception caught inside the widget cas_day2action_form.fetchOptions');
+		}
+	}
+
+	//execute onLoad onChange scripts
+	/*	function executeScripts(description,scriptType){
+		try{
+			CASLogger.debug('Inside the widget cas_catalogForm.executeScripts');
+			var description_arr=description.split('__');
+			var functionName=description_arr[0]+'';
+			var fieldId=description_arr[1]+'';
+			var dependency_arr=[];
+			if(scriptType=='onChange'){
+				dependency_arr=description_arr[2];
+				this[functionName](fieldId,dependency_arr);
+			}else if(scriptType=='onLoad'){
+				this[functionName](fieldId);
+			}
+		}catch(e){
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.executeScripts');
+		}
+	}*/
+
+	//set the values of a select box dynamically - triggered usually from an onload and onchange scripts
+	/*	function setChoices(id,values){
+		try{
+			//gs.addErrorMessage(id+JSON.stringify(values))
+			CASLogger.debug('Inside the widget cas_catalogForm.setChoices');
+			for(var i=0;i<data.json.containers[data.selectedContainer].fields_arr.length;i++){
+				if(data.json.containers[data.selectedContainer].fields_arr[i].name==id){
+					data.json.containers[data.selectedContainer].fields_arr[i].arr=values;
+				}
+			}	
+		}catch(e){
+			CASLogger.error('Exception caught inside the widget cas_catalogForm.setChoices');
+		}
+	}*/
+
+
+})();
+
+
+
+
+
+]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>navdeep.singh</sys_created_by>
+        <sys_created_on>2019-10-19 10:08:03</sys_created_on>
+        <sys_id>bd57249edb6004109cb80181ca961986</sys_id>
+        <sys_mod_count>380</sys_mod_count>
+        <sys_name>cas_day2action_form</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_bd57249edb6004109cb80181ca961986</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-08-20 07:20:59</sys_updated_on>
+        <template><![CDATA[<div>
+  <div class="cas-content-area">
+    <span ng-if="error!=''" style="color:#f54f47">{{error}}</span>
+    <div ng-if="day2Form.$submitted && day2Form.$invalid" class="cas-alert cas-alert-danger">
+      <div class="cas-alert-item">
+        <div class="cas-alert-icon-wrapper">
+          <cas-clr-icon shape="exclamation-circle" size="24" color="#c92100" title="{{field.tooltip_text}}" class="info-error"></cas-clr-icon>
+        </div>
+        <span class="cas-alert-text">  Correct the highlighted errors. </span>
+        <!--<button aria-label="Close" class="close" type="button" ng-click="closeAlert()">
+<cas-clr-icon shape="close" size="24"></cas-clr-icon>
+</button>--rgb(47, 132, 0)-->
+      </div>
+    </div>
+    <!--  <h2>
+<div style="float:left; width:auto; margin-right:5px;margin-top:5px;">
+<cas-clr-icon shape="vmw-app" size="35" color="#0077b8"></cas-clr-icon>
+</div>
+
+<span>{{c.data.json.catalog_item}}</span>
+</h2>
+-->
+
+    <ul id="demoTabs" class="cas-nav" role="tablist" ng-if="c.data.json.containers.length>1">
+      <li role="presentation" class="cas-nav-item"  ng-repeat="(key,value) in c.data.json.containers" ng-click="c.data.selectedContainer=value.order">
+        <button id="tab1" class="cas-btn cas-btn-link cas-nav-link" aria-controls="panel1"
+                aria-selected="true" type="button" ng-class="{'cas-active':key==c.data.selectedContainer}">{{value.label}}</button>
+      </li>
+    </ul>
+
+
+    <form class="cas-clr-form cas-clr-form-horizontal"  name="day2Form" novalidate>
+      <!--
+
+19-start  -done
+20-end    -done
+5 - select box  -done
+2 -  multi line  -don
+6 - single line  -done
+10 -date time  - done
+7- checkbox   - done  
+
+-->
+      <div class="cas-clr-form-control cas-clr-col-12 form-wrapper-single-container" ng-class="{'form-wrapper-multiple-container' : c.data.json.containers.length>1}">
+        <div  ng-repeat="(key,value) in c.data.json.containers"  ng-if="c.data.selectedContainer==value.order	" class="cas-clr-col-12 ">
+          <div  ng-repeat="field in value.fields_arr" > 
+            <div class="cas-clr-form-control">
+              <label for="{{field.fieldId}}" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2 labelflex">{{field.display_name}}<span ng-if="field.mandatory=='true' " style="color:red;margin-left:5px;">*</span></label>
+              
+              <div class="cas-clr-control-container  cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==6"  ng-class="{'cas-clr-error':(day2Form[field.fieldId].$invalid && (day2Form[field.fieldId].$touched ||day2Form.$submitted ) && field.mandatory=='true')}" >
+                <div class="cas-clr-input-wrapper">
+                  <input type="{{field.field_type}}" ng-min="{{(field.scale_min && field.field_type!='text')?field.scale_min:''}}" ng-max="{{(field.scale_max && field.field_type!='text')?field.scale_max:''}}" ng-minlength="{{(field.scale_min && field.field_type=='text')?field.scale_min:''}}" ng-maxlength="{{(field.scale_min && field.field_type=='text')?field.scale_max:''}}"  ng-disabled="field.read_only" name="{{field.fieldId}}" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value" 
+                         ng-change="updateAnswer(field.name,field.value,field.field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}" class="cas-clr-input fullwidth" />
+                  <span ng-if="(day2Form[field.fieldId].$touched || day2Form.$submitted) && day2Form[field.fieldId].$invalid && field.mandatory" class="cas-clr-subtext">Field is mandatory</span>
+                  <span ng-show="(field.field_type=='number'||field.field_type=='text') && catalogForm[field.fieldId].$invalid   && ((catalogForm[field.fieldId].$error.max && field.field_type=='number') ||(catalogForm[field.fieldId].$error.maxlength && field.field_type!='number')) && field.scale_max"   class="cas-clr-subtext">Max {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_max}}</span>
+                  <span ng-show="(field.field_type=='number'||field.field_type=='text') && catalogForm[field.fieldId].$invalid && ((catalogForm[field.fieldId].$error.min && field.field_type=='number') ||(catalogForm[field.fieldId].$error.minlength && field.field_type!='number')) && field.scale_min" class="cas-clr-subtext">Min {{(field.field_type=='number')?'Value':'Length'}} should be {{field.scale_min}}</span>
+                </div>
+              </div>
+
+              <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==2" ng-class="{'cas-clr-error':(day2Form[field.fieldId].$invalid && (day2Form[field.fieldId].$touched ||day2Form.$submitted ) && field.mandatory=='true')}">
+                <div class="cas-clr-textarea-wrapper">
+                  <textarea name="{{field.fieldId}}" ng-disabled="field.read_only" ng-required="field.mandatory" class="cas-clr-textarea fullwidth" ng-model="field.value" ng-change="updateAnswer(field.name,field.value,field.field_type)" placeholder="{{field.help_text}}" value="{{field.default_value}}"></textarea>
+                </div>
+                <span ng-show="day2Form[field.fieldId].$touched && day2Form[field.fieldId].$invalid" class="cas-clr-subtext">Field is mandatory</span>
+              </div>
+
+              <div class="cas-clr-control-container  cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==10" ng-class="{'cas-clr-error':(day2Form[field.fieldId].$invalid && (day2Form[field.fieldId].$touched ||day2Form.$submitted ) && field.mandatory=='true')}" >
+                <sp-date-picker field="field.value"  ng-disabled="field.read_only"  name="{{field.fieldId}}" ng-required="field.mandatory||field.value==''"  id="{{field.fieldId}}" ng-model="field.value"  ng-change="updateAnswer(field.name,field.value,field.field_type)" data-date-format="yyyy-mm-dd" sn-include-time="true"></sp-date-picker>
+              </div>
+
+              <div class="cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==7" ng-class="{'cas-clr-error':(day2Form[field.fieldId].$invalid && (day2Form[field.fieldId].$touched ||day2Form.$submitted ) && field.mandatory=='true')}" >
+                <div class="cas-clr-control-container">
+                  <div class="cas-clr-checkbox-wrapper">
+                    <input  class="cas-clr-checkbox" ng-disabled="field.read_only" type="checkbox" name="{{field.fieldId}}" ng-required="field.mandatory"  id="{{field.fieldId}}" ng-model="field.value" 
+                           ng-change="updateAnswer(field.name,field.value,field.field_type)" placeholder="{{field.help_text}}" ng-checked="field.value" />
+                    <label class="cas-clr-control-label" for="{{field.fieldId}}"></label>
+                  </div>             
+                </div>
+                <span ng-show="(day2Form[field.fieldId].$touched || day2Form.$submitted) && day2Form[field.fieldId].$invalid && field.mandatory" class="cas-clr-subtext">Field is mandatory</span>
+              </div>
+
+              <div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5 contentflex" ng-if="field.type==5" ng-disabled="field.read_only" ng-class="{'cas-clr-error':(day2Form[field.fieldId].$invalid && (day2Form[field.fieldId].$touched ||day2Form.$submitted ) && field.mandatory=='true')}">
+                <div class="cas-clr-select-wrapper fullwidth">  
+                  <select  ng-if="!field.scripts" name="{{field.fieldId}}" ng-required="field.mandatory" id="{{field.fieldId}}" ng-model="field.selected" ng-change="updateAnswer(field.name,field.selected,field.field_type)" class="fullwidth"> 
+                    <option ng-repeat="option in field.arr" ng-value="option.value" ng-click="field.selected=option.value;">{{option.label}}</option>
+                  </select>
+                  <span class="angle-down"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                  <!-- <select  ng-if="field.name=='version'" name="{{field.fieldId}}" ng-required="field.mandatory" id="{{field.fieldId}}" ng-model="field.selected" ng-change="updateAnswer(field.name,field.selected);updateFieldVisibility(field.selected)" class="fullwidth"> 
+<option title="{{field.tooltip_text}}"  ng-repeat="option in field.arr" ng-value="option.value" ng-click="field.selected=option.value;" >{{option.label}}</option>
+</select>-->
+                  <!--DO NOT DELETE ---<select ng-if="field.scripts" name="{{field.fieldId}}" ng-required="field.mandatory" id="{{field.fieldId}}" ng-model="field.selected" ng-change="executeScript(c.data.json.scripts.onChange[field.name],'onChange');updateAnswer(field.name,field.selected);"  class="fullwidth"> 
+<option  ng-repeat="option in field.arr" ng-value="option.value" ng-click="field.selected=option.value;">{{option.label}}</option>
+</select>-->
+                </div>
+              </div>
+
+              <cas-clr-icon shape="exclamation-circle" size="24"
+                            ng-if="(field.tooltip_text || (day2Form[field.fieldId].$invalid && day2Form[field.fieldId].$touched)||(day2Form.$submitted&&day2Form[field.fieldId].$invalid) )" 
+                            title="{{field.tooltip_text}}"  
+                            ng-class="{'info-error':((day2Form[field.fieldId].$invalid && day2Form[field.fieldId].$touched)||(day2Form.$submitted&&day2Form[field.fieldId].$invalid))}"></cas-clr-icon>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+
+    </form>
+
+
+  </div>
+  {{c.data.json.amswer}}
+  <div class="cas-clr-col-12">
+    <button style="float:right" ng-disabled="error!='' || day2Form.$invalid" class="cas-btn cas-btn-primary" type="button"  ng-click="submit(day2Form)"  onclick="$('.action-modal, .action-modal-backdrop').hide()">Submit</button>
+    <button style="float:right" class="cas-btn cas-btn-outline" type="button" onclick="$('.action-modal, .action-modal-backdrop').hide()">Cancel</button>
+  </div>
+
+</div>
+
+
+
+
+]]></template>
+    </sp_widget>
+</record_update>

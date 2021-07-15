@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope,$location) {
+	/* widget controller */
+	var c = this;
+	$scope.dataValue = {};
+	$scope.fields = [];
+	c.data.inputdata.forEach(function(e) {
+		$scope.fields.push(e.name);
+		$scope.dataValue[e.name] = parseInt(e.value);
+	})    
+
+	c3.generate({
+		bindto: "#deploymentChart",
+		size: {
+			height: 200,
+			width: 400
+		},
+		data: {
+			json: [ $scope.dataValue ],
+			keys: {
+				value: $scope.fields
+			},
+			onclick: function () { 
+				$location.search({'id':c.data.dep_page,'filter':arguments['0'].id});
+			},
+			type:'donut'
+		},
+		legend: {
+			position: 'right'
+		},
+		donut:{
+			title:c.data.total_records,
+			label: {
+				show: false
+			}
+		},
+		tooltip: {
+			format: {
+				value: function (value) {
+					var format = d3.format(',');
+					return format(value);
+				}
+			}
+		},
+		color: {
+			pattern: c.data.pattern
+		},
+		onrendered: function () {
+			var data = this.api.data.shown.call(this.api);
+			var total = data.reduce(function (sTotal, t) {
+				return sTotal + t.values.reduce(function (subTotal, b) { return subTotal + b.value }, 0);
+			}, 0);
+			d3.select(this.config.bindto + " .c3-chart-arcs-title").text(total);
+
+		}
+	});
+
+	$scope.redirect=function(url){
+		$location.url(url);
+	}
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.no-margin {
+  margin: 0;
+}
+.cas-card-block {
+  text-align: center;
+}
+.cas-card-block, .cas-card-header {
+  border-bottom: 1px solid #eee;
+}
+.cas-badge-count {
+ // margin: auto 8px;
+  font-weight: 200;
+  font-size: 12px;
+}
+
+.cas-badge-count {
+  margin: auto 8px;
+  font-weight: 200;
+  font-size: 12px;
+}
+.cas-card-block.with-row {
+  padding: 0;
+}
+.chart{
+  border: 1px solid red; 
+  width:auto; 
+  height: 30%;
+  //height:0px; 
+  position: relative;
+}
+
+.cas-card-block &gt; div.cas-card-row:not(:last-child) {
+  border-bottom: 1px solid #eee;
+}
+.cas-card-block &gt; div.cas-card-row {
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  display:flex;
+}
+span.details, time {
+  color: #919FA8;
+  font-size: 12px;
+	margin:0px 4px;
+}
+/*span.details:before, time:before {
+content: "• ";
+}*/
+.cas-label.cas-label-success, .cas-label.cas-label-info {
+  background-color: #fff;
+}
+
+.cas-card .cas-btn-link {
+  min-width: 0;
+  padding: 0;
+}
+.c3-chart-arcs-title {
+  fill: #737373;
+  font-size: 2rem;
+}
+.item-name{
+  display: block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.fix-height{
+     //height: calc(100vh - 130px);
+  height:80vh;
+}
+.fix-height-header{
+	//height:8%; 7vh;
+  height: 50px;
+}
+.fix-height-chart{
+	height: 225px;//37%;//32vh;
+  //overflow: auto;
+}
+.fix-height-block{
+  height: calc(80vh - 325px);
+  //height: 47%;//34vh;
+  overflow: auto;
+}  
+.fix-height-footer{
+  height: 50px;
+  //position: relative;
+  //bottom: -4px;
+ }
+/*
+@media screen and (min-height : 1020px){
+  .fix-height-chart{
+    height: 27%;//32vh;
+    //overflow: auto;
+  }
+  .fix-height-block{
+    height: 58%;//34vh;
+    overflow: auto;
+  }
+  .fix-height-footer{
+    //height: 5vh;
+    //position: relative;
+    //bottom: 0px;
+  }
+}*/</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>cas_deployment_report</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_deployment_report</name>
+        <option_schema>[{"name":"group_by","section":"other","label":"Group by","type":"string"},{"name":"record_limit","section":"other","label":"Record Limit","type":"integer"},{"name":"view_all_link","section":"other","label":"View All Link","type":"string"}]</option_schema>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object */
+	/* e.g., data.tabl = $sp.getValue('table'); */
+try{
+	var daoUtil= new CASDaoUtil()
+	var appUtil=new CASAppUtil();
+	
+	data.dep_page=appUtil.configuration.page.deploymentCard;
+	
+	var filter=(gs.hasRole('admin'))?'operational_status=1':'operational_status=1^servicenow_ownerDYNAMIC90d1921e5f510100a9ad2572f2b477fe^ORvra_ownerDYNAMIC90d1921e5f510100a9ad2572f2b477fe^ORshared_groupsDYNAMICd6435e965f510100a9ad2572f2b47744^ORentitled_usersDYNAMIC90d1921e5f510100a9ad2572f2b477fe';
+	
+	data.inputdata=daoUtil.getReportData(appUtil.configuration.table.deployments,options.group_by,filter);
+	
+	data.arr=daoUtil.fetchDeploymentReportList(appUtil.configuration.table.deployments,options.record_limit,options.group_by,filter);
+	
+	data.total_records=daoUtil.getTotalRecordCount(appUtil.configuration.table.deployments,filter);
+	
+	data.view_all_link=options.view_all_link;
+
+	data.pattern=[];
+	
+	for(var i=0;i<data.inputdata.length;i++){
+		if(data.inputdata[i].name=='CREATE FAILED'){
+			data.pattern.push('#f54f47');
+		}else if(data.inputdata[i].name=='CREATE SUCCESSFUL'){
+			data.pattern.push('#85c81a');
+		}else if(data.inputdata[i].name=='UPDATE FAILED'){
+			data.pattern.push('#ff9c32');
+		}else if(data.inputdata[i].name=='UPDATE SUCCESSFUL'){
+			data.pattern.push('#49afd9');
+		}else if(data.inputdata[i].name=='CREATE INPROGRESS'){
+			data.pattern.push('#ffdc0B');
+		}
+	}
+	
+}catch(e){
+		CASLogger.error("Exception caught inside CAS_deployment_report widget "+e);
+}
+	})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>Gurjot</sys_created_by>
+        <sys_created_on>2019-09-18 08:53:31</sys_created_on>
+        <sys_id>6ffc6018db0c4010ff7c294648961915</sys_id>
+        <sys_mod_count>234</sys_mod_count>
+        <sys_name>CAS_deployment_report</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_6ffc6018db0c4010ff7c294648961915</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-12-23 10:12:22</sys_updated_on>
+        <template><![CDATA[<div>
+  <div class="cas-card no-margin fix-height">
+    <div class="cas-card-header fix-height-header">
+      Deployments Summary
+    </div>
+
+    <div class="cas-card-block fix-height-chart">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.8/c3.css">
+      <div id="deploymentChart">
+      </div>     
+    </div>
+    <div class="cas-card-block with-row fix-height-block">
+      <div ng-click="redirect(item.link)" class="cas-card-row" ng-repeat="item in data.arr">
+        <span class="item-name">{{item.name}}</span>
+        <span class="details">• </span>
+        <time>{{item.createdAt | date:'dd/MM/yyyy'}}</time>
+
+        <span class="details">• </span>
+        <span class="cas-label cas-badge-count" ng-class="{
+                                          'cas-label-success' : item.status == 'CREATE SUCCESSFUL',
+                                          'cas-label-success2' : item.status == 'UPDATE SUCCESSFUL',
+                                          'cas-label-danger' : item.status == 'CREATE FAILED',
+                                          'cas-label-danger2' : item.status == 'UPDATE FAILED'
+                                          }">{{item.status}}</span>
+      </div>
+    </div>
+
+    <div class="cas-card-footer fix-height-footer" >
+      <a href="{{c.data.view_all_link}}" class="cas-btn cas-btn-sm cas-btn-link">View All</a>
+      <span style="float:right;">
+        <span ng-if="c.options.record_limit>=c.data.total_records">{{c.data.total_records}}</span>
+        <span ng-if="c.options.record_limit<c.data.total_records">{{c.options.record_limit}}</span>
+        of {{c.data.total_records}} deployments
+      </span>
+    </div>
+  </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>

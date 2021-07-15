@@ -1,0 +1,819 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($scope,$location) {
+	/* widget controller */
+	var c = this;
+	var deleteArr=[];
+
+	for(var keys in c.data.res_arr){
+		c.data.checkedAll = false;
+		c.data.res_arr[keys].checked= false;
+	}
+
+
+	$scope.activitySelected = function(link) {
+		$location.url(link)
+	}
+
+	$scope.$on("getPaginationDataEvent", function (evt, response) {
+		c.data.res_arr = response.itemsArray;
+		$scope.totalRecords = response.totalRecords;
+	});
+
+	$scope.filterSearch = function(passedSearch) {
+		var query = '';
+		if (passedSearch != '') {
+			query = 
+				'nameLIKE' + passedSearch + '^NQ' +
+				'descriptionLIKE' + passedSearch + '^NQ';
+
+		} 
+	//	console.log(query);
+
+		var passingObj={'query':query};
+		$scope.$broadcast('setPaginationDataEvent', passingObj)
+	}
+
+	$scope.setOrder = function (passedOrder) {
+		var passingObj = {};
+		passingObj = {orderBy : passedOrder.name, orderByAsc: passedOrder.ascending};
+		$scope.$broadcast('setPaginationDataEvent', passingObj);
+	}
+
+
+	$scope.deleteResource = function(){
+		deleteArr=[];
+
+		if(c.data.checkedAll === true){
+			for (var i = 0; i < c.data.res_arr.length; i++) {
+				deleteArr.push(c.data.res_arr[i].resourceId);
+			}
+		}else{
+			for(var key in c.data.res_arr){
+				if(c.data.res_arr[key].checked === true){
+					deleteArr.push(c.data.res_arr[key].resourceId);
+				}
+			}
+		}
+		if(deleteArr.length > 0){
+			c.data.deleteArray = deleteArr;
+			$('.action-modal, .action-modal-backdrop').show();	
+		}else{
+	//		console.log("Please select resource for delete ...");
+		} 
+
+	}
+
+	$scope.confirmUnshare = function(){
+		c.data.action = "delete";
+		c.server.update().then(function() {
+			$scope.$broadcast('setPaginationDataEvent', {'query':''})
+			c.data.action = '';
+			c.data.deleteArray = '';
+		})
+	}
+
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>
+.cas-clr-col-6 &gt; h2 {
+  margin-top: 0;
+  line-height: 1.475rem;
+}
+.fullwidth{
+  width:100%;
+}
+
+.header-tool-container {
+  display: flex;
+}
+.wdg-btn-link {
+  padding: 0;
+  margin: 0;
+  max-width: 30px;
+  min-width: 30px;
+  fill: #0078b8;
+  &amp;:hover  {
+    fill: #004d8a;
+  }
+}
+.cas-disabled {
+  fill: #565656;
+  cursor: not-allowed;
+  opacity: .4;
+  background-color: transparent;
+  border-color: transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  &amp;:hover {
+    fill: #565656;
+  }
+}
+.wdg-badge-count {
+  vertical-align: middle;
+}
+
+.cas-search {
+  width: calc(100% - 260px);
+}
+.infinite-container {
+  height: calc(100vh - 10rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.col-lg-3, .col-md-4, col-12 {
+  padding: 0px 12px;
+}
+span[shape="search"] {
+  margin: 3px;
+}
+span[shape="user"],
+span[shape="users"],
+span[shape="vm"],
+span[shape="vmw-app"] {
+  margin-right: 5px;
+  vertical-align: top;
+}
+/*span[shape="vmw-app"] {
+margin-right: 5px;
+vertical-align: top;
+}
+span[shape="user"] {
+margin-right: 5px;
+vertical-align: top;
+}*/
+span[shape="success-standard"], span[shape="close-circle"], span[shape="info-standard"] {
+  vertical-align: text-bottom;
+}
+
+.wdg-desc {
+  display: inline-block;
+  width: calc(100% - 45px);
+  a {
+    font-size: 16px;
+  }
+  div {
+    font-size: 12px;
+  }
+}
+
+.wdg-desc.wdg-empty {
+  color: #9a9a9a !important;
+}
+
+
+.wdg-value {
+  font-weight: 500;
+}
+input, textarea, select, .dropdown {
+  width: 100%;
+}
+
+.cas-dropdown .cas-dropdown-toggle.cas-btn {
+  padding-right: 0.5rem;
+}
+
+.cas-dropdown-item {
+  padding: .125rem 1rem;
+}
+.cas-dropdown-menu{
+  visibility: visible;
+}
+
+.wdg-action {
+  position: absolute;
+  right: 0;
+  top: 6px;
+}
+
+.margin-top-05 {
+  margin-top: .5rem;
+}
+
+/* CSS classes for rsGrid*/
+
+.cas-clr-checkbox-wrapper input[type=checkbox], .cas-clr-radio-wrapper input[type=radio] {
+  position: absolute;
+  opacity: 0;
+  top: 5px;
+  left: 0;
+  height: .66667rem;
+  width: .66667rem;
+}
+
+.cas-clr-checkbox-wrapper
+.cas-clr-control-label {
+  font-weight: 400;
+  display: block;
+}
+
+.cas-clr-checkbox-wrapper label, 
+.cas-clr-radio-wrapper label {
+  position: relative;
+  margin-bottom: 0;
+  display: inline-block;
+  color: #000;
+  min-height: 1rem;
+  padding-left: .916667rem;
+  margin-top: 0;
+  cursor: pointer;
+  line-height: 1rem;
+}
+
+.cas-clr-control-label {
+  display: block;
+  color: #444;
+  font-size: .541667rem;
+  font-weight: 600;
+  line-height: .75rem;
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::before {
+  position: absolute;
+  top: .1666665rem;
+  left: 0;
+  content: "";
+  display: inline-block;
+  height: .666667rem;
+  width: .666667rem;
+  border: 1px solid #9a9a9a;
+  border-radius: .125rem;
+}
+
+.cas-table thead th:first-child {
+  border-radius: calc(.125rem - 1px) 0 0 0;
+}
+th.left {
+  text-align: left;
+}
+.cas-table tbody tr:first-child td {
+  border-top: 0 none;
+}
+.cas-table td.left, .table th.left {
+  text-align: left;
+}
+.cas-table td {
+  font-size: .541667rem;
+  border-top: 1px solid #eee;
+  vertical-align: top;
+}
+.cas-table td, .table th {
+  line-height: .5833334rem;
+  padding: .4583333333rem .5rem;
+  text-align: center;
+}
+.cas-checkbox-container {
+  padding: 6px 0 6px 14px !important;
+}
+
+.cas-open{
+  display: none;
+}
+
+.cas-card-text {
+  font-size: .583333rem;
+}
+.cas-card-text .value {
+  font-weight: 500;
+}
+.cas-card-text .value-desc {
+  line-height: .75rem;
+  font-size: .5rem;
+}
+.cas-card-block &gt; button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+.cas-card .cas-card-block .cas-card-text {
+  margin-bottom: 0;
+}
+.desc a {
+  font-size: 16px;
+}
+.desc div {
+  font-size: 12px;
+}
+a.link-visited:link, a:visited {
+  color: #5659b9;
+  text-decoration: none;
+}
+
+a.link-normal:link, a:link {
+  color: #0079b8;
+  text-decoration: none;
+}
+
+.cas-clr-col-md-5, .cas-clr-col-md-6 {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 41.6666666667%;
+  flex: 0 0 41.6666666667%;
+  max-width: 41.6666666667%;
+}
+.cas-clr-col-md-2 {
+  -ms-flex: 0 0 16.6666666667%;
+  flex: 0 0 16.6666666667%;
+  max-width: 16.6666666667%;
+}
+
+.cas-btn-primary .cas-btn, .cas-btn.cas-btn-primary {
+  border-color: #007cbb;
+  background-color: #007cbb;
+  color: #fff;
+}
+.padding5{
+  padding-left: .28rem;
+}
+.cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::before {
+  background: #0079b8;
+  border: 0;
+}
+
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::before {
+  position: absolute;
+  top: .1666665rem;
+  left: 0;
+  content: "";
+  display: inline-block;
+  height: .666667rem;
+  width: .666667rem;
+  border: 1px solid #9a9a9a;
+  border-radius: .125rem;
+}
+.cas-clr-checkbox-wrapper input[type=checkbox]:checked+label::after {
+  display: inline-block;
+}
+.cas-clr-checkbox-wrapper input[type=checkbox]+label::after {
+  position: absolute;
+  content: "";
+  display: none;
+  height: .2083334167rem;
+  width: .3333335rem;
+  border-left: .083333375rem solid #fff;
+  border-bottom: .083333375rem solid #fff;
+  top: .1666665rem;
+  left: .16666675rem;
+  -webkit-transform: translate(0,.16666675rem) rotate(-45deg);
+  transform: translate(0,.16666675rem) rotate(-45deg);
+}
+tbody {
+  display:block;
+  height: calc(100vh - 287px);
+  overflow:auto;
+}
+thead, tbody tr {
+  display:table;
+  width:100%;
+  table-layout:fixed;/* even columns width , fix width of table too*/
+}
+tbody tr {
+  position: relative;
+}
+.table-foot {
+padding :0px !important;
+}
+.pagination-wrapper {
+  background-color: #fafafa;
+  padding: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 5px 25px 3px 0px;
+}
+.word-alignment{
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cas-dropdown {
+  display: flex;
+  justify-content: flex-end;
+}
+.wdg-dropdown {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 0px;
+  margin-bottom: -3px;
+      margin-right: 6px;
+}
+.dropdown-menu {
+  padding: .5rem 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: .125rem;
+  box-shadow: 0 1px 0.125rem rgba(115,115,115,.25);
+}
+.cas-dropdown-item {
+  a {
+    color: #575757;
+  }
+  padding: .125rem 1rem;
+  &amp;:hover {
+    background-color: #ededed;
+    color: #575757;
+    text-decoration: none;
+  }
+}
+
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>cas_sharedresourceslist</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CAS_sharedResourcesList</name>
+        <option_schema/>
+        <public>false</public>
+        <roles>x_vmw_cloudservice.vra_catalog_admin,x_vmw_cloudservice.vra_end_user</roles>
+        <script><![CDATA[(function() {
+	/* populate the 'data' object */
+	/* e.g., data.table = $sp.getValue('table'); */
+	var appUtil=new CASAppUtil();
+	var daoUtil=new CASDaoUtil();
+
+	var catalogAdmin = gs.getProperty(appUtil.configuration.properties.vraCatalogAdmin);
+	var urlOrder = $sp.getParameter('order') || ((urlTable == appUtil.configuration.table.approvals)? 10 : 6);
+	var urlPage = $sp.getParameter('id') || '';
+	var urlTable = $sp.getParameter('table') || appUtil.configuration.table.shared_resources;
+	var urlMyFlag = ($sp.getParameter('myFlag') != '' && $sp.getParameter('myFlag') != null && $sp.getParameter('myFlag')) ?  $sp.getParameter('myFlag') : true + '';
+
+	if (input) {
+		data.action = input.action;
+		data.res_arr=input.res_arr;
+		if(data.action == 'delete'){
+			data.deleteArray = input.deleteArray;
+			daoUtil.deleteSharedResource(data.deleteArray);
+			//
+		}
+	}
+
+	data.showFilter = (gs.getUser().hasRole('admin') || gs.getUser().hasRole(catalogAdmin));
+	data.link = {		
+		showMyFilterTrue: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + urlPage + '&table=' + urlTable + '&order=' + urlOrder + '&myFlag=true',
+		showMyFilterFalse: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + urlPage + '&table=' + urlTable + '&order=' + urlOrder + '&myFlag=false',
+		list: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+ appUtil.configuration.page.sharedResourcesList+'&order=' + urlOrder + '&myFlag=' + urlMyFlag,		
+		card: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id=' + appUtil.configuration.page.sharedResources + '&order=' + urlOrder + '&myFlag=' + urlMyFlag,		
+		baseUrl: '/'+gs.getProperty(appUtil.configuration.properties.portalPrefix)+'?id='+appUtil.configuration.page.sharedResourceForm+'&order=' + urlOrder + '&myFlag=' + urlMyFlag + '&sysId='				
+	}
+
+	data.res_arr=daoUtil.fetchSharedResources();
+	var paginationOptionSchema = {
+		windowSize: 10,
+		table:appUtil.configuration.table.shared_resources,
+		showMyFilter: urlMyFlag,
+		method: 'fetchSharedResources',
+		query: ''
+	}
+	data.widgetScript = $sp.getWidget('cas_pagination', paginationOptionSchema);
+
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>navdeep</sys_created_by>
+        <sys_created_on>2019-09-11 07:03:00</sys_created_on>
+        <sys_id>6c905c8adb333300ff7c2946489619ea</sys_id>
+        <sys_mod_count>168</sys_mod_count>
+        <sys_name>CAS_sharedResourcesList</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sp_widget_6c905c8adb333300ff7c2946489619ea</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-01-13 09:07:47</sys_updated_on>
+        <template><![CDATA[
+<div class="cas-content-area">
+  <div class="cas-clr-row">
+    <div class="cas-clr-col-6">
+      <h2>
+        <span id="activityHeader">Share Resources</span>
+        <span class="cas-label cas-label-info wdg-badge-count">{{c.data.res_arr.length}} Items</span>
+        <span id="filter" class="cas-label cas-label-light-blue wdg-badge-count" onclick="selectAll(this)"
+              style="display: none;">
+          <span></span>
+          <cas-clr-icons icon-name="close"> </cas-clr-icons>
+        </span>
+      </h2>
+    </div>
+    <div class="cas-clr-col-6 header-tool-container">
+      <div class="dropdown cas-dropdown">
+        <button ng-if="c.data.showFilter" class="dropdown-toggle cas-dropdown-toggle cas-btn cas-btn-link" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          View My Activities
+          <cas-clr-icon shape="angle" dir="down" color="#0077b7" size="12" role="none"></cas-clr-icon>
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+          <div class="cas-dropdown-item" ng-click="activitySelected(c.data.link.showMyFilterTrue)">
+            <a>View My Activities</a>
+          </div>
+          <div class="cas-dropdown-item" ng-click="activitySelected(c.data.link.showMyFilterFalse)">
+            <a>View All Activities</a>
+          </div>
+        </div>
+      </div>
+
+      <cas-clr-icon size="16" shape="search" color="#565656"></cas-clr-icon>
+      <input type="text" placeholder="Search" 
+             class="wdg-search cas-clr-input"
+             ng-model="c.data.filterText" 
+             ng-model-options="{ debounce: 500 }" 
+             ng-change="filterSearch(c.data.filterText)" />
+      <a class="wdg-btn-link cas-disabled padding5" href="{{c.data.link.list}}">
+        <cas-clr-icon shape="view-list" size="20" role="none"></cas-clr-icon>
+      </a>
+      <a class="wdg-btn-link cas-toggle-view padding5" href="{{c.data.link.card}}">
+        <cas-clr-icon shape="view-cards" size="20" role="none"></cas-clr-icon>
+      </a>
+
+    </div>
+  </div>
+  <div class="cas-clr-row data">
+    <div class="cas-clr-col-12 margin-top-05">
+      <div class="cas-btn-group cas-btn-outline-primary cas-btn-sm">
+        <a class="cas-btn" href="{{c.data.link.baseUrl}}">
+          <cas-clr-icon shape="plus" size="10" color="#0079b8"></cas-clr-icon>
+          New Share
+        </a>
+        <button ng-disabled="c.data.res_arr.length < 1" class="cas-btn" ng-click="deleteResource()">
+          <cas-clr-icon shape="close" size="10" color="#0079b8"></cas-clr-icon>
+          Unshare
+        </button>
+      </div>
+    </div>
+
+    <div class="cas-clr-col-12">
+      <table class="cas-table margin-top-05"  ng-hide="c.data.res_arr.length < 1"> 
+        <thead>
+          <tr>
+            <th class="left cas-checkbox-container" width="3%">
+              <div class="cas-clr-checkbox-wrapper">
+                <input id="check-all" type="checkbox" ng-model="c.data.checkedAll">
+                <label class="cas-clr-control-label" for="check-all"></label>
+              </div>
+            </th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'name', ascending : ascFlag});">Name</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'description', ascending : ascFlag});">Description</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'deployments', ascending : ascFlag});">Deployments</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'machines', ascending : ascFlag});">Machines</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'groups', ascending : ascFlag});">Groups</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'users', ascending : ascFlag});">Users</th>
+            <th class="left" ng-click="ascFlag = !ascFlag; setOrder({name: 'created_by', ascending : ascFlag});">Created By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="resource in c.data.res_arr track by $index">
+            <td class="cas-checkbox-container" width="3%">
+              <div class="cas-clr-checkbox-wrapper">
+                <input id="{{resource.resourceId}}" type="checkbox" ng-checked="c.data.checkedAll" ng-model="resource.checked">
+                <label class="cas-clr-control-label" for="{{resource.resourceId}}"></label>
+              </div>
+            </td>
+            <td class="left">
+              <a href="{{c.data.link.baseUrl}}{{resource.resourceId}}">{{resource.name}}</a>
+            </td>
+            <td class="left">{{resource.description}}</td>
+            <td class="left"><div ng-repeat="item in resource.deployment_name_arr track by $index" class="word-alignment"> {{item}}<span ng-if="resource.deployment_name_arr > 1">,</span></div></td>
+            <td class="left"><div ng-repeat="item in resource.machine_name_arr track by $index" class="word-alignment"> {{item}}<span ng-if="resource.machine_name_arr > 1">,</span></div></td>
+            <td class="left"><div ng-repeat="item in resource.groups_name_arr track by $index" class="word-alignment"> {{item}}<span ng-if="resource.groups_name_arr > 1">,</span></div></td>
+            <td class="left"><div ng-repeat="item in resource.users_name_arr track by $index" class="word-alignment"> {{item}}<span ng-if="resource.users_name_arr > 1">,</span></div></td>
+            <td class="left"><span>{{resource.created_by}}</span></td> 
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan=7 class="table-foot">
+              <div  class="pagination-wrapper">
+                <sp-widget widget="c.data.widgetScript"></sp-widget>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-----------------modal--------------------------->
+  <div class="cas-modal action-modal" style="display: none">
+    <div class="cas-modal-dialog" role="dialog" aria-hidden="true">
+      <div class="cas-modal-content">
+        <div class="cas-modal-header">
+          <button aria-label="Close" class="cas-close" type="button" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">
+            <cas-clr-icon aria-hidden="true" shape="close" color="#565656" size="25" role="none"></cas-clr-icon>
+          </button>
+          <h3 class="cas-modal-title">Unshare</h3>
+        </div>
+        <div class="cas-modal-body">
+          <div>
+            <form class="cas-clr-form cas-clr-form-horizontal">
+              <div class="cas-clr-form-control cas-no-margin">
+                <label class="cas-clr-control-message">Are you sure to unshare the resource ?</label>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="cas-modal-footer">
+          <button class="cas-btn cas-btn-outline" type="button" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">Cancel</button>
+          <button class="cas-btn cas-btn-primary" type="button" ng-click="confirmUnshare()" onclick="$('.cas-modal, .cas-modal-backdrop').hide()">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cas-modal-backdrop action-modal-backdrop" aria-hidden="true" style="display: none;"></div>
+  <!-----------------modal ends here----------------->
+  <!-- DO NOT DELETE
+<div class="cas-content-area">
+<div class="cas-clr-row">
+<div class="cas-clr-col-6">
+<h2>
+<span id="activityHeader">New Share</span>
+<a href="/page/activities?menu=2" class="cas-btn cas-btn-link cas-btn-sm">Delete</a>
+</h2>
+</div>
+</div>
+<div class="cas-clr-row">
+<div class="cas-clr-col-12">
+<form class="cas-clr-form cas-clr-form-horizontal">
+<div class="cas-clr-form-control">
+<label for="example1" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Name</label>
+<div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5">
+<div class="cas-clr-input-wrapper">
+<input type="text" id="example1" placeholder="Name" class="cas-clr-input">
+</div>
+</div>
+</div>
+<div class="cas-clr-form-control">
+<label for="example2" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Description</label>
+<div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5">
+<div class="cas-clr-textarea-wrapper">
+<textarea class="cas-clr-textarea" placeholder="Description" id="example2"></textarea>
+</div>
+</div>
+</div>
+<div class="cas-clr-form-control">
+<label for="example3" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Deployments</label>
+<div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5">
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="vmw-app" role="none" size="12"></cas-clr-icon>
+<span>Deployment 1</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="vmw-app" role="none" size="12"></cas-clr-icon>
+<span>Deployment 2</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+
+<div class="cas-dropdown fullwidth">
+<div class="cas-clr-input-wrapper">
+<input type="text" id="example3"
+onfocus="$(this).parent().parent().addClass('open')"
+onblur="setTimeout(() => $(this).parent().parent().removeClass('open'), 200)"
+placeholder="Search deployments" class="cas-clr-input">
+</div>
+<div class="dropdown-menu">
+<div class="cas-dropdown-item" onclick="addItem(this)">Deployment 1</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Deployment 2</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Deployment 3</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Deployment 4</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Deployment 5</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cas-clr-form-control">
+<label for="example4" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Machines</label>
+<div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5">
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="vm" role="none" size="12"></cas-clr-icon>
+<span>Machine 1</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="vm" role="none" size="12"></cas-clr-icon>
+<span>Machine 2</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="vm" role="none" size="12"></cas-clr-icon>
+<span>Machine 3</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+
+<div class="cas-dropdown fullwidth">
+<div class="cas-clr-input-wrapper">
+<input type="text" id="example4"
+onfocus="$(this).parent().parent().addClass('open')"
+onblur="setTimeout(() => $(this).parent().parent().removeClass('open'), 200)"
+placeholder="Search machines" class="cas-clr-input">
+</div>
+<div class="dropdown-menu">
+<div class="cas-dropdown-item" onclick="addItem(this)">All Machines (Deployment 1)</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Machine 1 (Deployment 1)</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Machine 2 (Deployment 1)</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">All Machines (Deployment 2)</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Machine 3 (Deployment 2)</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Machine 4 (Deployment 2)</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">All Machines (Deployment 3)</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Machine 5 (Deployment 3)</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cas-clr-form-control">
+<label for="example5" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Share with
+groups</label>
+<div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5">
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="users" role="none" size="12"></cas-clr-icon>
+<span>Group 1</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="users" role="none" size="12"></cas-clr-icon>
+<span>Group 2</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="users" role="none" size="12"></cas-clr-icon>
+<span>Group 3</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+
+<div class="cas-dropdown fullwidth">
+<div class="cas-clr-input-wrapper">
+<input type="text" id="example5"
+onfocus="$(this).parent().parent().addClass('open')"
+onblur="setTimeout(() => $(this).parent().parent().removeClass('open'), 200)"
+placeholder="Search groups" class="cas-clr-input">
+</div>
+<div class="dropdown-menu">
+<div class="cas-dropdown-item" onclick="addItem(this)">Group 1</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Group 2</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Group 3</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Group 4</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">Group 5</div>
+</div>
+</div>
+</div>
+</div>
+<div class="cas-clr-form-control">
+<label for="example6" class="cas-clr-control-label cas-clr-col-12 cas-clr-col-md-2">Share with users</label>
+<div class="cas-clr-control-container cas-clr-col-12 cas-clr-col-md-5">
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="user" role="none" size="12"></cas-clr-icon>
+<span>User 1</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+<span class="cas-label cas-label-light-blue" onclick="$(this).hide()">
+<cas-clr-icon shape="user" role="none" size="12"></cas-clr-icon>
+<span>User 2</span>
+<cas-clr-icon style="cursor: pointer" shape="close" size="16" role="none"></cas-clr-icon>
+</span>
+
+<div class="cas-dropdown fullwidth">
+<div class="cas-clr-input-wrapper">
+<input type="text" id="example6"
+onfocus="$(this).parent().parent().addClass('open')"
+onblur="setTimeout(() => $(this).parent().parent().removeClass('open'), 200)"
+placeholder="Search users" class="cas-clr-input">
+</div>
+<div class="dropdown-menu">
+<div class="cas-dropdown-item" onclick="addItem(this)">User 1</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">User 2</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">User 3</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">User 4</div>
+<div class="cas-dropdown-item" onclick="addItem(this)">User 5</div>
+</div>
+</div>
+</div>
+</div>
+</form>
+</div>
+</div>
+<div class="cas-clr-row bottom">
+<div class="cas-clr-col">
+<a href="/page/activities?menu=2" class="cas-btn cas-btn-primary">Create</a>
+<a href="/page/activities?menu=2" class="cas-btn cas-btn-outline">Cancel</a>
+</div>
+</div>
+</div>
+-->
+
+
+
+</div>
+<script>
+  function SRLtoggleAction () {
+    var el = document.getElementById('activities-dropdown');
+    el.classList.toggle("cas-open");
+  }
+</script>]]></template>
+    </sp_widget>
+</record_update>

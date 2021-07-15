@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sysevent_register">
+    <sysevent_register action="INSERT_OR_UPDATE">
+        <caller_access/>
+        <description/>
+        <event_name>x_vmw_cloudservice.request_rejected</event_name>
+        <fired_by>Business Rule</fired_by>
+        <queue/>
+        <suffix>request_rejected</suffix>
+        <sys_class_name>sysevent_register</sys_class_name>
+        <sys_created_by>ayush.aman</sys_created_by>
+        <sys_created_on>2020-01-09 10:27:30</sys_created_on>
+        <sys_id>53ed7e60db160010e2d4c4ab0b961947</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>x_vmw_cloudservice.request_rejected</sys_name>
+        <sys_package display_value="VMware vRealize Automation ITSM Application 8.3" source="x_vmw_cloudservice">0d6a0ec1db11bb407c83712ebf96194d</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="VMware vRealize Automation ITSM Application 8.3">0d6a0ec1db11bb407c83712ebf96194d</sys_scope>
+        <sys_update_name>sysevent_register_53ed7e60db160010e2d4c4ab0b961947</sys_update_name>
+        <sys_updated_by>ayush.aman</sys_updated_by>
+        <sys_updated_on>2020-01-09 10:27:30</sys_updated_on>
+        <table>sysapproval_approver</table>
+    </sysevent_register>
+</record_update>
